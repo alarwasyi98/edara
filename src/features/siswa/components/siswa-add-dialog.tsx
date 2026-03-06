@@ -17,9 +17,10 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSiswa } from './siswa-provider'
 
 export function SiswaAddDialog() {
-    const { open, setOpen } = useSiswa()
+    const { open, setOpen, currentRow } = useSiswa()
     const [loading, setLoading] = useState(false)
     const [activeTab, setActiveTab] = useState('pribadi')
+    const isEdit = open === 'edit'
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -27,7 +28,7 @@ export function SiswaAddDialog() {
 
         // Mock API call
         setTimeout(() => {
-            toast.success('Data siswa baru berhasil ditambahkan!')
+            toast.success(isEdit ? 'Data siswa berhasil diperbarui!' : 'Data siswa baru berhasil ditambahkan!')
             setLoading(false)
             setOpen(null)
             setActiveTab('pribadi')
@@ -40,13 +41,13 @@ export function SiswaAddDialog() {
     }
 
     return (
-        <Dialog open={open === 'add'} onOpenChange={handleClose}>
-            <DialogContent className="max-h-[90vh] max-w-4xl flex flex-col p-0 gap-0">
-                <form onSubmit={handleSubmit} className="flex flex-col h-full max-h-[90vh]">
+        <Dialog open={open === 'add' || open === 'edit'} onOpenChange={handleClose}>
+            <DialogContent className="max-w-none w-screen h-[100dvh] m-0 p-0 rounded-none border-none flex flex-col sm:max-w-none sm:rounded-none">
+                <form key={isEdit ? currentRow?.id : 'new'} onSubmit={handleSubmit} className="flex flex-col h-full">
                     <DialogHeader className="px-6 py-4 border-b shrink-0">
-                        <DialogTitle>Tambah Data Siswa</DialogTitle>
+                        <DialogTitle>{isEdit ? 'Edit Data Siswa' : 'Tambah Data Siswa'}</DialogTitle>
                         <DialogDescription>
-                            Isi formulir berikut untuk menambahkan data peserta didik baru. Field dengan tanda (*) wajib diisi.
+                            Isi formulir berikut untuk {isEdit ? 'mengedit' : 'menambahkan'} data peserta didik. Field dengan tanda (*) wajib diisi.
                         </DialogDescription>
                     </DialogHeader>
 
@@ -79,33 +80,33 @@ export function SiswaAddDialog() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="nis">NIS <span className="text-red-500">*</span></Label>
-                                            <Input id="nis" required placeholder="Ex: 202501001" />
+                                            <Input id="nis" required placeholder="Ex: 202501001" defaultValue={isEdit ? currentRow?.nis : ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="nisn">NISN <span className="text-red-500">*</span></Label>
-                                            <Input id="nisn" required placeholder="Ex: 0101234567" />
+                                            <Input id="nisn" required placeholder="Ex: 0101234567" defaultValue={isEdit ? currentRow?.nisn : ''} />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="nikSiswa">NIK Siswa <span className="text-red-500">*</span></Label>
-                                            <Input id="nikSiswa" required placeholder="16 digit NIK" />
+                                            <Input id="nikSiswa" required placeholder="16 digit NIK" defaultValue={isEdit ? currentRow?.nikSiswa : ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="nomorKK">Nomor Kartu Keluarga <span className="text-red-500">*</span></Label>
-                                            <Input id="nomorKK" required placeholder="16 digit No. KK" />
+                                            <Input id="nomorKK" required placeholder="16 digit No. KK" defaultValue={isEdit ? currentRow?.nomorKK : ''} />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="namaLengkap">Nama Lengkap <span className="text-red-500">*</span></Label>
-                                            <Input id="namaLengkap" required placeholder="Nama lengkap sesuai ijazah/akta" />
+                                            <Input id="namaLengkap" required placeholder="Nama lengkap sesuai ijazah/akta" defaultValue={isEdit ? currentRow?.namaLengkap : ''} />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="jenisKelamin">Jenis Kelamin <span className="text-red-500">*</span></Label>
-                                            <Select required>
+                                            <Select required defaultValue={isEdit ? currentRow?.jenisKelamin : undefined}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Pilih..." />
                                                 </SelectTrigger>
@@ -117,11 +118,11 @@ export function SiswaAddDialog() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="tempatLahir">Tempat Lahir <span className="text-red-500">*</span></Label>
-                                            <Input id="tempatLahir" required placeholder="Kab/Kota" />
+                                            <Input id="tempatLahir" required placeholder="Kab/Kota" defaultValue={isEdit ? currentRow?.tempatLahir : ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="tanggalLahir">Tanggal Lahir <span className="text-red-500">*</span></Label>
-                                            <Input id="tanggalLahir" type="date" required />
+                                            <Input id="tanggalLahir" type="date" required defaultValue={isEdit && currentRow?.tanggalLahir ? new Date(currentRow.tanggalLahir).toISOString().split('T')[0] : ''} />
                                         </div>
                                     </div>
                                 </TabsContent>
@@ -130,45 +131,45 @@ export function SiswaAddDialog() {
                                 <TabsContent value="alamat" className="space-y-4 m-0 mt-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="alamat">Alamat Lengkap (Jalan/Dusun) <span className="text-red-500">*</span></Label>
-                                        <Input id="alamat" required placeholder="Contoh: Jl. Merdeka No. 10" />
+                                        <Input id="alamat" required placeholder="Contoh: Jl. Merdeka No. 10" defaultValue={isEdit ? currentRow?.alamat : ''} />
                                     </div>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="rt">RT <span className="text-red-500">*</span></Label>
-                                            <Input id="rt" required placeholder="001" />
+                                            <Input id="rt" required placeholder="001" defaultValue={isEdit ? currentRow?.rt : ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="rw">RW <span className="text-red-500">*</span></Label>
-                                            <Input id="rw" required placeholder="002" />
+                                            <Input id="rw" required placeholder="002" defaultValue={isEdit ? currentRow?.rw : ''} />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="kelurahan">Desa/Kelurahan <span className="text-red-500">*</span></Label>
-                                            <Input id="kelurahan" required placeholder="Nama Desa/Kelurahan" />
+                                            <Input id="kelurahan" required placeholder="Nama Desa/Kelurahan" defaultValue={isEdit ? currentRow?.kelurahan : ''} />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="kecamatan">Kecamatan <span className="text-red-500">*</span></Label>
-                                            <Input id="kecamatan" required placeholder="Kecamatan" />
+                                            <Input id="kecamatan" required placeholder="Kecamatan" defaultValue={isEdit ? currentRow?.kecamatan : ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="kabKota">Kabupaten/Kota <span className="text-red-500">*</span></Label>
-                                            <Input id="kabKota" required placeholder="Kabupaten/Kota" />
+                                            <Input id="kabKota" required placeholder="Kabupaten/Kota" defaultValue={isEdit ? currentRow?.kabKota : ''} />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="provinsi">Provinsi <span className="text-red-500">*</span></Label>
-                                            <Input id="provinsi" required placeholder="Provinsi" />
+                                            <Input id="provinsi" required placeholder="Provinsi" defaultValue={isEdit ? currentRow?.provinsi : ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="kodePos">Kode Pos</Label>
-                                            <Input id="kodePos" placeholder="Cth: 12345" />
+                                            <Input id="kodePos" placeholder="Cth: 12345" defaultValue={isEdit ? currentRow?.kodePos : ''} />
                                         </div>
                                     </div>
                                     <div className="pt-4 border-t space-y-2">
                                         <Label htmlFor="nomorHp">Nomor HP / WhatsApp (Aktif) <span className="text-red-500">*</span></Label>
-                                        <Input id="nomorHp" required placeholder="08123456789" />
+                                        <Input id="nomorHp" required placeholder="08123456789" defaultValue={isEdit ? currentRow?.nomorHp : ''} />
                                     </div>
                                 </TabsContent>
 
@@ -179,15 +180,15 @@ export function SiswaAddDialog() {
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="namaAyah">Nama Ayah</Label>
-                                                <Input id="namaAyah" placeholder="Nama lengkap ayah" />
+                                                <Input id="namaAyah" placeholder="Nama lengkap ayah" defaultValue={isEdit ? currentRow?.namaAyahKandung : ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="nikAyah">NIK Ayah</Label>
-                                                <Input id="nikAyah" placeholder="16 digit NIK" />
+                                                <Input id="nikAyah" placeholder="16 digit NIK" defaultValue={isEdit ? currentRow?.nikAyah : ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pekerjaanAyah">Pekerjaan</Label>
-                                                <Input id="pekerjaanAyah" placeholder="Pekerjaan ayah" />
+                                                <Input id="pekerjaanAyah" placeholder="Pekerjaan ayah" defaultValue={isEdit ? currentRow?.pekerjaanAyah : ''} />
                                             </div>
                                         </div>
                                     </div>
@@ -197,15 +198,15 @@ export function SiswaAddDialog() {
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="namaIbu">Nama Ibu <span className="text-red-500">*</span></Label>
-                                                <Input id="namaIbu" required placeholder="Nama lengkap ibu (wajib)" />
+                                                <Input id="namaIbu" required placeholder="Nama lengkap ibu (wajib)" defaultValue={isEdit ? currentRow?.namaIbuKandung : ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="nikIbu">NIK Ibu</Label>
-                                                <Input id="nikIbu" placeholder="16 digit NIK" />
+                                                <Input id="nikIbu" placeholder="16 digit NIK" defaultValue={isEdit ? currentRow?.nikIbu : ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pekerjaanIbu">Pekerjaan</Label>
-                                                <Input id="pekerjaanIbu" placeholder="Pekerjaan ibu" />
+                                                <Input id="pekerjaanIbu" placeholder="Pekerjaan ibu" defaultValue={isEdit ? currentRow?.pekerjaanIbu : ''} />
                                             </div>
                                         </div>
                                     </div>
@@ -215,19 +216,19 @@ export function SiswaAddDialog() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="namaWali">Nama Wali</Label>
-                                                <Input id="namaWali" placeholder="Nama lengkap wali" />
+                                                <Input id="namaWali" placeholder="Nama lengkap wali" defaultValue={isEdit ? currentRow?.namaWali : ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="nikWali">NIK Wali</Label>
-                                                <Input id="nikWali" placeholder="16 digit NIK" />
+                                                <Input id="nikWali" placeholder="16 digit NIK" defaultValue={isEdit ? currentRow?.nikWali : ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pekerjaanWali">Pekerjaan</Label>
-                                                <Input id="pekerjaanWali" placeholder="Pekerjaan wali" />
+                                                <Input id="pekerjaanWali" placeholder="Pekerjaan wali" defaultValue={isEdit ? currentRow?.pekerjaanWali : ''} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="teleponWali">Nomor HP Wali</Label>
-                                                <Input id="teleponWali" placeholder="08..." />
+                                                <Input id="teleponWali" placeholder="08..." defaultValue={isEdit ? currentRow?.teleponWali : ''} />
                                             </div>
                                         </div>
                                     </div>
@@ -237,12 +238,22 @@ export function SiswaAddDialog() {
                                 <TabsContent value="akademik" className="space-y-4 m-0 mt-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
+                                            <Label htmlFor="asalSekolah">Sekolah Asal</Label>
+                                            <Input id="asalSekolah" placeholder="Nama sekolah asal" defaultValue={isEdit ? (currentRow as any)?.asalSekolah : ''} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="npsnAsalSekolah">NPSN Sekolah Asal</Label>
+                                            <Input id="npsnAsalSekolah" placeholder="NPSN sekolah asal" defaultValue={isEdit ? (currentRow as any)?.npsnAsalSekolah : ''} />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
                                             <Label htmlFor="tahunMasuk">Tahun Masuk <span className="text-red-500">*</span></Label>
-                                            <Input id="tahunMasuk" required placeholder="Cth: 2025" />
+                                            <Input id="tahunMasuk" required placeholder="Cth: 2025" defaultValue={isEdit ? currentRow?.tahunMasuk : ''} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="kelas">Kelas Awal <span className="text-red-500">*</span></Label>
-                                            <Select required>
+                                            <Select required defaultValue={isEdit ? currentRow?.kelas : undefined}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Pilih Kelas..." />
                                                 </SelectTrigger>
@@ -259,13 +270,15 @@ export function SiswaAddDialog() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="status">Status Aktif <span className="text-red-500">*</span></Label>
-                                            <Select defaultValue="active" required>
+                                            <Select defaultValue={isEdit && currentRow?.status ? currentRow.status : "active"} required>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Pilih Status..." />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="active">Aktif</SelectItem>
                                                     <SelectItem value="inactive">Nonaktif</SelectItem>
+                                                    <SelectItem value="graduated">Lulus</SelectItem>
+                                                    <SelectItem value="transferred">Pindah</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>

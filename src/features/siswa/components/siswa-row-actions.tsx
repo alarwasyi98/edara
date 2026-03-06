@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
+
 import { Link } from '@tanstack/react-router'
-import { Eye, MoreHorizontal, Trash2 } from 'lucide-react'
+import { Eye, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -39,6 +39,13 @@ export function SiswaRowActions({ row }: SiswaRowActionsProps) {
                         <Eye className='mr-2 h-4 w-4' />
                         Lihat Detail
                     </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('edit')
+                }}>
+                    <Pencil className='mr-2 h-4 w-4' />
+                    Edit Siswa
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
