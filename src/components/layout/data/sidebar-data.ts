@@ -101,6 +101,10 @@ export const sidebarData: SidebarData = {
               title: 'Jenis Bayar',
               url: '/spp/jenis-bayar',
             },
+            {
+              title: 'Diskon & Subsidi',
+              url: '/spp/diskon',
+            },
           ],
         },
         {

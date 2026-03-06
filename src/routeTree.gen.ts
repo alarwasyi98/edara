@@ -39,6 +39,7 @@ import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/c
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
 import { Route as AuthenticatedSppJenisBayarRouteImport } from './routes/_authenticated/spp/jenis-bayar'
+import { Route as AuthenticatedSppDiskonRouteImport } from './routes/_authenticated/spp/diskon'
 import { Route as AuthenticatedSppStudentIdRouteImport } from './routes/_authenticated/spp/$studentId'
 import { Route as AuthenticatedSiswaIdRouteImport } from './routes/_authenticated/siswa/$id'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
@@ -201,6 +202,11 @@ const AuthenticatedSppJenisBayarRoute =
     path: '/spp/jenis-bayar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSppDiskonRoute = AuthenticatedSppDiskonRouteImport.update({
+  id: '/spp/diskon',
+  path: '/spp/diskon',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSppStudentIdRoute =
   AuthenticatedSppStudentIdRouteImport.update({
     id: '/spp/$studentId',
@@ -262,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/siswa/$id': typeof AuthenticatedSiswaIdRoute
   '/spp/$studentId': typeof AuthenticatedSppStudentIdRoute
+  '/spp/diskon': typeof AuthenticatedSppDiskonRoute
   '/spp/jenis-bayar': typeof AuthenticatedSppJenisBayarRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -297,6 +304,7 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/siswa/$id': typeof AuthenticatedSiswaIdRoute
   '/spp/$studentId': typeof AuthenticatedSppStudentIdRoute
+  '/spp/diskon': typeof AuthenticatedSppDiskonRoute
   '/spp/jenis-bayar': typeof AuthenticatedSppJenisBayarRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -337,6 +345,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/siswa/$id': typeof AuthenticatedSiswaIdRoute
   '/_authenticated/spp/$studentId': typeof AuthenticatedSppStudentIdRoute
+  '/_authenticated/spp/diskon': typeof AuthenticatedSppDiskonRoute
   '/_authenticated/spp/jenis-bayar': typeof AuthenticatedSppJenisBayarRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
@@ -375,6 +384,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/siswa/$id'
     | '/spp/$studentId'
+    | '/spp/diskon'
     | '/spp/jenis-bayar'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -410,6 +420,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/siswa/$id'
     | '/spp/$studentId'
+    | '/spp/diskon'
     | '/spp/jenis-bayar'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/appearance'
     | '/_authenticated/siswa/$id'
     | '/_authenticated/spp/$studentId'
+    | '/_authenticated/spp/diskon'
     | '/_authenticated/spp/jenis-bayar'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
@@ -692,6 +704,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSppJenisBayarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/spp/diskon': {
+      id: '/_authenticated/spp/diskon'
+      path: '/spp/diskon'
+      fullPath: '/spp/diskon'
+      preLoaderRoute: typeof AuthenticatedSppDiskonRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/spp/$studentId': {
       id: '/_authenticated/spp/$studentId'
       path: '/spp/$studentId'
@@ -770,6 +789,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPpdbIdRoute: typeof AuthenticatedPpdbIdRoute
   AuthenticatedSiswaIdRoute: typeof AuthenticatedSiswaIdRoute
   AuthenticatedSppStudentIdRoute: typeof AuthenticatedSppStudentIdRoute
+  AuthenticatedSppDiskonRoute: typeof AuthenticatedSppDiskonRoute
   AuthenticatedSppJenisBayarRoute: typeof AuthenticatedSppJenisBayarRoute
   AuthenticatedGuruIndexRoute: typeof AuthenticatedGuruIndexRoute
   AuthenticatedKalenderIndexRoute: typeof AuthenticatedKalenderIndexRoute
@@ -790,6 +810,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPpdbIdRoute: AuthenticatedPpdbIdRoute,
   AuthenticatedSiswaIdRoute: AuthenticatedSiswaIdRoute,
   AuthenticatedSppStudentIdRoute: AuthenticatedSppStudentIdRoute,
+  AuthenticatedSppDiskonRoute: AuthenticatedSppDiskonRoute,
   AuthenticatedSppJenisBayarRoute: AuthenticatedSppJenisBayarRoute,
   AuthenticatedGuruIndexRoute: AuthenticatedGuruIndexRoute,
   AuthenticatedKalenderIndexRoute: AuthenticatedKalenderIndexRoute,
