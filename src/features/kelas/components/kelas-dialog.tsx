@@ -18,6 +18,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { teachers } from '@/features/guru/data/teachers'
 
 type Kelas = {
     id: string
@@ -130,12 +131,23 @@ export function KelasDialog({
 
                     <div className='space-y-1.5'>
                         <Label htmlFor='kelas-wali'>Wali Kelas</Label>
-                        <Input
-                            id='kelas-wali'
-                            placeholder='Nama wali kelas'
+                        <Select
                             value={waliKelas}
-                            onChange={(e) => setWaliKelas(e.target.value)}
-                        />
+                            onValueChange={setWaliKelas}
+                        >
+                            <SelectTrigger id='kelas-wali'>
+                                <SelectValue placeholder='Pilih wali kelas...' />
+                            </SelectTrigger>
+                            <SelectContent className='max-h-64'>
+                                {teachers
+                                    .filter((t) => t.status === 'active')
+                                    .map((t) => (
+                                        <SelectItem key={t.id} value={t.namaLengkap}>
+                                            {t.namaLengkap}
+                                        </SelectItem>
+                                    ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className='space-y-1.5'>

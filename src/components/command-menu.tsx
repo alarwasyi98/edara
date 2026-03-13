@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { ArrowRight, ChevronRight, Laptop, Moon, Sun } from 'lucide-react'
+import { ArrowRight, ChevronRight, Laptop, Moon, Sun, UserPlus, GraduationCap, CreditCard, ReceiptText } from 'lucide-react'
 import { useSearch } from '@/context/search-provider'
 import { useTheme } from '@/context/theme-provider'
 import {
@@ -70,6 +70,37 @@ export function CommandMenu() {
               })}
             </CommandGroup>
           ))}
+          <CommandSeparator />
+          <CommandGroup heading='Aksi Cepat'>
+            <CommandItem
+              value='tambah-siswa'
+              onSelect={() => runCommand(() => navigate({ to: '/siswa' }))}
+            >
+              <UserPlus className='mr-2 h-4 w-4' />
+              Tambah Siswa
+            </CommandItem>
+            <CommandItem
+              value='tambah-guru'
+              onSelect={() => runCommand(() => navigate({ to: '/guru' }))}
+            >
+              <GraduationCap className='mr-2 h-4 w-4' />
+              Tambah Guru
+            </CommandItem>
+            <CommandItem
+              value='tambah-pembayaran'
+              onSelect={() => runCommand(() => navigate({ to: '/spp' }))}
+            >
+              <CreditCard className='mr-2 h-4 w-4' />
+              Tambah Pembayaran
+            </CommandItem>
+            <CommandItem
+              value='catat-transaksi'
+              onSelect={() => runCommand(() => navigate({ to: '/spp' }))}
+            >
+              <ReceiptText className='mr-2 h-4 w-4' />
+              Catat Transaksi
+            </CommandItem>
+          </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading='Theme'>
             <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>

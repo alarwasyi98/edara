@@ -12,8 +12,8 @@ export function GuruActionButtons() {
             <Button variant='outline' className='gap-1.5' onClick={() => setOpen('export')}>
                 <Download size={16} /> Eksport
             </Button>
-            <Button className='gap-1.5' onClick={() => setOpen('delete')}>
-                <UserPlus size={16} /> Tambah
+            <Button className='gap-1.5' onClick={() => setOpen('add')}>
+                <UserPlus size={16} /> Tambah Guru
             </Button>
         </div>
     )

@@ -1,4 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { format } from 'date-fns'
+import { id as idLocale } from 'date-fns/locale'
+import { type DateRange } from 'react-day-picker'
 import {
     type ColumnDef,
     flexRender,
@@ -14,9 +17,12 @@ import {
     MoreHorizontal,
     Eye,
     Printer,
+    CalendarIcon,
+    X,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     DropdownMenu,
@@ -24,6 +30,18 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import {
     Table,
     TableBody,
@@ -194,8 +212,41 @@ export function TabKeuangan({ studentId }: TabKeuanganProps) {
     )
     const summary = useMemo(() => getFinanceSummary(records), [records])
 
+    // ── Filters ─────────────────────────────────
+    const [dateRange, setDateRange] = useState<DateRange | undefined>()
+    const [filterJenis, setFilterJenis] = useState<string>('all')
+    const [calendarOpen, setCalendarOpen] = useState(false)
+
+    // Unique jenis values for the dropdown
+    const jenisOptions = useMemo(() => {
+        const set = new Set(records.map((r) => r.jenis))
+        return Array.from(set).sort()
+    }, [records])
+
+    // Apply filters
+    const filtered = useMemo(() => {
+        return records.filter((r) => {
+            // Filter by jenis
+            if (filterJenis !== 'all' && r.jenis !== filterJenis) return false
+
+            // Filter by date range (tanggalBayar)
+            if (dateRange?.from || dateRange?.to) {
+                if (!r.tanggalBayar) return false
+                const d = new Date(r.tanggalBayar)
+                if (dateRange.from && d < dateRange.from) return false
+                if (dateRange.to) {
+                    const toEnd = new Date(dateRange.to)
+                    toEnd.setHours(23, 59, 59, 999)
+                    if (d > toEnd) return false
+                }
+            }
+
+            return true
+        })
+    }, [records, dateRange, filterJenis])
+
     const table = useReactTable({
-        data: records,
+        data: filtered,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -204,6 +255,15 @@ export function TabKeuangan({ studentId }: TabKeuanganProps) {
             pagination: { pageSize: 12 },
         },
     })
+
+    const hasActiveFilter =
+        (dateRange?.from !== undefined || dateRange?.to !== undefined) ||
+        filterJenis !== 'all'
+
+    const clearFilters = () => {
+        setDateRange(undefined)
+        setFilterJenis('all')
+    }
 
     return (
         <div className='space-y-4'>
@@ -273,6 +333,79 @@ export function TabKeuangan({ studentId }: TabKeuanganProps) {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
+                    {/* ── Filter Row ── */}
+                    <div className='mb-4 flex flex-wrap items-center gap-2'>
+                        {/* Date Range Picker */}
+                        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant='outline'
+                                    size='sm'
+                                    className={cn(
+                                        'h-8 gap-1.5 text-xs',
+                                        (dateRange?.from || dateRange?.to) && 'bg-accent'
+                                    )}
+                                >
+                                    <CalendarIcon className='h-3.5 w-3.5' />
+                                    {dateRange?.from ? (
+                                        dateRange.to ? (
+                                            <>
+                                                {format(dateRange.from, 'd MMM yyyy', { locale: idLocale })} –{' '}
+                                                {format(dateRange.to, 'd MMM yyyy', { locale: idLocale })}
+                                            </>
+                                        ) : (
+                                            format(dateRange.from, 'd MMM yyyy', { locale: idLocale })
+                                        )
+                                    ) : (
+                                        'Rentang Tanggal'
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className='w-auto p-0' align='start'>
+                                <Calendar
+                                    mode='range'
+                                    selected={dateRange}
+                                    onSelect={(range) => {
+                                        setDateRange(range)
+                                        if (range?.from && range?.to) setCalendarOpen(false)
+                                    }}
+                                    numberOfMonths={2}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+
+                        {/* Jenis Filter */}
+                        <Select value={filterJenis} onValueChange={setFilterJenis}>
+                            <SelectTrigger className='h-8 w-[160px] text-xs'>
+                                <SelectValue placeholder='Semua Jenis' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='all'>Semua Jenis</SelectItem>
+                                {jenisOptions.map((j) => (
+                                    <SelectItem key={j} value={j}>{j}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {/* Clear filters */}
+                        {hasActiveFilter && (
+                            <Button
+                                variant='ghost'
+                                size='sm'
+                                className='h-8 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground'
+                                onClick={clearFilters}
+                            >
+                                <X className='h-3.5 w-3.5' />
+                                Reset Filter
+                            </Button>
+                        )}
+
+                        <span className='ml-auto text-xs text-muted-foreground'>
+                            {filtered.length} dari {records.length} transaksi
+                        </span>
+                    </div>
+
                     <div className='rounded-md border'>
                         <Table>
                             <TableHeader>

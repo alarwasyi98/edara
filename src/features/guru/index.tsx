@@ -10,6 +10,7 @@ import { GuruTable } from './components/guru-table'
 import { GuruProvider } from './components/guru-provider'
 import { GuruActionButtons } from './components/guru-action-buttons'
 import { GuruImportDialog, GuruExportDialog } from './components/guru-dialogs'
+import { GuruAddDialog } from './components/guru-add-dialog'
 import { teachers } from './data/teachers'
 
 const route = getRouteApi('/_authenticated/guru/')
@@ -39,6 +40,7 @@ export function DataGuru() {
                 <GuruTable data={teachers} search={search} navigate={navigate} />
             </Main>
 
+            <GuruAddDialog />
             <GuruImportDialog />
             <GuruExportDialog />
         </GuruProvider>

@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { format } from 'date-fns'
+import { id as idLocale } from 'date-fns/locale'
 import {
     Dialog,
     DialogContent,
@@ -8,7 +10,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
     Select,
@@ -17,6 +18,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Calendar } from '@/components/ui/calendar'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover'
+import { CalendarIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 type TahunAjaranItem = {
@@ -39,6 +49,13 @@ interface TahunAjaranDialogProps {
     onSave: (data: Omit<TahunAjaranItem, 'id'>) => void
 }
 
+// Helper to parse date string "15 Juli 2025" → Date
+function parseDateStr(str: string): Date | undefined {
+    if (!str) return undefined
+    const d = new Date(str)
+    return isNaN(d.getTime()) ? undefined : d
+}
+
 export function TahunAjaranDialog({
     open,
     onOpenChange,
@@ -47,8 +64,8 @@ export function TahunAjaranDialog({
     onSave,
 }: TahunAjaranDialogProps) {
     const [nama, setNama] = useState(initialData?.nama ?? '')
-    const [mulai, setMulai] = useState(initialData?.mulai ?? '')
-    const [selesai, setSelesai] = useState(initialData?.selesai ?? '')
+    const [mulai, setMulai] = useState<Date | undefined>(parseDateStr(initialData?.mulai ?? ''))
+    const [selesai, setSelesai] = useState<Date | undefined>(parseDateStr(initialData?.selesai ?? ''))
     const [status, setStatus] = useState<TahunAjaranItem['status']>(
         initialData?.status ?? 'upcoming'
     )
@@ -57,22 +74,22 @@ export function TahunAjaranDialog({
     React.useEffect(() => {
         if (open) {
             setNama(initialData?.nama ?? '')
-            setMulai(initialData?.mulai ?? '')
-            setSelesai(initialData?.selesai ?? '')
+            setMulai(parseDateStr(initialData?.mulai ?? ''))
+            setSelesai(parseDateStr(initialData?.selesai ?? ''))
             setStatus(initialData?.status ?? 'upcoming')
             setKeterangan(initialData?.keterangan ?? '')
         }
     }, [open, initialData])
 
     const handleSave = () => {
-        if (!nama.trim() || !mulai.trim() || !selesai.trim()) {
+        if (!nama.trim() || !mulai || !selesai) {
             toast.error('Lengkapi nama, tanggal mulai, dan tanggal selesai.')
             return
         }
         onSave({
             nama: nama.trim(),
-            mulai: mulai.trim(),
-            selesai: selesai.trim(),
+            mulai: format(mulai, 'd MMMM yyyy', { locale: idLocale }),
+            selesai: format(selesai, 'd MMMM yyyy', { locale: idLocale }),
             semester: status === 'active' ? 'Genap (Jan–Jun)' : 'Belum ditentukan',
             status,
             keterangan: keterangan.trim() || undefined,
@@ -111,23 +128,69 @@ export function TahunAjaranDialog({
                     </div>
 
                     <div className='grid grid-cols-2 gap-4'>
+                        {/* Tanggal Mulai */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='ta-mulai'>Tanggal Mulai</Label>
-                            <Input
-                                id='ta-mulai'
-                                placeholder='cth. 14 Juli 2026'
-                                value={mulai}
-                                onChange={(e) => setMulai(e.target.value)}
-                            />
+                            <Label>Tanggal Mulai</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant='outline'
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal text-sm',
+                                            !mulai && 'text-muted-foreground'
+                                        )}
+                                    >
+                                        <CalendarIcon className='mr-2 h-4 w-4 shrink-0' />
+                                        {mulai
+                                            ? format(mulai, 'd MMM yyyy', { locale: idLocale })
+                                            : 'Pilih tanggal'}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-auto p-0' align='start'>
+                                    <Calendar
+                                        mode='single'
+                                        selected={mulai}
+                                        onSelect={setMulai}
+                                        captionLayout='dropdown'
+                                        fromYear={2020}
+                                        toYear={2035}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
+
+                        {/* Tanggal Selesai */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='ta-selesai'>Tanggal Selesai</Label>
-                            <Input
-                                id='ta-selesai'
-                                placeholder='cth. 20 Juni 2027'
-                                value={selesai}
-                                onChange={(e) => setSelesai(e.target.value)}
-                            />
+                            <Label>Tanggal Selesai</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant='outline'
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal text-sm',
+                                            !selesai && 'text-muted-foreground'
+                                        )}
+                                    >
+                                        <CalendarIcon className='mr-2 h-4 w-4 shrink-0' />
+                                        {selesai
+                                            ? format(selesai, 'd MMM yyyy', { locale: idLocale })
+                                            : 'Pilih tanggal'}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-auto p-0' align='start'>
+                                    <Calendar
+                                        mode='single'
+                                        selected={selesai}
+                                        onSelect={setSelesai}
+                                        captionLayout='dropdown'
+                                        fromYear={2020}
+                                        toYear={2035}
+                                        disabled={mulai ? { before: mulai } : undefined}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
 

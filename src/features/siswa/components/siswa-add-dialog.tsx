@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { format } from 'date-fns'
+import { id as idLocale } from 'date-fns/locale'
 import { toast } from 'sonner'
-import { UserCircle, MapPin, Users, GraduationCap, Save } from 'lucide-react'
+import { UserCircle, MapPin, Users, GraduationCap, Save, CalendarIcon } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -14,6 +16,13 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Calendar } from '@/components/ui/calendar'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 import { useSiswa } from './siswa-provider'
 
 export function SiswaAddDialog() {
@@ -21,6 +30,9 @@ export function SiswaAddDialog() {
     const [loading, setLoading] = useState(false)
     const [activeTab, setActiveTab] = useState('pribadi')
     const isEdit = open === 'edit'
+    const [tanggalLahir, setTanggalLahir] = useState<Date | undefined>(
+        isEdit && currentRow?.tanggalLahir ? new Date(currentRow.tanggalLahir) : undefined
+    )
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -32,12 +44,14 @@ export function SiswaAddDialog() {
             setLoading(false)
             setOpen(null)
             setActiveTab('pribadi')
+            setTanggalLahir(undefined)
         }, 1000)
     }
 
     const handleClose = () => {
         setOpen(null)
         setActiveTab('pribadi')
+        setTanggalLahir(undefined)
     }
 
     return (
@@ -122,7 +136,35 @@ export function SiswaAddDialog() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="tanggalLahir">Tanggal Lahir <span className="text-red-500">*</span></Label>
-                                            <Input id="tanggalLahir" type="date" required defaultValue={isEdit && currentRow?.tanggalLahir ? new Date(currentRow.tanggalLahir).toISOString().split('T')[0] : ''} />
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        id="tanggalLahir"
+                                                        variant="outline"
+                                                        className={cn(
+                                                            'w-full justify-start text-left font-normal',
+                                                            !tanggalLahir && 'text-muted-foreground'
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {tanggalLahir
+                                                            ? format(tanggalLahir, 'd MMMM yyyy', { locale: idLocale })
+                                                            : <span>Pilih tanggal</span>
+                                                        }
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={tanggalLahir}
+                                                        onSelect={setTanggalLahir}
+                                                        captionLayout="dropdown"
+                                                        fromYear={1990}
+                                                        toYear={2020}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
                                         </div>
                                     </div>
                                 </TabsContent>
@@ -190,6 +232,20 @@ export function SiswaAddDialog() {
                                                 <Label htmlFor="pekerjaanAyah">Pekerjaan</Label>
                                                 <Input id="pekerjaanAyah" placeholder="Pekerjaan ayah" defaultValue={isEdit ? currentRow?.pekerjaanAyah : ''} />
                                             </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Status Yatim</Label>
+                                            <Select defaultValue="tidak">
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Pilih status..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="tidak">Tidak</SelectItem>
+                                                    <SelectItem value="yatim">Yatim (Ayah meninggal)</SelectItem>
+                                                    <SelectItem value="piatu">Piatu (Ibu meninggal)</SelectItem>
+                                                    <SelectItem value="yatimpiatu">Yatim-Piatu (Ayah & Ibu meninggal)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     </div>
 

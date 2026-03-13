@@ -3,6 +3,11 @@ import {
   UserCheck,
   Receipt,
   AlertTriangle,
+  Activity,
+  CalendarClock,
+  CreditCard,
+  UserPlus,
+  BookOpen,
 } from 'lucide-react'
 import {
   Card,
@@ -24,6 +29,21 @@ import { formatRupiah } from '@/lib/format'
 import { SppCollectionChart } from './components/overview'
 import { RecentPayments } from './components/recent-sales'
 import { Analytics } from './components/analytics'
+
+const activityLog = [
+  { id: 1, icon: CreditCard, user: 'Admin Keuangan', action: 'mencatat pembayaran SPP atas nama Ahmad Fauzi', time: '2 menit lalu' },
+  { id: 2, icon: UserPlus, user: 'Admin Tata Usaha', action: 'menambahkan siswa baru: Rizky Ramadhan (VII-B)', time: '15 menit lalu' },
+  { id: 3, icon: CreditCard, user: 'Admin Keuangan', action: 'mencatat pembayaran Daftar Ulang atas nama Siti Aisyah', time: '42 menit lalu' },
+  { id: 4, icon: BookOpen, user: 'Admin Akademik', action: 'memperbarui data kelas IX-A', time: '1 jam lalu' },
+  { id: 5, icon: UserPlus, user: 'Admin Tata Usaha', action: 'menambahkan siswa baru: Nur Fadilah (VIII-C)', time: '2 jam lalu' },
+]
+
+const upcomingEvents = [
+  { id: 1, title: 'Rapat Wali Murid', date: '16 Maret 2026', desc: 'Pembahasan perkembangan akademik semester genap' },
+  { id: 2, title: 'Batas Akhir Pembayaran SPP', date: '20 Maret 2026', desc: 'Tenggat pembayaran SPP bulan Maret 2026' },
+  { id: 3, title: 'Ujian Tengah Semester', date: '25 Maret 2026', desc: 'UTS Semester Genap 2025/2026 seluruh kelas' },
+  { id: 4, title: 'Peringatan Hari Pendidikan', date: '2 Mei 2026', desc: 'Upacara dan kegiatan peringatan Hardiknas' },
+]
 
 export function Dashboard() {
   const { activeTenant } = useTenant()
@@ -54,7 +74,6 @@ export function Dashboard() {
           <div className='w-full overflow-x-auto pb-2'>
             <TabsList>
               <TabsTrigger value='overview'>Ringkasan</TabsTrigger>
-              <TabsTrigger value='analytics'>Analitik</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value='overview' className='space-y-4'>
@@ -117,6 +136,60 @@ export function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <RecentPayments />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Log Aktivitas & Kegiatan Mendatang */}
+            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+              <Card>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2 text-base'>
+                    <Activity className='h-4 w-4' /> Log Aktivitas
+                  </CardTitle>
+                  <CardDescription>Aktivitas pengguna terkini di sistem</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className='space-y-3'>
+                    {activityLog.map((log) => (
+                      <li key={log.id} className='flex items-start gap-3'>
+                        <div className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted'>
+                          <log.icon className='h-3.5 w-3.5 text-muted-foreground' />
+                        </div>
+                        <div className='min-w-0'>
+                          <p className='text-sm'>
+                            <span className='font-medium'>{log.user}</span>{' '}
+                            <span className='text-muted-foreground'>{log.action}</span>
+                          </p>
+                          <p className='text-xs text-muted-foreground'>{log.time}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2 text-base'>
+                    <CalendarClock className='h-4 w-4' /> Kegiatan Mendatang
+                  </CardTitle>
+                  <CardDescription>Jadwal acara dan tenggat yang akan datang</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className='space-y-3'>
+                    {upcomingEvents.map((ev) => (
+                      <li key={ev.id} className='flex items-start gap-3'>
+                        <div className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted'>
+                          <CalendarClock className='h-3.5 w-3.5 text-muted-foreground' />
+                        </div>
+                        <div className='min-w-0'>
+                          <p className='text-sm font-medium'>{ev.title}</p>
+                          <p className='text-xs text-muted-foreground'>{ev.date} · {ev.desc}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </CardContent>
               </Card>
             </div>
