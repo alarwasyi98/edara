@@ -74,7 +74,7 @@ export function DetailSiswa() {
 
                 {/* Tabbed content */}
                 <Tabs defaultValue='pribadi'>
-                    <TabsList className='w-full justify-start overflow-x-auto'>
+                    <TabsList variant='line' className='w-full justify-start overflow-x-auto'>
                         <TabsTrigger value='pribadi' className='gap-1.5'>
                             <UserCircle className='h-4 w-4' />
                             <span className='hidden sm:inline'>Data Pribadi</span>

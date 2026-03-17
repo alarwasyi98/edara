@@ -64,7 +64,7 @@ export function GuruAddDialog() {
                     <div className='flex-1 overflow-hidden'>
                         <Tabs value={activeTab} onValueChange={setActiveTab} className='h-full flex flex-col'>
                             <div className='px-6 pt-4 shrink-0'>
-                                <TabsList className='w-full justify-start h-auto flex-wrap'>
+                                <TabsList variant='line' className='w-full justify-start h-auto flex-wrap'>
                                     <TabsTrigger value='identitas' className='gap-1.5 py-2'>
                                         <UserCircle className='h-4 w-4' />
                                         Identitas

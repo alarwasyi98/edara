@@ -72,7 +72,7 @@ export function Dashboard() {
           className='space-y-4'
         >
           <div className='w-full overflow-x-auto pb-2'>
-            <TabsList>
+            <TabsList variant='line'>
               <TabsTrigger value='overview'>Ringkasan</TabsTrigger>
             </TabsList>
           </div>

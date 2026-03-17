@@ -62,7 +62,7 @@ export function KalenderKegiatan() {
 
                 <Tabs defaultValue='list' className='flex flex-1 flex-col gap-4'>
                     <div className='flex items-center justify-between'>
-                        <TabsList>
+                        <TabsList variant='line'>
                             <TabsTrigger value='list' className='gap-2'>
                                 <List className='h-4 w-4' /> Daftar
                             </TabsTrigger>
