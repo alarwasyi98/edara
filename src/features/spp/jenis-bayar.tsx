@@ -1,5 +1,20 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { format } from 'date-fns'
+import {
+    type ColumnDef,
+    type SortingState,
+    type VisibilityState,
+    type ColumnFiltersState,
+    type PaginationState,
+    flexRender,
+    getCoreRowModel,
+    getFacetedRowModel,
+    getFacetedUniqueValues,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,14 +43,6 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
     Table,
     TableBody,
     TableCell,
@@ -51,11 +58,11 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { PageHeader } from '@/components/shared/page-header'
 import { formatRupiah } from '@/lib/format'
-import { Plus, Receipt, ArrowUpDown } from 'lucide-react'
+import { Plus, Receipt } from 'lucide-react'
 import { toast } from 'sonner'
+import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 
 type PeriodeBayar = 'bulanan' | 'tahunan' | 'sekali'
-type SortField = 'default' | 'nominal_asc' | 'nominal_desc' | 'dateAdded_asc' | 'dateAdded_desc'
 
 type JenisBayarItem = {
     id: string
@@ -90,19 +97,15 @@ function emptyForm(): Omit<JenisBayarItem, 'id' | 'dateAdded'> {
     return { kode: '', nama: '', nominal: 0, periode: 'bulanan', keterangan: '', aktif: true }
 }
 
-const sortLabels: Record<SortField, string> = {
-    default: 'Default',
-    nominal_asc: 'Nominal: Terendah',
-    nominal_desc: 'Nominal: Tertinggi',
-    dateAdded_asc: 'Tgl Ditambahkan: Terlama',
-    dateAdded_desc: 'Tgl Ditambahkan: Terbaru',
-}
-
 export function JenisBayar() {
     const [list, setList] = useState<JenisBayarItem[]>(initialList)
     const [open, setOpen] = useState(false)
     const [form, setForm] = useState(emptyForm())
-    const [sortBy, setSortBy] = useState<SortField>('default')
+    
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
     const handleAdd = () => {
         if (!form.kode || !form.nama) return
@@ -117,16 +120,80 @@ export function JenisBayar() {
         toast.success(`Jenis bayar "${form.nama}" berhasil ditambahkan.`)
     }
 
-    const sortedList = useMemo(() => {
-        const arr = [...list]
-        switch (sortBy) {
-            case 'nominal_asc': return arr.sort((a, b) => a.nominal - b.nominal)
-            case 'nominal_desc': return arr.sort((a, b) => b.nominal - a.nominal)
-            case 'dateAdded_asc': return arr.sort((a, b) => a.dateAdded.getTime() - b.dateAdded.getTime())
-            case 'dateAdded_desc': return arr.sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime())
-            default: return arr
-        }
-    }, [list, sortBy])
+    const columns: ColumnDef<JenisBayarItem>[] = [
+        {
+            accessorKey: 'kode',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Kode' />,
+            cell: ({ row }) => <span className='font-mono text-sm font-medium'>{row.getValue('kode')}</span>,
+        },
+        {
+            accessorKey: 'nama',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Nama Jenis Bayar' />,
+            cell: ({ row }) => <span className='font-medium'>{row.getValue('nama')}</span>,
+        },
+        {
+            accessorKey: 'nominal',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Nominal' />,
+            cell: ({ row }) => <span className='font-mono text-right block'>{formatRupiah(row.getValue('nominal'))}</span>,
+            meta: { className: 'text-right' },
+        },
+        {
+            accessorKey: 'periode',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Periode' />,
+            cell: ({ row }) => {
+                const periode = row.getValue('periode') as PeriodeBayar
+                const pCfg = periodeConfig[periode]
+                return (
+                    <Badge variant='outline' className={cn(pCfg.color)}>
+                        {pCfg.label}
+                    </Badge>
+                )
+            },
+            filterFn: (row, id, value) => value.includes(row.getValue(id)),
+        },
+        {
+            accessorKey: 'keterangan',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Keterangan' />,
+            cell: ({ row }) => <span className='max-w-[200px] truncate block text-sm text-muted-foreground'>{row.getValue('keterangan')}</span>,
+        },
+        {
+            accessorKey: 'dateAdded',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Tgl. Ditambahkan' />,
+            cell: ({ row }) => <span className='text-sm text-muted-foreground'>{format(row.getValue('dateAdded'), 'dd/MM/yyyy')}</span>,
+        },
+        {
+            accessorKey: 'aktif',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+            cell: ({ row }) => {
+                const aktif = row.getValue('aktif') as boolean
+                return (
+                    <Badge variant='outline' className={aktif ? 'border-green-200 bg-green-100/30 text-green-800 dark:text-green-200' : 'border-neutral-300 bg-neutral-100/30 text-neutral-500'}>
+                        {aktif ? 'Aktif' : 'Nonaktif'}
+                    </Badge>
+                )
+            },
+            filterFn: (row, id, value) => {
+                const rowValue = row.getValue(id) ? 'aktif' : 'nonaktif'
+                return value.includes(rowValue)
+            },
+        },
+    ]
+
+    const table = useReactTable({
+        data: list,
+        columns,
+        state: { sorting, columnFilters, columnVisibility, pagination },
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onColumnVisibilityChange: setColumnVisibility,
+        onPaginationChange: setPagination,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getFacetedRowModel: getFacetedRowModel(),
+        getFacetedUniqueValues: getFacetedUniqueValues(),
+    })
 
     const aktifCount = list.filter((j) => j.aktif).length
 
@@ -153,7 +220,7 @@ export function JenisBayar() {
                 </PageHeader>
 
                 <Card>
-                    <CardHeader className='flex flex-row items-start justify-between'>
+                    <CardHeader className='space-y-4'>
                         <div>
                             <CardTitle className='flex items-center gap-2'>
                                 <Receipt className='h-5 w-5' /> Daftar Jenis Pembayaran
@@ -162,72 +229,89 @@ export function JenisBayar() {
                                 {aktifCount} aktif dari {list.length} jenis pembayaran
                             </CardDescription>
                         </div>
-                        {/* Sort By Dropdown */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant='outline' size='sm' className='gap-1.5 text-xs'>
-                                    <ArrowUpDown className='h-3.5 w-3.5' />
-                                    {sortBy === 'default' ? 'Urutkan' : sortLabels[sortBy]}
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align='end' className='w-48'>
-                                <DropdownMenuLabel>Urutkan berdasarkan</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => setSortBy('default')}>Default</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => setSortBy('nominal_asc')}>Nominal: Terendah</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSortBy('nominal_desc')}>Nominal: Tertinggi</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => setSortBy('dateAdded_asc')}>Tgl Ditambahkan: Terlama</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setSortBy('dateAdded_desc')}>Tgl Ditambahkan: Terbaru</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <DataTableToolbar
+                            table={table}
+                            searchPlaceholder='Cari jenis bayar...'
+                            searchKey='nama'
+                            filters={[
+                                {
+                                    columnId: 'aktif',
+                                    title: 'Status',
+                                    options: [
+                                        { label: 'Aktif', value: 'aktif' },
+                                        { label: 'Nonaktif', value: 'nonaktif' },
+                                    ],
+                                },
+                                {
+                                    columnId: 'periode',
+                                    title: 'Periode',
+                                    options: Object.entries(periodeConfig).map(([value, cfg]) => ({
+                                        label: cfg.label,
+                                        value,
+                                    })),
+                                },
+                            ]}
+                        />
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='space-y-4'>
                         <div className='overflow-auto rounded-md border'>
                             <Table>
                                 <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Kode</TableHead>
-                                        <TableHead>Nama Jenis Bayar</TableHead>
-                                        <TableHead className='text-right'>Nominal</TableHead>
-                                        <TableHead>Periode</TableHead>
-                                        <TableHead>Keterangan</TableHead>
-                                        <TableHead>Tgl. Ditambahkan</TableHead>
-                                        <TableHead className='text-center'>Status</TableHead>
-                                    </TableRow>
+                                    {table.getHeaderGroups().map((headerGroup) => (
+                                        <TableRow key={headerGroup.id} className='group/row'>
+                                            {headerGroup.headers.map((header) => (
+                                                <TableHead
+                                                    key={header.id}
+                                                    colSpan={header.colSpan}
+                                                    className={cn(
+                                                        'bg-background group-hover/row:bg-muted',
+                                                        header.column.columnDef.meta?.className
+                                                    )}
+                                                >
+                                                    {header.isPlaceholder
+                                                        ? null
+                                                        : flexRender(header.column.columnDef.header, header.getContext())}
+                                                </TableHead>
+                                            ))}
+                                        </TableRow>
+                                    ))}
                                 </TableHeader>
                                 <TableBody>
-                                    {sortedList.map((item) => {
-                                        const pCfg = periodeConfig[item.periode]
-                                        return (
-                                            <TableRow key={item.id} className={!item.aktif ? 'opacity-60' : ''}>
-                                                <TableCell className='font-mono text-sm font-medium'>{item.kode}</TableCell>
-                                                <TableCell className='font-medium'>{item.nama}</TableCell>
-                                                <TableCell className='text-right font-mono'>{formatRupiah(item.nominal)}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant='outline' className={cn(pCfg.color)}>
-                                                        {pCfg.label}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className='max-w-[200px] truncate text-sm text-muted-foreground'>{item.keterangan}</TableCell>
-                                                <TableCell className='text-sm text-muted-foreground'>{format(item.dateAdded, 'dd/MM/yyyy')}</TableCell>
-                                                <TableCell className='text-center'>
-                                                    <Badge variant='outline' className={item.aktif ? 'border-green-200 bg-green-100/30 text-green-800 dark:text-green-200' : 'border-neutral-300 bg-neutral-100/30 text-neutral-500'}>
-                                                        {item.aktif ? 'Aktif' : 'Nonaktif'}
-                                                    </Badge>
-                                                </TableCell>
+                                    {table.getRowModel().rows?.length ? (
+                                        table.getRowModel().rows.map((row) => (
+                                            <TableRow
+                                                key={row.id}
+                                                data-state={row.getIsSelected() && 'selected'}
+                                                className={cn('group/row', !row.original.aktif && 'opacity-60')}
+                                            >
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        className={cn(
+                                                            'bg-background group-hover/row:bg-muted',
+                                                            cell.column.columnDef.meta?.className
+                                                        )}
+                                                    >
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </TableCell>
+                                                ))}
                                             </TableRow>
-                                        )
-                                    })}
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={columns.length} className='h-24 text-center'>
+                                                Tidak ada data jenis bayar.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </div>
+                        <DataTablePagination table={table} />
                     </CardContent>
                 </Card>
             </Main>
 
-            {/* ── Dialog Tambah Jenis Bayar ── */}
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className='sm:max-w-[440px]'>
                     <DialogHeader>

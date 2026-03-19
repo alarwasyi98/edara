@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import { genderLabels } from '@/lib/constants'
 import { type Teacher } from '../data/schema'
+import { GuruRowActions } from './guru-row-actions'
 
 export const guruColumns: ColumnDef<Teacher>[] = [
     {
@@ -119,5 +120,11 @@ export const guruColumns: ColumnDef<Teacher>[] = [
         },
         enableHiding: false,
         enableSorting: false,
+    },
+    {
+        id: 'actions',
+        cell: ({ row }) => <GuruRowActions row={row} />,
+        enableSorting: false,
+        enableHiding: false,
     },
 ]

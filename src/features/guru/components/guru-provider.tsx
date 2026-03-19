@@ -18,7 +18,7 @@ type Teacher = {
     updatedAt: Date
 }
 
-type GuruDialogType = 'add' | 'import' | 'export' | 'delete'
+type GuruDialogType = 'add' | 'edit' | 'import' | 'export' | 'delete'
 
 type GuruContextType = {
     open: GuruDialogType | null

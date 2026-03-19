@@ -1,5 +1,20 @@
 import { useState } from 'react'
 import { faker } from '@faker-js/faker'
+import {
+    type ColumnDef,
+    type SortingState,
+    type VisibilityState,
+    type ColumnFiltersState,
+    type PaginationState,
+    flexRender,
+    getCoreRowModel,
+    getFacetedRowModel,
+    getFacetedUniqueValues,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from '@tanstack/react-table'
 import { formatRupiah, formatBulanTagihan } from '@/lib/format'
 import { sppStatusLabels, sppStatusColors, type SppStatus } from '@/lib/constants'
 import {
@@ -85,6 +100,7 @@ import {
     Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 
 import { determineSppStatus } from './utils/calculations'
 import { TransactionForm } from './components/transaction-form'
@@ -183,9 +199,11 @@ const lineConfig: ChartConfig = {
 
 export function ManajemenSPP() {
     const [payments, setPayments] = useState<SppPayment[]>(initialPayments)
-    const [selected, setSelected] = useState<Set<string>>(new Set())
-    const [filterStatus, setFilterStatus] = useState<string>('all')
-    const [filterKelas, setFilterKelas] = useState<string>('all')
+    const [rowSelection, setRowSelection] = useState({})
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
     // State form edit
     const [isFormOpen, setIsFormOpen] = useState(false)
@@ -221,6 +239,173 @@ export function ManajemenSPP() {
         setAddForm({ namaSiswa: '', kelas: '', bulan: bulanList[0], nominal: 750000, dibayar: 0, metodeBayar: 'tunai', tanggalBayar: today })
     }
 
+    const handleEditClick = (p: SppPayment) => {
+        setSelectedTransaction({
+            id: p.id,
+            namaSiswa: p.namaSiswa,
+            posTagihan: `SPP - ${formatBulanTagihan(p.bulan)}`,
+            nominalTagihan: p.nominal,
+            dibayar: p.dibayar,
+            metodeBayar: 'tunai', // Default mockup
+            tanggalBayar: p.tanggalBayar,
+            keterangan: '',
+        })
+        setIsFormOpen(true)
+    }
+
+    const handleSaveTransaction = (
+        id: string,
+        newDibayar: number,
+        _newMetode: string,
+        newTanggal: string,
+        _newKet?: string
+    ) => {
+        setPayments((prev) =>
+            prev.map((p) => {
+                if (p.id === id) {
+                    const newStatus = determineSppStatus(newDibayar, p.nominal)
+                    return {
+                        ...p,
+                        dibayar: newDibayar,
+                        tanggalBayar: newDibayar > 0 ? newTanggal : null,
+                        status: newStatus,
+                    }
+                }
+                return p
+            })
+        )
+    }
+
+    // ─── Column Definitions ───────────────────────────────────────────────────
+    const columns: ColumnDef<SppPayment>[] = [
+        {
+            id: 'select',
+            header: ({ table }) => (
+                <Checkbox
+                    checked={
+                        table.getIsAllPageRowsSelected() ||
+                        (table.getIsSomePageRowsSelected() && 'indeterminate')
+                    }
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label='Pilih semua'
+                    className='translate-y-[2px]'
+                />
+            ),
+            cell: ({ row }) => (
+                <Checkbox
+                    checked={row.getIsSelected()}
+                    onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label='Pilih baris'
+                    className='translate-y-[2px]'
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
+        {
+            accessorKey: 'namaSiswa',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Nama Siswa' />,
+            cell: ({ row }) => <span className='font-medium'>{row.getValue('namaSiswa')}</span>,
+        },
+        {
+            accessorKey: 'kelas',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Kelas' />,
+            cell: ({ row }) => row.getValue('kelas'),
+            filterFn: (row, id, value) => value.includes(row.getValue(id)),
+        },
+        {
+            accessorKey: 'bulan',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Bulan' />,
+            cell: ({ row }) => formatBulanTagihan(row.getValue('bulan')),
+        },
+        {
+            accessorKey: 'nominal',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Tagihan' />,
+            cell: ({ row }) => <span className='font-mono text-right block'>{formatRupiah(row.getValue('nominal'))}</span>,
+            meta: { className: 'text-right' },
+        },
+        {
+            accessorKey: 'dibayar',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Dibayar' />,
+            cell: ({ row }) => <span className='font-mono text-right block'>{formatRupiah(row.getValue('dibayar'))}</span>,
+            meta: { className: 'text-right' },
+        },
+        {
+            accessorKey: 'status',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+            cell: ({ row }) => {
+                const status = row.getValue('status') as SppStatus
+                return (
+                    <Badge variant='outline' className={cn(sppStatusColors[status])}>
+                        {sppStatusLabels[status]}
+                    </Badge>
+                )
+            },
+            filterFn: (row, id, value) => value.includes(row.getValue(id)),
+        },
+        {
+            accessorKey: 'tanggalBayar',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Tgl Bayar' />,
+            cell: ({ row }) => (
+                <span className='text-sm text-muted-foreground'>
+                    {row.getValue('tanggalBayar') ?? (
+                        <span className='flex items-center gap-1'>
+                            <Clock className='size-3' /> Belum
+                        </span>
+                    )}
+                </span>
+            ),
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 p-0 text-muted-foreground'
+                        >
+                            <MoreHorizontal className='h-4 w-4' />
+                            <span className='sr-only'>Buka menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end'>
+                        <DropdownMenuItem onClick={() => handleEditClick(row.original)}>
+                            <Pencil className='mr-2 h-4 w-4' />
+                            Edit Transaksi
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className='text-destructive focus:text-destructive' onClick={() => { }}>
+                            <Trash2 className='mr-2 h-4 w-4' />
+                            Hapus Transaksi
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ),
+        },
+    ]
+
+    const table = useReactTable({
+        data: payments,
+        columns,
+        state: { sorting, columnFilters, columnVisibility, pagination, rowSelection },
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onColumnVisibilityChange: setColumnVisibility,
+        onPaginationChange: setPagination,
+        onRowSelectionChange: setRowSelection,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getFacetedRowModel: getFacetedRowModel(),
+        getFacetedUniqueValues: getFacetedUniqueValues(),
+    })
+
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    const clearSelection = () => table.resetRowSelection()
+
     // Agregat ditarik ke dalam komponen agar otomatis re-render jika `payments` berubah
     const totalTagihan = payments.reduce((sum, p) => sum + p.nominal, 0)
     const totalDibayar = payments.reduce((sum, p) => sum + p.dibayar, 0)
@@ -246,70 +431,6 @@ export function ManajemenSPP() {
         { bulan: 'Jun', terbayar: totalDibayar, tagihan: totalTagihan },
     ]
 
-    const filteredPayments = payments.filter((p) => {
-        if (filterStatus !== 'all' && p.status !== filterStatus) return false
-        if (filterKelas !== 'all' && p.kelas !== filterKelas) return false
-        return true
-    })
-
-    const toggleRow = (id: string) => {
-        setSelected((prev) => {
-            const next = new Set(prev)
-            next.has(id) ? next.delete(id) : next.add(id)
-            return next
-        })
-    }
-
-    const toggleAll = () => {
-        if (selected.size === filteredPayments.length) {
-            setSelected(new Set())
-        } else {
-            setSelected(new Set(filteredPayments.map((p) => p.id)))
-        }
-    }
-
-    const clearSelection = () => setSelected(new Set())
-    const isAllSelected = selected.size === filteredPayments.length && filteredPayments.length > 0
-    const isIndeterminate = selected.size > 0 && selected.size < filteredPayments.length
-
-    const handleEditClick = (p: SppPayment) => {
-        setSelectedTransaction({
-            id: p.id,
-            namaSiswa: p.namaSiswa,
-            posTagihan: `SPP - ${formatBulanTagihan(p.bulan)}`,
-            nominalTagihan: p.nominal,
-            dibayar: p.dibayar,
-            metodeBayar: 'tunai', // Default mockup
-            tanggalBayar: p.tanggalBayar,
-            keterangan: '',
-        })
-        setIsFormOpen(true)
-    }
-
-    const handleSaveTransaction = (
-        id: string,
-        newDibayar: number,
-        _newMetode: string,
-        newTanggal: string,
-        _newKet?: string
-    ) => {
-        setPayments((prev) =>
-            prev.map((p) => {
-                if (p.id === id) {
-                    // Penentuan status secara otomatis via helper
-                    const newStatus = determineSppStatus(newDibayar, p.nominal)
-                    return {
-                        ...p,
-                        dibayar: newDibayar,
-                        tanggalBayar: newDibayar > 0 ? newTanggal : null,
-                        status: newStatus,
-                    }
-                }
-                return p
-            })
-        )
-    }
-
     return (
         <>
             <Header fixed>
@@ -332,7 +453,6 @@ export function ManajemenSPP() {
                     </Button>
                 </PageHeader>
 
-                {/* ── Row 1: 3 StatCards ── */}
                 <div className='grid gap-4 sm:grid-cols-3'>
                     <StatCard
                         title='Total Tagihan'
@@ -359,9 +479,7 @@ export function ManajemenSPP() {
                     />
                 </div>
 
-                {/* ── Row 2: PieChart + LineChart ── */}
                 <div className='grid gap-4 lg:grid-cols-2'>
-                    {/* PieChart — Status Pembayaran */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Status Pembayaran Siswa</CardTitle>
@@ -415,7 +533,6 @@ export function ManajemenSPP() {
                         </CardContent>
                     </Card>
 
-                    {/* LineChart — Tren Pembayaran Bulanan */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Tren Pembayaran Bulanan</CardTitle>
@@ -486,171 +603,104 @@ export function ManajemenSPP() {
                     </Card>
                 </div>
 
-                {/* ── Row 3: Tabel SppPayment ── */}
                 <Card>
-                    <CardHeader className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+                    <CardHeader className='space-y-4'>
                         <div>
                             <CardTitle>Daftar Pembayaran SPP</CardTitle>
                             <CardDescription>
-                                {filteredPayments.length} tagihan ditampilkan · semester genap 2025/2026
+                                {table.getFilteredRowModel().rows.length} tagihan ditampilkan · semester genap 2025/2026
                             </CardDescription>
                         </div>
-                        <div className='flex flex-wrap items-center gap-2'>
-                            <Select value={filterStatus} onValueChange={setFilterStatus}>
-                                <SelectTrigger className='w-[140px]'>
-                                    <SelectValue placeholder='Status' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='all'>Semua Status</SelectItem>
-                                    {Object.entries(sppStatusLabels).map(([key, label]) => (
-                                        <SelectItem key={key} value={key}>{label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={filterKelas} onValueChange={setFilterKelas}>
-                                <SelectTrigger className='w-[120px]'>
-                                    <SelectValue placeholder='Kelas' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='all'>Semua Kelas</SelectItem>
-                                    {kelasList.map((k) => (
-                                        <SelectItem key={k} value={k}>{k}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            {(filterStatus !== 'all' || filterKelas !== 'all') && (
-                                <Button
-                                    variant='ghost'
-                                    onClick={() => {
-                                        setFilterStatus('all')
-                                        setFilterKelas('all')
-                                    }}
-                                    className='h-9 px-2 text-muted-foreground hover:text-foreground'
-                                >
-                                    <X className='mr-1 h-4 w-4' />
-                                    Reset
-                                </Button>
-                            )}
-                        </div>
+                        <DataTableToolbar
+                            table={table}
+                            searchPlaceholder='Cari pendaftar...'
+                            searchKey='namaSiswa'
+                            filters={[
+                                {
+                                    columnId: 'status',
+                                    title: 'Status',
+                                    options: Object.entries(sppStatusLabels).map(([value, label]) => ({
+                                        label,
+                                        value,
+                                    })),
+                                },
+                                {
+                                    columnId: 'kelas',
+                                    title: 'Kelas',
+                                    options: kelasList.map((k) => ({ label: k, value: k })),
+                                },
+                            ]}
+                        />
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='space-y-4'>
                         <div className='overflow-auto rounded-md border'>
                             <Table>
                                 <TableHeader>
-                                    <TableRow>
-                                        <TableHead className='w-10'>
-                                            <Checkbox
-                                                checked={isIndeterminate ? 'indeterminate' : isAllSelected}
-                                                onCheckedChange={toggleAll}
-                                                aria-label='Pilih semua'
-                                            />
-                                        </TableHead>
-                                        <TableHead>Nama Siswa</TableHead>
-                                        <TableHead>Kelas</TableHead>
-                                        <TableHead>Bulan</TableHead>
-                                        <TableHead className='text-right'>Tagihan</TableHead>
-                                        <TableHead className='text-right'>Dibayar</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Tgl Bayar</TableHead>
-                                        <TableHead className='w-10' />
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredPayments.slice(0, 20).map((p) => (
-                                        <TableRow
-                                            key={p.id}
-                                            data-state={selected.has(p.id) ? 'selected' : undefined}
-                                            className={cn(
-                                                'cursor-pointer',
-                                                selected.has(p.id) && 'bg-muted/50'
-                                            )}
-                                            onClick={() => toggleRow(p.id)}
-                                        >
-                                            <TableCell onClick={(e) => e.stopPropagation()}>
-                                                <Checkbox
-                                                    checked={selected.has(p.id)}
-                                                    onCheckedChange={() => toggleRow(p.id)}
-                                                    aria-label={`Pilih ${p.namaSiswa}`}
-                                                />
-                                            </TableCell>
-                                            <TableCell className='font-medium'>
-                                                {p.namaSiswa}
-                                            </TableCell>
-                                            <TableCell>{p.kelas}</TableCell>
-                                            <TableCell>{formatBulanTagihan(p.bulan)}</TableCell>
-                                            <TableCell className='text-right font-mono'>
-                                                {formatRupiah(p.nominal)}
-                                            </TableCell>
-                                            <TableCell className='text-right font-mono'>
-                                                {formatRupiah(p.dibayar)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    variant='outline'
-                                                    className={cn(sppStatusColors[p.status])}
+                                    {table.getHeaderGroups().map((headerGroup) => (
+                                        <TableRow key={headerGroup.id} className='group/row'>
+                                            {headerGroup.headers.map((header) => (
+                                                <TableHead
+                                                    key={header.id}
+                                                    colSpan={header.colSpan}
+                                                    className={cn(
+                                                        'bg-background group-hover/row:bg-muted',
+                                                        header.column.columnDef.meta?.className
+                                                    )}
                                                 >
-                                                    {sppStatusLabels[p.status]}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className='text-sm text-muted-foreground'>
-                                                {p.tanggalBayar ?? (
-                                                    <span className='flex items-center gap-1'>
-                                                        <Clock className='size-3' /> Belum
-                                                    </span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell onClick={(e) => e.stopPropagation()}>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                            variant='ghost'
-                                                            size='icon'
-                                                            className='h-8 w-8 p-0 text-muted-foreground'
-                                                        >
-                                                            <MoreHorizontal className='h-4 w-4' />
-                                                            <span className='sr-only'>Buka menu</span>
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align='end'>
-                                                        <DropdownMenuItem
-                                                            onClick={(_) => handleEditClick(p)}
-                                                        >
-                                                            <Pencil className='mr-2 h-4 w-4' />
-                                                            Edit Transaksi
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem
-                                                            className='text-destructive focus:text-destructive'
-                                                            onClick={() => {/* TODO: hapus */ }}
-                                                        >
-                                                            <Trash2 className='mr-2 h-4 w-4' />
-                                                            Hapus Transaksi
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
+                                                    {header.isPlaceholder
+                                                        ? null
+                                                        : flexRender(header.column.columnDef.header, header.getContext())}
+                                                </TableHead>
+                                            ))}
                                         </TableRow>
                                     ))}
+                                </TableHeader>
+                                <TableBody>
+                                    {table.getRowModel().rows?.length ? (
+                                        table.getRowModel().rows.map((row) => (
+                                            <TableRow
+                                                key={row.id}
+                                                data-state={row.getIsSelected() && 'selected'}
+                                                className='group/row'
+                                            >
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        className={cn(
+                                                            'bg-background group-hover/row:bg-muted',
+                                                            cell.column.columnDef.meta?.className
+                                                        )}
+                                                    >
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={columns.length} className='h-24 text-center'>
+                                                Tidak ada data pembayaran.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </div>
+                        <DataTablePagination table={table} />
                     </CardContent>
                 </Card>
             </Main>
 
-            {/* ── Floating Action Bar ── */}
             <div
                 className={cn(
                     'fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transition-all duration-300 ease-out',
-                    selected.size > 0
+                    selectedRows.length > 0
                         ? 'translate-y-0 opacity-100 pointer-events-auto'
                         : 'translate-y-8 opacity-0 pointer-events-none'
                 )}
             >
                 <div className='flex items-center gap-3 rounded-xl border bg-background px-4 py-3 shadow-2xl ring-1 ring-border/40'>
-                    <span className='font-semibold text-foreground text-sm'>{selected.size}</span>
+                    <span className='font-semibold text-foreground text-sm'>{selectedRows.length}</span>
                     <div className='h-4 w-px bg-border' />
                     <Button
                         size='sm'
@@ -689,7 +739,6 @@ export function ManajemenSPP() {
                 onSave={handleSaveTransaction}
             />
 
-            {/* ── Dialog Tambah Pembayaran ── */}
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogContent className='sm:max-w-[440px]'>
                     <DialogHeader>

@@ -1,4 +1,20 @@
+import { useState } from 'react'
 import { faker } from '@faker-js/faker'
+import {
+    type ColumnDef,
+    type SortingState,
+    type VisibilityState,
+    type ColumnFiltersState,
+    type PaginationState,
+    flexRender,
+    getCoreRowModel,
+    getFacetedRowModel,
+    getFacetedUniqueValues,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -24,12 +40,24 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard } from '@/components/shared/stat-card'
+import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 import { formatDateShort } from '@/lib/format'
 import { Users, CheckCircle, XCircle, Clock } from 'lucide-react'
 
 faker.seed(22222)
 
 type PpdbStatus = 'diterima' | 'ditolak' | 'pending' | 'verifikasi'
+
+type Applicant = {
+    id: string
+    noPendaftaran: string
+    nama: string
+    jenisKelamin: 'L' | 'P'
+    asalSekolah: string
+    tanggalDaftar: Date
+    nilaiRata: number
+    status: PpdbStatus
+}
 
 const statusConfig: Record<PpdbStatus, { label: string; color: string }> = {
     diterima: { label: 'Diterima', color: 'bg-green-100/30 text-green-800 dark:text-green-200 border-green-200' },
@@ -38,12 +66,17 @@ const statusConfig: Record<PpdbStatus, { label: string; color: string }> = {
     verifikasi: { label: 'Verifikasi', color: 'bg-blue-100/30 text-blue-800 dark:text-blue-200 border-blue-200' },
 }
 
+const statusOptions = Object.entries(statusConfig).map(([value, cfg]) => ({
+    label: cfg.label,
+    value,
+}))
+
 const firstNamesL = ['Ahmad', 'Muhammad', 'Rizki', 'Fauzan', 'Hasan', 'Zaki', 'Dani', 'Rafi', 'Bayu', 'Ilham']
 const firstNamesP = ['Siti', 'Nisa', 'Aisyah', 'Fatimah', 'Zahra', 'Putri', 'Dewi', 'Rahma', 'Layla', 'Salma']
 const lastNames = ['Hidayat', 'Pratama', 'Nugroho', 'Ramadhani', 'Permana', 'Santoso', 'Kurniawan', 'Maulana', 'Hakim']
 const sdList = ['SDN 01 Jakarta', 'MI Al-Hikmah', 'SDN 03 Bandung', 'MIN 1 Bekasi', 'SD Muhammadiyah', 'SDN Cikaret', 'MI Darul Ulum']
 
-const applicants = Array.from({ length: 40 }, (_, i) => {
+const applicants: Applicant[] = Array.from({ length: 40 }, (_, i) => {
     const gender = faker.helpers.arrayElement(['L', 'P'] as const)
     const firstName = faker.helpers.arrayElement(gender === 'L' ? firstNamesL : firstNamesP)
     const lastName = faker.helpers.arrayElement(lastNames)
@@ -69,7 +102,80 @@ const diterima = applicants.filter((a) => a.status === 'diterima').length
 const ditolak = applicants.filter((a) => a.status === 'ditolak').length
 const pending = applicants.filter((a) => a.status === 'pending' || a.status === 'verifikasi').length
 
+// ─── Column Definitions ───────────────────────────────────────────────────────
+const columns: ColumnDef<Applicant>[] = [
+    {
+        accessorKey: 'noPendaftaran',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='No. Pendaftaran' />,
+        cell: ({ row }) => <span className='font-mono text-sm'>{row.getValue('noPendaftaran')}</span>,
+    },
+    {
+        accessorKey: 'nama',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Nama' />,
+        cell: ({ row }) => <span className='font-medium'>{row.getValue('nama')}</span>,
+    },
+    {
+        accessorKey: 'jenisKelamin',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='L/P' />,
+        cell: ({ row }) => row.getValue('jenisKelamin'),
+        enableSorting: false,
+    },
+    {
+        accessorKey: 'asalSekolah',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Asal Sekolah' />,
+        cell: ({ row }) => <span className='text-sm text-muted-foreground'>{row.getValue('asalSekolah')}</span>,
+    },
+    {
+        accessorKey: 'nilaiRata',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Nilai Rata-rata' />,
+        cell: ({ row }) => <span className='text-right font-mono'>{(row.getValue('nilaiRata') as number).toFixed(1)}</span>,
+        meta: { className: 'text-right' },
+    },
+    {
+        accessorKey: 'tanggalDaftar',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Tgl. Daftar' />,
+        cell: ({ row }) => <span className='text-sm'>{formatDateShort(row.getValue('tanggalDaftar'))}</span>,
+    },
+    {
+        accessorKey: 'status',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => {
+            const status = row.getValue('status') as PpdbStatus
+            const cfg = statusConfig[status]
+            return (
+                <Badge variant='outline' className={cn(cfg.color)}>
+                    {cfg.label}
+                </Badge>
+            )
+        },
+        filterFn: (row, id, value) => value.includes(row.getValue(id)),
+        enableSorting: false,
+    },
+]
+
 export function DataPPDB() {
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
+
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const table = useReactTable({
+        data: applicants,
+        columns,
+        state: { sorting, columnFilters, columnVisibility, pagination },
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onColumnVisibilityChange: setColumnVisibility,
+        onPaginationChange: setPagination,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getFacetedRowModel: getFacetedRowModel(),
+        getFacetedUniqueValues: getFacetedUniqueValues(),
+    })
+
     return (
         <>
             <Header fixed>
@@ -95,46 +201,75 @@ export function DataPPDB() {
                 </div>
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Daftar Pendaftar</CardTitle>
-                        <CardDescription>40 calon siswa baru TA 2026/2027</CardDescription>
+                    <CardHeader className='space-y-4'>
+                        <div>
+                            <CardTitle>Daftar Pendaftar</CardTitle>
+                            <CardDescription>{applicants.length} calon siswa baru TA 2026/2027</CardDescription>
+                        </div>
+                        <DataTableToolbar
+                            table={table}
+                            searchPlaceholder='Cari pendaftar...'
+                            searchKey='nama'
+                            filters={[
+                                {
+                                    columnId: 'status',
+                                    title: 'Status',
+                                    options: statusOptions,
+                                },
+                            ]}
+                        />
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='space-y-4'>
                         <div className='overflow-auto rounded-md border'>
                             <Table>
                                 <TableHeader>
-                                    <TableRow>
-                                        <TableHead>No. Pendaftaran</TableHead>
-                                        <TableHead>Nama</TableHead>
-                                        <TableHead>L/P</TableHead>
-                                        <TableHead>Asal Sekolah</TableHead>
-                                        <TableHead className='text-right'>Nilai Rata-rata</TableHead>
-                                        <TableHead>Tgl. Daftar</TableHead>
-                                        <TableHead>Status</TableHead>
-                                    </TableRow>
+                                    {table.getHeaderGroups().map((headerGroup) => (
+                                        <TableRow key={headerGroup.id} className='group/row'>
+                                            {headerGroup.headers.map((header) => (
+                                                <TableHead
+                                                    key={header.id}
+                                                    colSpan={header.colSpan}
+                                                    className={cn(
+                                                        'bg-background group-hover/row:bg-muted',
+                                                        header.column.columnDef.meta?.className
+                                                    )}
+                                                >
+                                                    {header.isPlaceholder
+                                                        ? null
+                                                        : flexRender(header.column.columnDef.header, header.getContext())}
+                                                </TableHead>
+                                            ))}
+                                        </TableRow>
+                                    ))}
                                 </TableHeader>
                                 <TableBody>
-                                    {applicants.map((a) => {
-                                        const cfg = statusConfig[a.status]
-                                        return (
-                                            <TableRow key={a.id}>
-                                                <TableCell className='font-mono text-sm'>{a.noPendaftaran}</TableCell>
-                                                <TableCell className='font-medium'>{a.nama}</TableCell>
-                                                <TableCell>{a.jenisKelamin}</TableCell>
-                                                <TableCell className='text-sm text-muted-foreground'>{a.asalSekolah}</TableCell>
-                                                <TableCell className='text-right font-mono'>{a.nilaiRata.toFixed(1)}</TableCell>
-                                                <TableCell className='text-sm'>{formatDateShort(a.tanggalDaftar)}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant='outline' className={cn(cfg.color)}>
-                                                        {cfg.label}
-                                                    </Badge>
-                                                </TableCell>
+                                    {table.getRowModel().rows?.length ? (
+                                        table.getRowModel().rows.map((row) => (
+                                            <TableRow key={row.id} className='group/row'>
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        className={cn(
+                                                            'bg-background group-hover/row:bg-muted',
+                                                            cell.column.columnDef.meta?.className
+                                                        )}
+                                                    >
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </TableCell>
+                                                ))}
                                             </TableRow>
-                                        )
-                                    })}
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={columns.length} className='h-24 text-center'>
+                                                Tidak ada data pendaftar.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </div>
+                        <DataTablePagination table={table} />
                     </CardContent>
                 </Card>
             </Main>

@@ -1,5 +1,20 @@
 import { useState } from 'react'
-import { PlusCircle, CheckCircle2, Clock, BookOpen } from 'lucide-react'
+import {
+    type ColumnDef,
+    type SortingState,
+    type VisibilityState,
+    type ColumnFiltersState,
+    type PaginationState,
+    flexRender,
+    getCoreRowModel,
+    getFacetedRowModel,
+    getFacetedUniqueValues,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from '@tanstack/react-table'
+import { PlusCircle, CheckCircle2, Clock, BookOpen, CalendarRange } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,7 +43,6 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
-import { CalendarRange } from 'lucide-react'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -36,9 +50,12 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { PageHeader } from '@/components/shared/page-header'
+import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 import { cn } from '@/lib/utils'
 import { TahunAjaranDialog } from './components/tahun-ajaran-dialog'
 import { TahunAjaranRowActions } from './components/tahun-ajaran-row-actions'
+
+type TahunAjaranStatus = 'active' | 'completed' | 'upcoming'
 
 type TahunAjaranItem = {
     id: string
@@ -46,7 +63,7 @@ type TahunAjaranItem = {
     mulai: string
     selesai: string
     semester: string
-    status: 'active' | 'completed' | 'upcoming'
+    status: TahunAjaranStatus
     keterangan?: string
 }
 
@@ -57,11 +74,16 @@ const initialData: TahunAjaranItem[] = [
     { id: '4', nama: '2026/2027', mulai: '13 Juli 2026', selesai: '19 Juni 2027', semester: 'Belum dimulai', status: 'upcoming', keterangan: 'Tahun ajaran mendatang' },
 ]
 
-const statusConfig = {
+const statusConfig: Record<TahunAjaranStatus, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
     active: { label: 'Aktif', color: 'bg-green-100/30 text-green-800 dark:text-green-200 border-green-200', icon: CheckCircle2 },
     completed: { label: 'Selesai', color: 'bg-neutral-100/30 text-neutral-600 dark:text-neutral-400 border-neutral-300', icon: BookOpen },
     upcoming: { label: 'Mendatang', color: 'bg-blue-100/30 text-blue-800 dark:text-blue-200 border-blue-200', icon: Clock },
 }
+
+const statusOptions = Object.entries(statusConfig).map(([value, cfg]) => ({
+    label: cfg.label,
+    value,
+}))
 
 export function TahunAjaran() {
     const [tahunList, setTahunList] = useState<TahunAjaranItem[]>(initialData)
@@ -69,6 +91,12 @@ export function TahunAjaran() {
     const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
     const [selected, setSelected] = useState<TahunAjaranItem | undefined>()
     const [deleteTarget, setDeleteTarget] = useState<TahunAjaranItem | null>(null)
+
+    // Table state
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
     const active = tahunList.find((t) => t.status === 'active')
 
@@ -110,6 +138,87 @@ export function TahunAjaran() {
         setDeleteTarget(null)
     }
 
+    // ─── Column Definitions ───────────────────────────────────────────────────
+    const columns: ColumnDef<TahunAjaranItem>[] = [
+        {
+            accessorKey: 'nama',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Tahun Ajaran' />,
+            cell: ({ row }) => <span className='font-semibold'>{row.getValue('nama')}</span>,
+        },
+        {
+            accessorKey: 'mulai',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Tanggal Mulai' />,
+            cell: ({ row }) => <span className='text-sm'>{row.getValue('mulai')}</span>,
+            enableSorting: false,
+        },
+        {
+            accessorKey: 'selesai',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Tanggal Selesai' />,
+            cell: ({ row }) => <span className='text-sm'>{row.getValue('selesai')}</span>,
+            enableSorting: false,
+        },
+        {
+            accessorKey: 'semester',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Semester' />,
+            cell: ({ row }) => <span className='text-sm text-muted-foreground'>{row.getValue('semester')}</span>,
+            enableSorting: false,
+        },
+        {
+            accessorKey: 'status',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+            cell: ({ row }) => {
+                const status = row.getValue('status') as TahunAjaranStatus
+                const cfg = statusConfig[status]
+                const Icon = cfg.icon
+                return (
+                    <Badge variant='outline' className={cn('gap-1', cfg.color)}>
+                        <Icon className='h-3 w-3' />
+                        {cfg.label}
+                    </Badge>
+                )
+            },
+            filterFn: (row, id, value) => value.includes(row.getValue(id)),
+            enableSorting: false,
+        },
+        {
+            accessorKey: 'keterangan',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Keterangan' />,
+            cell: ({ row }) => <span className='text-sm text-muted-foreground'>{row.getValue('keterangan')}</span>,
+            enableSorting: false,
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <TahunAjaranRowActions
+                    item={row.original}
+                    onEdit={handleEdit}
+                    onDelete={setDeleteTarget}
+                    onActivate={handleActivate}
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+            meta: { className: 'w-12' },
+        },
+    ]
+
+    // eslint-disable-next-line react-hooks/incompatible-library
+    const table = useReactTable({
+        data: tahunList,
+        columns,
+        state: { sorting, columnFilters, columnVisibility, pagination },
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onColumnVisibilityChange: setColumnVisibility,
+        onPaginationChange: setPagination,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getFacetedRowModel: getFacetedRowModel(),
+        getFacetedUniqueValues: getFacetedUniqueValues(),
+    })
+
     return (
         <>
             <Header fixed>
@@ -148,56 +257,77 @@ export function TahunAjaran() {
                 )}
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                            <CalendarRange className='h-5 w-5' /> Daftar Tahun Ajaran
-                        </CardTitle>
-                        <CardDescription>{tahunList.length} tahun ajaran tercatat</CardDescription>
+                    <CardHeader className='space-y-4'>
+                        <div>
+                            <CardTitle className='flex items-center gap-2'>
+                                <CalendarRange className='h-5 w-5' /> Daftar Tahun Ajaran
+                            </CardTitle>
+                            <CardDescription>{tahunList.length} tahun ajaran tercatat</CardDescription>
+                        </div>
+                        <DataTableToolbar
+                            table={table}
+                            searchPlaceholder='Cari tahun ajaran...'
+                            searchKey='nama'
+                            filters={[
+                                {
+                                    columnId: 'status',
+                                    title: 'Status',
+                                    options: statusOptions,
+                                },
+                            ]}
+                        />
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='space-y-4'>
                         <div className='overflow-auto rounded-md border'>
                             <Table>
                                 <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Tahun Ajaran</TableHead>
-                                        <TableHead>Tanggal Mulai</TableHead>
-                                        <TableHead>Tanggal Selesai</TableHead>
-                                        <TableHead>Semester</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Keterangan</TableHead>
-                                        <TableHead className='w-12'></TableHead>
-                                    </TableRow>
+                                    {table.getHeaderGroups().map((headerGroup) => (
+                                        <TableRow key={headerGroup.id} className='group/row'>
+                                            {headerGroup.headers.map((header) => (
+                                                <TableHead
+                                                    key={header.id}
+                                                    colSpan={header.colSpan}
+                                                    className={cn(
+                                                        'bg-background group-hover/row:bg-muted',
+                                                        header.column.columnDef.meta?.className
+                                                    )}
+                                                >
+                                                    {header.isPlaceholder
+                                                        ? null
+                                                        : flexRender(header.column.columnDef.header, header.getContext())}
+                                                </TableHead>
+                                            ))}
+                                        </TableRow>
+                                    ))}
                                 </TableHeader>
                                 <TableBody>
-                                    {tahunList.map((ta) => {
-                                        const cfg = statusConfig[ta.status]
-                                        return (
-                                            <TableRow key={ta.id}>
-                                                <TableCell className='font-semibold'>{ta.nama}</TableCell>
-                                                <TableCell className='text-sm'>{ta.mulai}</TableCell>
-                                                <TableCell className='text-sm'>{ta.selesai}</TableCell>
-                                                <TableCell className='text-sm text-muted-foreground'>{ta.semester}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant='outline' className={cn('gap-1', cfg.color)}>
-                                                        <cfg.icon className='h-3 w-3' />
-                                                        {cfg.label}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className='text-sm text-muted-foreground'>{ta.keterangan}</TableCell>
-                                                <TableCell className='text-right'>
-                                                    <TahunAjaranRowActions
-                                                        item={ta}
-                                                        onEdit={handleEdit}
-                                                        onDelete={setDeleteTarget}
-                                                        onActivate={handleActivate}
-                                                    />
-                                                </TableCell>
+                                    {table.getRowModel().rows?.length ? (
+                                        table.getRowModel().rows.map((row) => (
+                                            <TableRow key={row.id} className='group/row'>
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        className={cn(
+                                                            'bg-background group-hover/row:bg-muted',
+                                                            cell.column.columnDef.meta?.className
+                                                        )}
+                                                    >
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </TableCell>
+                                                ))}
                                             </TableRow>
-                                        )
-                                    })}
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={columns.length} className='h-24 text-center'>
+                                                Tidak ada data tahun ajaran.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </div>
+                        <DataTablePagination table={table} />
                     </CardContent>
                 </Card>
             </Main>

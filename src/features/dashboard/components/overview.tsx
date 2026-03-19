@@ -1,4 +1,5 @@
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
+import { formatRupiah } from '@/lib/format'
 
 const data = [
   { name: 'Jul', total: 28500000 },
@@ -21,10 +22,13 @@ function formatAxisValue(value: number): string {
   return `${value}`
 }
 
-export function SppCollectionChart() {
+export function SppCollectionChart({ timeRange = '12' }: { timeRange?: string }) {
+  const range = parseInt(timeRange, 10) || 12
+  const filteredData = data.slice(-range)
+
   return (
     <ResponsiveContainer width='100%' height={350}>
-      <BarChart data={data}>
+      <BarChart data={filteredData}>
         <XAxis
           dataKey='name'
           stroke='#888888'
@@ -39,6 +43,10 @@ export function SppCollectionChart() {
           tickLine={false}
           axisLine={false}
           tickFormatter={formatAxisValue}
+        />
+        <Tooltip
+          formatter={(value: number) => formatRupiah(value)}
+          cursor={{ fill: 'rgba(0,0,0,0.1)' }}
         />
         <Bar
           dataKey='total'

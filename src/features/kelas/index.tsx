@@ -1,5 +1,20 @@
 import { useState } from 'react'
-import { PlusCircle } from 'lucide-react'
+import {
+    type ColumnDef,
+    type SortingState,
+    type VisibilityState,
+    type ColumnFiltersState,
+    type PaginationState,
+    flexRender,
+    getCoreRowModel,
+    getFacetedRowModel,
+    getFacetedUniqueValues,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from '@tanstack/react-table'
+import { PlusCircle, BookOpen, Users, UserCheck, TrendingUp } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,7 +51,8 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard } from '@/components/shared/stat-card'
-import { BookOpen, Users, UserCheck, TrendingUp } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 import { KelasDialog } from './components/kelas-dialog'
 import { KelasRowActions } from './components/kelas-row-actions'
 
@@ -74,6 +90,11 @@ export function DataKelas() {
     const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
     const [selectedKelas, setSelectedKelas] = useState<Kelas | undefined>()
     const [deleteTarget, setDeleteTarget] = useState<Kelas | null>(null)
+
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
     const totalSiswa = kelasList.reduce((s, k) => s + k.jumlahSiswa, 0)
 
@@ -113,6 +134,88 @@ export function DataKelas() {
         setDeleteTarget(null)
     }
 
+    const columns: ColumnDef<Kelas>[] = [
+        {
+            accessorKey: 'namaKelas',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Nama Kelas' />,
+            cell: ({ row }) => <span className='font-medium'>{row.getValue('namaKelas')}</span>,
+        },
+        {
+            accessorKey: 'jenjang',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Jenjang' />,
+            cell: ({ row }) => {
+                const jenjang = row.getValue('jenjang') as string
+                return (
+                    <Badge variant='outline' className={jenjangColor[jenjang]}>
+                        Kelas {jenjang}
+                    </Badge>
+                )
+            },
+            filterFn: (row, id, value) => value.includes(row.getValue(id)),
+        },
+        {
+            accessorKey: 'waliKelas',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Wali Kelas' />,
+            cell: ({ row }) => <span className='text-sm'>{row.getValue('waliKelas')}</span>,
+        },
+        {
+            accessorKey: 'jumlahSiswa',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Siswa' />,
+            cell: ({ row }) => <span className='font-mono text-center block'>{row.getValue('jumlahSiswa')}</span>,
+            meta: { className: 'text-center' },
+        },
+        {
+            accessorKey: 'kapasitas',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Kapasitas' />,
+            cell: ({ row }) => <span className='font-mono text-center block text-muted-foreground'>{row.getValue('kapasitas')}</span>,
+            meta: { className: 'text-center' },
+        },
+        {
+            id: 'terisi',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Terisi' />,
+            cell: ({ row }) => {
+                const { jumlahSiswa, kapasitas } = row.original
+                const pct = kapasitas > 0 ? Math.round((jumlahSiswa / kapasitas) * 100) : 0
+                return (
+                    <span className={cn('text-center block', pct >= 90 ? 'font-medium text-amber-600' : 'text-muted-foreground')}>
+                        {pct}%
+                    </span>
+                )
+            },
+            meta: { className: 'text-center' },
+        },
+        {
+            accessorKey: 'tahunAjaran',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Tahun Ajaran' />,
+            cell: ({ row }) => <span className='text-sm text-muted-foreground'>{row.getValue('tahunAjaran')}</span>,
+            filterFn: (row, id, value) => value.includes(row.getValue(id)),
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <div className='text-right'>
+                    <KelasRowActions kelas={row.original} onEdit={handleEdit} onDelete={handleDelete} />
+                </div>
+            ),
+        },
+    ]
+
+    const table = useReactTable({
+        data: kelasList,
+        columns,
+        state: { sorting, columnFilters, columnVisibility, pagination },
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onColumnVisibilityChange: setColumnVisibility,
+        onPaginationChange: setPagination,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getFacetedRowModel: getFacetedRowModel(),
+        getFacetedUniqueValues: getFacetedUniqueValues(),
+    })
+
     return (
         <>
             <Header fixed>
@@ -142,52 +245,91 @@ export function DataKelas() {
                 </div>
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Daftar Kelas</CardTitle>
-                        <CardDescription>Tahun ajaran 2025/2026 — {kelasList.length} kelas</CardDescription>
+                    <CardHeader className='space-y-4'>
+                        <div>
+                            <CardTitle>Daftar Kelas</CardTitle>
+                            <CardDescription>Tahun ajaran 2025/2026 — {kelasList.length} kelas</CardDescription>
+                        </div>
+                        <DataTableToolbar
+                            table={table}
+                            searchPlaceholder='Cari kelas...'
+                            searchKey='namaKelas'
+                            filters={[
+                                {
+                                    columnId: 'jenjang',
+                                    title: 'Jenjang',
+                                    options: [
+                                        { label: 'Kelas VII', value: 'VII' },
+                                        { label: 'Kelas VIII', value: 'VIII' },
+                                        { label: 'Kelas IX', value: 'IX' },
+                                    ],
+                                },
+                                {
+                                    columnId: 'tahunAjaran',
+                                    title: 'Tahun Ajaran',
+                                    options: [
+                                        { label: '2024/2025', value: '2024/2025' },
+                                        { label: '2025/2026', value: '2025/2026' },
+                                    ],
+                                },
+                            ]}
+                        />
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='space-y-4'>
                         <div className='overflow-auto rounded-md border'>
                             <Table>
                                 <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nama Kelas</TableHead>
-                                        <TableHead>Jenjang</TableHead>
-                                        <TableHead>Wali Kelas</TableHead>
-                                        <TableHead className='text-center'>Siswa</TableHead>
-                                        <TableHead className='text-center'>Kapasitas</TableHead>
-                                        <TableHead className='text-center'>Terisi</TableHead>
-                                        <TableHead className='w-12'></TableHead>
-                                    </TableRow>
+                                    {table.getHeaderGroups().map((headerGroup) => (
+                                        <TableRow key={headerGroup.id} className='group/row'>
+                                            {headerGroup.headers.map((header) => (
+                                                <TableHead
+                                                    key={header.id}
+                                                    colSpan={header.colSpan}
+                                                    className={cn(
+                                                        'bg-background group-hover/row:bg-muted',
+                                                        header.column.columnDef.meta?.className
+                                                    )}
+                                                >
+                                                    {header.isPlaceholder
+                                                        ? null
+                                                        : flexRender(header.column.columnDef.header, header.getContext())}
+                                                </TableHead>
+                                            ))}
+                                        </TableRow>
+                                    ))}
                                 </TableHeader>
                                 <TableBody>
-                                    {kelasList.map((kelas) => {
-                                        const pct = kelas.kapasitas > 0 ? Math.round((kelas.jumlahSiswa / kelas.kapasitas) * 100) : 0
-                                        return (
-                                            <TableRow key={kelas.id}>
-                                                <TableCell className='font-medium'>{kelas.namaKelas}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant='outline' className={jenjangColor[kelas.jenjang]}>
-                                                        Kelas {kelas.jenjang}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className='text-sm'>{kelas.waliKelas}</TableCell>
-                                                <TableCell className='text-center font-mono'>{kelas.jumlahSiswa}</TableCell>
-                                                <TableCell className='text-center font-mono text-muted-foreground'>{kelas.kapasitas}</TableCell>
-                                                <TableCell className='text-center'>
-                                                    <span className={pct >= 90 ? 'font-medium text-amber-600' : 'text-muted-foreground'}>
-                                                        {pct}%
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell className='text-right'>
-                                                    <KelasRowActions kelas={kelas} onEdit={handleEdit} onDelete={handleDelete} />
-                                                </TableCell>
+                                    {table.getRowModel().rows?.length ? (
+                                        table.getRowModel().rows.map((row) => (
+                                            <TableRow
+                                                key={row.id}
+                                                data-state={row.getIsSelected() && 'selected'}
+                                                className='group/row'
+                                            >
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        className={cn(
+                                                            'bg-background group-hover/row:bg-muted',
+                                                            cell.column.columnDef.meta?.className
+                                                        )}
+                                                    >
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </TableCell>
+                                                ))}
                                             </TableRow>
-                                        )
-                                    })}
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={columns.length} className='h-24 text-center'>
+                                                Tidak ada data kelas.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </div>
+                        <DataTablePagination table={table} />
                     </CardContent>
                 </Card>
             </Main>

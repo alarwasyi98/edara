@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import {
   GraduationCap,
   UserCheck,
@@ -16,6 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
@@ -47,6 +51,7 @@ const upcomingEvents = [
 
 export function Dashboard() {
   const { activeTenant } = useTenant()
+  const [sppTimeRange, setSppTimeRange] = useState('12')
 
   return (
     <>
@@ -117,22 +122,40 @@ export function Dashboard() {
             </div>
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
               <Card className='col-span-1 lg:col-span-4'>
-                <CardHeader>
-                  <CardTitle>Penerimaan SPP</CardTitle>
-                  <CardDescription>
-                    Total penerimaan SPP bulanan tahun ajaran 2025/2026
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle>Penerimaan SPP</CardTitle>
+                    <CardDescription>
+                      Total penerimaan SPP bulanan tahun ajaran 2025/2026
+                    </CardDescription>
+                  </div>
+                  <Select value={sppTimeRange} onValueChange={setSppTimeRange}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="Pilih rentang" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Bulan</SelectItem>
+                      <SelectItem value="3">3 Bulan</SelectItem>
+                      <SelectItem value="6">6 Bulan</SelectItem>
+                      <SelectItem value="12">1 Tahun</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </CardHeader>
-                <CardContent className='ps-2'>
-                  <SppCollectionChart />
+                <CardContent className='ps-2 pt-4'>
+                  <SppCollectionChart timeRange={sppTimeRange} />
                 </CardContent>
               </Card>
               <Card className='col-span-1 lg:col-span-3'>
-                <CardHeader>
-                  <CardTitle>Pembayaran Terbaru</CardTitle>
-                  <CardDescription>
-                    5 pembayaran SPP terakhir hari ini.
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle>Pembayaran Terbaru</CardTitle>
+                    <CardDescription>
+                      5 pembayaran SPP terakhir hari ini.
+                    </CardDescription>
+                  </div>
+                  <Button variant="link" size="sm" asChild className="h-auto p-0 text-primary">
+                    <Link to="/spp">Lihat Selengkapnya</Link>
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <RecentPayments />
@@ -143,11 +166,16 @@ export function Dashboard() {
             {/* Log Aktivitas & Kegiatan Mendatang */}
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
               <Card>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2 text-base'>
-                    <Activity className='h-4 w-4' /> Log Aktivitas
-                  </CardTitle>
-                  <CardDescription>Aktivitas pengguna terkini di sistem</CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle className='flex items-center gap-2 text-base'>
+                      <Activity className='h-4 w-4' /> Log Aktivitas
+                    </CardTitle>
+                    <CardDescription>Aktivitas pengguna terkini di sistem</CardDescription>
+                  </div>
+                  <Button variant="link" size="sm" asChild className="h-auto p-0 text-primary">
+                    <Link to="/settings">Lihat Selengkapnya</Link>
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <ul className='space-y-3'>
@@ -170,11 +198,16 @@ export function Dashboard() {
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2 text-base'>
-                    <CalendarClock className='h-4 w-4' /> Kegiatan Mendatang
-                  </CardTitle>
-                  <CardDescription>Jadwal acara dan tenggat yang akan datang</CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle className='flex items-center gap-2 text-base'>
+                      <CalendarClock className='h-4 w-4' /> Kegiatan Mendatang
+                    </CardTitle>
+                    <CardDescription>Jadwal acara dan tenggat yang akan datang</CardDescription>
+                  </div>
+                  <Button variant="link" size="sm" asChild className="h-auto p-0 text-primary">
+                    <Link to="/kalender">Lihat Selengkapnya</Link>
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <ul className='space-y-3'>

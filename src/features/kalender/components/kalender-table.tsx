@@ -21,6 +21,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { categoryOptions } from '../data/data'
 import { type CalendarEvent } from '../data/schema'
@@ -86,94 +87,93 @@ export function KalenderTable({ data, search, navigate }: KalenderTableProps) {
     }, [table, ensurePageInRange])
 
     return (
-        <div
-            className={cn(
-                'max-sm:has-[div[role="toolbar"]]:mb-16',
-                'flex flex-1 flex-col gap-4'
-            )}
-        >
-            <DataTableToolbar
-                table={table}
-                searchPlaceholder='Cari kegiatan...'
-                searchKey='title'
-                filters={[
-                    {
-                        columnId: 'category',
-                        title: 'Kategori',
-                        options: categoryOptions.map((c) => ({
-                            label: c.label,
-                            value: c.value,
-                        })),
-                    },
-                ]}
-            />
-            <div className='overflow-hidden rounded-md border'>
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className='group/row'>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead
-                                            key={header.id}
-                                            colSpan={header.colSpan}
-                                            className={cn(
-                                                'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
-                                                header.column.columnDef.meta?.className,
-                                                header.column.columnDef.meta?.thClassName
-                                            )}
-                                        >
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
+        <Card>
+            <CardHeader className='pb-3'>
+                <DataTableToolbar
+                    table={table}
+                    searchPlaceholder='Cari kegiatan...'
+                    searchKey='title'
+                    filters={[
+                        {
+                            columnId: 'category',
+                            title: 'Kategori',
+                            options: categoryOptions.map((c) => ({
+                                label: c.label,
+                                value: c.value,
+                            })),
+                        },
+                    ]}
+                />
+            </CardHeader>
+            <CardContent className='space-y-4'>
+                <div className='overflow-hidden rounded-md border'>
+                    <Table>
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id} className='group/row'>
+                                    {headerGroup.headers.map((header) => {
+                                        return (
+                                            <TableHead
+                                                key={header.id}
+                                                colSpan={header.colSpan}
+                                                className={cn(
+                                                    'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                                                    header.column.columnDef.meta?.className,
+                                                    header.column.columnDef.meta?.thClassName
                                                 )}
-                                        </TableHead>
-                                    )
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && 'selected'}
-                                    className='group/row'
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell
-                                            key={cell.id}
-                                            className={cn(
-                                                'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
-                                                cell.column.columnDef.meta?.className,
-                                                cell.column.columnDef.meta?.tdClassName
-                                            )}
-                                        >
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
+                                            >
+                                                {header.isPlaceholder
+                                                    ? null
+                                                    : flexRender(
+                                                        header.column.columnDef.header,
+                                                        header.getContext()
+                                                    )}
+                                            </TableHead>
+                                        )
+                                    })}
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className='h-24 text-center'
-                                >
-                                    Tidak ada data kegiatan.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-            <DataTablePagination table={table} className='mt-auto' />
-        </div>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && 'selected'}
+                                        className='group/row'
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell
+                                                key={cell.id}
+                                                className={cn(
+                                                    'bg-background group-hover/row:bg-muted group-data-[state=selected]/row:bg-muted',
+                                                    cell.column.columnDef.meta?.className,
+                                                    cell.column.columnDef.meta?.tdClassName
+                                                )}
+                                            >
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={columns.length}
+                                        className='h-24 text-center'
+                                    >
+                                        Tidak ada data kegiatan.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+                <DataTablePagination table={table} className='mt-auto' />
+            </CardContent>
+        </Card>
     )
 }
