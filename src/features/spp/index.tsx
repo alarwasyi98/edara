@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { faker } from '@faker-js/faker'
 import {
     type ColumnDef,
@@ -27,15 +28,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -77,15 +70,7 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard } from '@/components/shared/stat-card'
-import { DateInputPicker } from '@/components/date-input-picker'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog'
+
 import {
     Receipt,
     TrendingUp,
@@ -103,8 +88,6 @@ import { cn } from '@/lib/utils'
 import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 
 import { determineSppStatus } from './utils/calculations'
-import { TransactionForm } from './components/transaction-form'
-
 faker.seed(99999)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -198,6 +181,7 @@ const lineConfig: ChartConfig = {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function ManajemenSPP() {
+    const navigate = useNavigate()
     const [payments, setPayments] = useState<SppPayment[]>(initialPayments)
     const [rowSelection, setRowSelection] = useState({})
     const [sorting, setSorting] = useState<SortingState>([])
@@ -205,76 +189,6 @@ export function ManajemenSPP() {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
     const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
-    // State form edit
-    const [isFormOpen, setIsFormOpen] = useState(false)
-    const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
-
-    // State dialog tambah pembayaran
-    const [isAddOpen, setIsAddOpen] = useState(false)
-    const today = new Date().toISOString().split('T')[0]
-    const [addForm, setAddForm] = useState({
-        namaSiswa: '',
-        kelas: '',
-        bulan: bulanList[0],
-        nominal: 750000,
-        dibayar: 0,
-        metodeBayar: 'tunai',
-        tanggalBayar: today as string | null,
-    })
-
-    const handleAddPayment = () => {
-        const newStatus = determineSppStatus(addForm.dibayar, addForm.nominal)
-        const newPayment: SppPayment = {
-            id: Date.now().toString(),
-            namaSiswa: addForm.namaSiswa,
-            kelas: addForm.kelas,
-            bulan: addForm.bulan,
-            nominal: addForm.nominal,
-            dibayar: addForm.dibayar,
-            status: newStatus,
-            tanggalBayar: addForm.dibayar > 0 ? addForm.tanggalBayar : null,
-        }
-        setPayments((prev) => [newPayment, ...prev])
-        setIsAddOpen(false)
-        setAddForm({ namaSiswa: '', kelas: '', bulan: bulanList[0], nominal: 750000, dibayar: 0, metodeBayar: 'tunai', tanggalBayar: today })
-    }
-
-    const handleEditClick = (p: SppPayment) => {
-        setSelectedTransaction({
-            id: p.id,
-            namaSiswa: p.namaSiswa,
-            posTagihan: `SPP - ${formatBulanTagihan(p.bulan)}`,
-            nominalTagihan: p.nominal,
-            dibayar: p.dibayar,
-            metodeBayar: 'tunai', // Default mockup
-            tanggalBayar: p.tanggalBayar,
-            keterangan: '',
-        })
-        setIsFormOpen(true)
-    }
-
-    const handleSaveTransaction = (
-        id: string,
-        newDibayar: number,
-        _newMetode: string,
-        newTanggal: string,
-        _newKet?: string
-    ) => {
-        setPayments((prev) =>
-            prev.map((p) => {
-                if (p.id === id) {
-                    const newStatus = determineSppStatus(newDibayar, p.nominal)
-                    return {
-                        ...p,
-                        dibayar: newDibayar,
-                        tanggalBayar: newDibayar > 0 ? newTanggal : null,
-                        status: newStatus,
-                    }
-                }
-                return p
-            })
-        )
-    }
 
     // ─── Column Definitions ───────────────────────────────────────────────────
     const columns: ColumnDef<SppPayment>[] = [
@@ -371,7 +285,7 @@ export function ManajemenSPP() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align='end'>
-                        <DropdownMenuItem onClick={() => handleEditClick(row.original)}>
+                        <DropdownMenuItem onClick={() => {}}>
                             <Pencil className='mr-2 h-4 w-4' />
                             Edit Transaksi
                         </DropdownMenuItem>
@@ -447,7 +361,7 @@ export function ManajemenSPP() {
                     title='Pembayaran Siswa'
                     description='Kelola tagihan dan pembayaran SPP siswa.'
                 >
-                    <Button size='sm' className='gap-1.5' onClick={() => setIsAddOpen(true)}>
+                    <Button size='sm' className='gap-1.5' onClick={() => navigate({ to: '/spp/tambah-pembayaran' })}>
                         <Plus className='h-4 w-4' />
                         Tambah
                     </Button>
@@ -732,82 +646,9 @@ export function ManajemenSPP() {
                 </div>
             </div>
 
-            <TransactionForm
-                open={isFormOpen}
-                onOpenChange={setIsFormOpen}
-                data={selectedTransaction}
-                onSave={handleSaveTransaction}
-            />
 
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                <DialogContent className='sm:max-w-[440px]'>
-                    <DialogHeader>
-                        <DialogTitle>Tambah Pembayaran</DialogTitle>
-                        <DialogDescription>Tambahkan tagihan SPP siswa baru.</DialogDescription>
-                    </DialogHeader>
-                    <div className='grid gap-4 py-4'>
-                        <div className='grid grid-cols-4 items-center gap-4'>
-                            <Label htmlFor='add-nama' className='text-right'>Nama Siswa</Label>
-                            <Input id='add-nama' value={addForm.namaSiswa}
-                                onChange={(e) => setAddForm((f) => ({ ...f, namaSiswa: e.target.value }))}
-                                placeholder='Nama siswa' className='col-span-3' />
-                        </div>
-                        <div className='grid grid-cols-4 items-center gap-4'>
-                            <Label className='text-right'>Kelas</Label>
-                            <Select value={addForm.kelas} onValueChange={(v) => setAddForm((f) => ({ ...f, kelas: v }))}>
-                                <SelectTrigger className='col-span-3'><SelectValue placeholder='Pilih kelas' /></SelectTrigger>
-                                <SelectContent>
-                                    {kelasList.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='grid grid-cols-4 items-center gap-4'>
-                            <Label className='text-right'>Bulan</Label>
-                            <Select value={addForm.bulan} onValueChange={(v) => setAddForm((f) => ({ ...f, bulan: v }))}>
-                                <SelectTrigger className='col-span-3'><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    {bulanList.map((b) => <SelectItem key={b} value={b}>{formatBulanTagihan(b)}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='grid grid-cols-4 items-center gap-4'>
-                            <Label htmlFor='add-nominal' className='text-right'>Nominal</Label>
-                            <Input id='add-nominal' type='number' value={addForm.nominal || ''}
-                                onChange={(e) => setAddForm((f) => ({ ...f, nominal: Number(e.target.value) }))}
-                                className='col-span-3' />
-                        </div>
-                        <div className='grid grid-cols-4 items-center gap-4'>
-                            <Label htmlFor='add-dibayar' className='text-right'>Dibayar</Label>
-                            <Input id='add-dibayar' type='number' value={addForm.dibayar || ''}
-                                onChange={(e) => setAddForm((f) => ({ ...f, dibayar: Number(e.target.value) }))}
-                                className='col-span-3' />
-                        </div>
-                        <div className='grid grid-cols-4 items-center gap-4'>
-                            <Label className='text-right'>Tgl Bayar</Label>
-                            <div className='col-span-3'>
-                                <DateInputPicker value={addForm.tanggalBayar} onChange={(v) => setAddForm((f) => ({ ...f, tanggalBayar: v }))} className='w-full' />
-                            </div>
-                        </div>
-                        <div className='grid grid-cols-4 items-center gap-4'>
-                            <Label className='text-right'>Metode</Label>
-                            <Select value={addForm.metodeBayar} onValueChange={(v) => setAddForm((f) => ({ ...f, metodeBayar: v }))}>
-                                <SelectTrigger className='col-span-3'><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='tunai'>Tunai</SelectItem>
-                                    <SelectItem value='transfer'>Transfer</SelectItem>
-                                    <SelectItem value='qris'>QRIS</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant='outline' onClick={() => setIsAddOpen(false)}>Batal</Button>
-                        <Button onClick={handleAddPayment} disabled={!addForm.namaSiswa || !addForm.kelas}>
-                            Simpan
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+
+
         </>
     )
 }

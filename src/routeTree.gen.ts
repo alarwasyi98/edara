@@ -39,6 +39,7 @@ import { Route as AuthenticatedAlumniIndexRouteImport } from './routes/_authenti
 import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
+import { Route as AuthenticatedSppTambahPembayaranRouteImport } from './routes/_authenticated/spp/tambah-pembayaran'
 import { Route as AuthenticatedSppLaporanRouteImport } from './routes/_authenticated/spp/laporan'
 import { Route as AuthenticatedSppJenisBayarRouteImport } from './routes/_authenticated/spp/jenis-bayar'
 import { Route as AuthenticatedSppDiskonRouteImport } from './routes/_authenticated/spp/diskon'
@@ -210,6 +211,12 @@ const ClerkauthSignInRoute = ClerkauthSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => ClerkauthRouteRoute,
 } as any)
+const AuthenticatedSppTambahPembayaranRoute =
+  AuthenticatedSppTambahPembayaranRouteImport.update({
+    id: '/spp/tambah-pembayaran',
+    path: '/spp/tambah-pembayaran',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSppLaporanRoute = AuthenticatedSppLaporanRouteImport.update({
   id: '/spp/laporan',
   path: '/spp/laporan',
@@ -332,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/spp/diskon': typeof AuthenticatedSppDiskonRoute
   '/spp/jenis-bayar': typeof AuthenticatedSppJenisBayarRoute
   '/spp/laporan': typeof AuthenticatedSppLaporanRoute
+  '/spp/tambah-pembayaran': typeof AuthenticatedSppTambahPembayaranRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -376,6 +384,7 @@ export interface FileRoutesByTo {
   '/spp/diskon': typeof AuthenticatedSppDiskonRoute
   '/spp/jenis-bayar': typeof AuthenticatedSppJenisBayarRoute
   '/spp/laporan': typeof AuthenticatedSppLaporanRoute
+  '/spp/tambah-pembayaran': typeof AuthenticatedSppTambahPembayaranRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -425,6 +434,7 @@ export interface FileRoutesById {
   '/_authenticated/spp/diskon': typeof AuthenticatedSppDiskonRoute
   '/_authenticated/spp/jenis-bayar': typeof AuthenticatedSppJenisBayarRoute
   '/_authenticated/spp/laporan': typeof AuthenticatedSppLaporanRoute
+  '/_authenticated/spp/tambah-pembayaran': typeof AuthenticatedSppTambahPembayaranRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
@@ -472,6 +482,7 @@ export interface FileRouteTypes {
     | '/spp/diskon'
     | '/spp/jenis-bayar'
     | '/spp/laporan'
+    | '/spp/tambah-pembayaran'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -516,6 +527,7 @@ export interface FileRouteTypes {
     | '/spp/diskon'
     | '/spp/jenis-bayar'
     | '/spp/laporan'
+    | '/spp/tambah-pembayaran'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
@@ -564,6 +576,7 @@ export interface FileRouteTypes {
     | '/_authenticated/spp/diskon'
     | '/_authenticated/spp/jenis-bayar'
     | '/_authenticated/spp/laporan'
+    | '/_authenticated/spp/tambah-pembayaran'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
@@ -807,6 +820,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClerkauthSignInRouteImport
       parentRoute: typeof ClerkauthRouteRoute
     }
+    '/_authenticated/spp/tambah-pembayaran': {
+      id: '/_authenticated/spp/tambah-pembayaran'
+      path: '/spp/tambah-pembayaran'
+      fullPath: '/spp/tambah-pembayaran'
+      preLoaderRoute: typeof AuthenticatedSppTambahPembayaranRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/spp/laporan': {
       id: '/_authenticated/spp/laporan'
       path: '/spp/laporan'
@@ -957,6 +977,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSppDiskonRoute: typeof AuthenticatedSppDiskonRoute
   AuthenticatedSppJenisBayarRoute: typeof AuthenticatedSppJenisBayarRoute
   AuthenticatedSppLaporanRoute: typeof AuthenticatedSppLaporanRoute
+  AuthenticatedSppTambahPembayaranRoute: typeof AuthenticatedSppTambahPembayaranRoute
   AuthenticatedAlumniIndexRoute: typeof AuthenticatedAlumniIndexRoute
   AuthenticatedGuruIndexRoute: typeof AuthenticatedGuruIndexRoute
   AuthenticatedKalenderIndexRoute: typeof AuthenticatedKalenderIndexRoute
@@ -986,6 +1007,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSppDiskonRoute: AuthenticatedSppDiskonRoute,
   AuthenticatedSppJenisBayarRoute: AuthenticatedSppJenisBayarRoute,
   AuthenticatedSppLaporanRoute: AuthenticatedSppLaporanRoute,
+  AuthenticatedSppTambahPembayaranRoute: AuthenticatedSppTambahPembayaranRoute,
   AuthenticatedAlumniIndexRoute: AuthenticatedAlumniIndexRoute,
   AuthenticatedGuruIndexRoute: AuthenticatedGuruIndexRoute,
   AuthenticatedKalenderIndexRoute: AuthenticatedKalenderIndexRoute,
