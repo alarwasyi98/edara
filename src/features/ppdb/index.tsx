@@ -237,7 +237,7 @@ export function DataPPDB() {
                                                     key={header.id}
                                                     colSpan={header.colSpan}
                                                     className={cn(
-                                                        'bg-background group-hover/row:bg-muted',
+                                                        'group-hover/row:bg-muted',
                                                         header.column.columnDef.meta?.className
                                                     )}
                                                 >
@@ -257,7 +257,7 @@ export function DataPPDB() {
                                                     <TableCell
                                                         key={cell.id}
                                                         className={cn(
-                                                            'bg-background group-hover/row:bg-muted',
+                                                            'group-hover/row:bg-muted',
                                                             cell.column.columnDef.meta?.className
                                                         )}
                                                     >
