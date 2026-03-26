@@ -16,6 +16,11 @@ import {
     useReactTable,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
+import {
+    type PeriodeBayar,
+    periodeBayarColors,
+    periodeBayarLabels,
+} from '@/lib/constants'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -62,7 +67,6 @@ import { Blocks, Receipt } from 'lucide-react'
 import { toast } from 'sonner'
 import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 
-type PeriodeBayar = 'bulanan' | 'tahunan' | 'sekali'
 
 type JenisBayarItem = {
     id: string
@@ -76,9 +80,9 @@ type JenisBayarItem = {
 }
 
 const periodeConfig: Record<PeriodeBayar, { label: string; color: string }> = {
-    bulanan: { label: 'Bulanan', color: 'bg-blue-100/30 text-blue-800 dark:text-blue-200 border-blue-200' },
-    tahunan: { label: 'Tahunan', color: 'bg-purple-100/30 text-purple-800 dark:text-purple-200 border-purple-200' },
-    sekali: { label: 'Sekali Bayar', color: 'bg-amber-100/30 text-amber-800 dark:text-amber-200 border-amber-200' },
+    bulanan: { label: periodeBayarLabels.bulanan, color: periodeBayarColors.bulanan },
+    tahunan: { label: periodeBayarLabels.tahunan, color: periodeBayarColors.tahunan },
+    sekali:  { label: periodeBayarLabels.sekali,  color: periodeBayarColors.sekali  },
 }
 
 const initialList: JenisBayarItem[] = [
@@ -263,7 +267,7 @@ export function JenisBayar() {
                                                     key={header.id}
                                                     colSpan={header.colSpan}
                                                     className={cn(
-                                                        'bg-background group-hover/row:bg-muted',
+                                                        'group-hover/row:bg-muted',
                                                         header.column.columnDef.meta?.className
                                                     )}
                                                 >
@@ -287,7 +291,7 @@ export function JenisBayar() {
                                                     <TableCell
                                                         key={cell.id}
                                                         className={cn(
-                                                            'bg-background group-hover/row:bg-muted',
+                                                            'group-hover/row:bg-muted',
                                                             cell.column.columnDef.meta?.className
                                                         )}
                                                     >

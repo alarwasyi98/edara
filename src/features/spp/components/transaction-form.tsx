@@ -311,6 +311,7 @@ export function TransactionFormPage() {
                             <SectionHeading
                                 icon={<Wallet className='h-3.5 w-3.5' />}
                                 title='Metode Pembayaran'
+                                description='Pilih metode pembayaran yang digunakan'
                             />
                             <PaymentMethodSelector
                                 value={paymentMethod}
@@ -342,6 +343,7 @@ export function TransactionFormPage() {
                                 <SectionHeading
                                     icon={<CalendarDays className='h-3.5 w-3.5' />}
                                     title='Tanggal Bayar'
+                                    description='Pilih tanggal transaksi ini'
                                 />
                                 <DateInputPicker
                                     value={paymentDate}

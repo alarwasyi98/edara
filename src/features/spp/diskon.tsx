@@ -87,6 +87,7 @@ import { StatCard } from '@/components/shared/stat-card'
 import { formatRupiah } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
+import { diskonKategoriColors, teacherStatusColors } from '@/lib/constants'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type TipeDiskon = 'persentase' | 'nominal'
@@ -113,14 +114,6 @@ const kategoriLabel: Record<KategoriDiskon, string> = {
     lainnya: 'Lainnya',
 }
 
-const kategoriColor: Record<KategoriDiskon, string> = {
-    yatim: 'bg-purple-100/30 text-purple-800 dark:text-purple-200 border-purple-200',
-    dhuafa: 'bg-amber-100/30 text-amber-800 dark:text-amber-200 border-amber-200',
-    prestasi: 'bg-blue-100/30 text-blue-800 dark:text-blue-200 border-blue-200',
-    pegawai: 'bg-green-100/30 text-green-800 dark:text-green-200 border-green-200',
-    'kakak-adik': 'bg-cyan-100/30 text-cyan-800 dark:text-cyan-200 border-cyan-200',
-    lainnya: 'bg-neutral-100/30 text-neutral-600 dark:text-neutral-400 border-neutral-300',
-}
 
 const initialDiskon: Diskon[] = [
     { id: '1', nama: 'Beasiswa Yatim', tipe: 'persentase', nilai: 100, kategori: 'yatim', keterangan: 'Pembebasan penuh SPP untuk anak yatim yang terdaftar', jumlahPenerima: 8, aktif: true },
@@ -297,7 +290,7 @@ export function DiskonSPP() {
             cell: ({ row }) => {
                 const kategori = row.getValue('kategori') as KategoriDiskon
                 return (
-                    <Badge variant='outline' className={cn('text-xs', kategoriColor[kategori])}>
+                    <Badge variant='outline' className={cn('text-xs', diskonKategoriColors[kategori])}>
                         {kategoriLabel[kategori]}
                     </Badge>
                 )
@@ -340,8 +333,8 @@ export function DiskonSPP() {
                 return (
                     <div className='flex justify-center'>
                     <Badge variant='outline' className={aktif
-                        ? 'border-green-200 bg-green-100/30 text-green-800 dark:text-green-200'
-                        : 'border-neutral-300 bg-neutral-100/30 text-neutral-500'}>
+                        ? teacherStatusColors.active
+                        : teacherStatusColors.inactive}>
                         {aktif ? 'Aktif' : 'Nonaktif'}
                     </Badge>
                     </div>
@@ -470,7 +463,7 @@ export function DiskonSPP() {
                                                     key={header.id}
                                                     colSpan={header.colSpan}
                                                     className={cn(
-                                                        'bg-background group-hover/row:bg-muted',
+                                                        'group-hover/row:bg-muted',
                                                         header.column.columnDef.meta?.className
                                                     )}
                                                 >
@@ -494,7 +487,7 @@ export function DiskonSPP() {
                                                     <TableCell
                                                         key={cell.id}
                                                         className={cn(
-                                                            'bg-background group-hover/row:bg-muted',
+                                                            'group-hover/row:bg-muted',
                                                             cell.column.columnDef.meta?.className
                                                         )}
                                                     >

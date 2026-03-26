@@ -52,35 +52,17 @@ import {
 } from '@/components/ui/table'
 import { formatRupiah, formatBulanTagihan, formatDateShort } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { sppStatusColors } from '@/lib/constants'
 import { type StudentFinanceRecord } from '../data/schema'
 import { getStudentFinance, getFinanceSummary } from '../data/student-finance'
 
-// ── Status badge colors ─────────────────────────
+// ── Status badge labels ─────────────────────────
 
-const statusConfig: Record<
-    StudentFinanceRecord['status'],
-    { label: string; className: string }
-> = {
-    paid: {
-        label: 'Lunas',
-        className:
-            'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200',
-    },
-    partial: {
-        label: 'Sebagian',
-        className:
-            'bg-amber-100/30 text-amber-900 dark:text-amber-200 border-amber-200',
-    },
-    unpaid: {
-        label: 'Belum Bayar',
-        className:
-            'bg-gray-100/30 text-gray-900 dark:text-gray-200 border-gray-200',
-    },
-    overdue: {
-        label: 'Menunggak',
-        className:
-            'bg-red-100/30 text-red-900 dark:text-red-200 border-red-200',
-    },
+const statusLabels: Record<StudentFinanceRecord['status'], string> = {
+    paid:    'Lunas',
+    partial: 'Sebagian',
+    unpaid:  'Belum Bayar',
+    overdue: 'Menunggak',
 }
 
 // ── Column definitions ──────────────────────────
@@ -99,7 +81,7 @@ const columns: ColumnDef<StudentFinanceRecord>[] = [
         accessorKey: 'jenis',
         header: 'Jenis',
         cell: ({ row }) => (
-            <Badge variant='outline' className='text-nowrap'>
+            <Badge variant='outline' className='text-nowrap border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400'>
                 {row.getValue('jenis')}
             </Badge>
         ),
@@ -148,10 +130,9 @@ const columns: ColumnDef<StudentFinanceRecord>[] = [
             const status = row.getValue(
                 'status'
             ) as StudentFinanceRecord['status']
-            const cfg = statusConfig[status]
             return (
-                <Badge variant='outline' className={cn('capitalize', cfg.className)}>
-                    {cfg.label}
+                <Badge variant='outline' className={cn('capitalize', sppStatusColors[status])}>
+                    {statusLabels[status]}
                 </Badge>
             )
         },

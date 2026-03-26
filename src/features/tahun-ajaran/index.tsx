@@ -52,10 +52,14 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 import { cn } from '@/lib/utils'
+import {
+    tahunAjaranStatusColors,
+    tahunAjaranStatusLabels,
+    type TahunAjaranStatus,
+} from '@/lib/constants'
 import { TahunAjaranDialog } from './components/tahun-ajaran-dialog'
 import { TahunAjaranRowActions } from './components/tahun-ajaran-row-actions'
 
-type TahunAjaranStatus = 'active' | 'completed' | 'upcoming'
 
 type TahunAjaranItem = {
     id: string
@@ -75,9 +79,9 @@ const initialData: TahunAjaranItem[] = [
 ]
 
 const statusConfig: Record<TahunAjaranStatus, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-    active: { label: 'Aktif', color: 'bg-green-100/30 text-green-800 dark:text-green-200 border-green-200', icon: CheckCircle2 },
-    completed: { label: 'Selesai', color: 'bg-neutral-100/30 text-neutral-600 dark:text-neutral-400 border-neutral-300', icon: BookOpen },
-    upcoming: { label: 'Mendatang', color: 'bg-blue-100/30 text-blue-800 dark:text-blue-200 border-blue-200', icon: Clock },
+    active:    { label: tahunAjaranStatusLabels.active,    color: tahunAjaranStatusColors.active,    icon: CheckCircle2 },
+    completed: { label: tahunAjaranStatusLabels.completed, color: tahunAjaranStatusColors.completed, icon: BookOpen },
+    upcoming:  { label: tahunAjaranStatusLabels.upcoming,  color: tahunAjaranStatusColors.upcoming,  icon: Clock },
 }
 
 const statusOptions = Object.entries(statusConfig).map(([value, cfg]) => ({
@@ -288,7 +292,7 @@ export function TahunAjaran() {
                                                     key={header.id}
                                                     colSpan={header.colSpan}
                                                     className={cn(
-                                                        'bg-background group-hover/row:bg-muted',
+                                                        'group-hover/row:bg-muted',
                                                         header.column.columnDef.meta?.className
                                                     )}
                                                 >
@@ -308,7 +312,7 @@ export function TahunAjaran() {
                                                     <TableCell
                                                         key={cell.id}
                                                         className={cn(
-                                                            'bg-background group-hover/row:bg-muted',
+                                                            'group-hover/row:bg-muted',
                                                             cell.column.columnDef.meta?.className
                                                         )}
                                                     >

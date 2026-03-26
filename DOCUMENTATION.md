@@ -426,3 +426,57 @@ Aplikasi ini menggunakan standar UI yang terpusat untuk tombol aksi primer per m
 
 *Dokumentasi ini diperbarui secara otomatis melalui analisis kode oleh Antigravity AI.  
 Untuk pertanyaan atau koreksi, hubungi tim pengembang sentral EDARA.*
+
+---
+
+## Badge Color Standard
+
+All status and category badges in the application use a unified color token pattern sourced from `src/lib/constants.ts`. This ensures visual consistency and proper dark mode support across all features.
+
+### Token Pattern
+
+```
+border-{color}-200 bg-{color}-50 text-{color}-700
+dark:border-{color}-800 dark:bg-{color}-950/30 dark:text-{color}-400
+```
+
+### Semantic Color Mapping
+
+| Semantic | Color | Use Cases |
+|---|---|---|
+| **Green** | `green` | Active / Paid / Accepted / Income |
+| **Blue** | `blue` | Info / Cicilan / Upcoming / Akademik / Bulanan |
+| **Amber** | `amber` | Warning / Partial / Transferred / Sekali Bayar |
+| **Red** | `red` | Overdue / Error / Expense |
+| **Purple** | `purple` | Special / Verified / Tahunan / Yatim |
+| **Cyan** | `cyan` | Discount / Kakak-Adik |
+| **Gray** | `gray` | Inactive / Neutral / Tidak Lanjut |
+| **Emerald** | `emerald` | Kelas IX (differentiated from blue VII) |
+
+### Centralized Color Maps in `src/lib/constants.ts`
+
+| Export | Used By |
+|---|---|
+| `studentStatusColors` | `siswa-columns.tsx`, `siswa/data/data.ts` |
+| `teacherStatusColors` | `guru-columns.tsx`, `spp/diskon.tsx` |
+| `sppStatusColors` | `spp/index.tsx` |
+| `ppdbStatusColors` | `ppdb/index.tsx` |
+| `tahunAjaranStatusColors` | `tahun-ajaran/index.tsx` |
+| `kelasJenjangColors` | `kelas/index.tsx` |
+| `kalenderKategoriColors` | `kalender/data/data.ts` |
+| `periodeBayarColors` | `spp/jenis-bayar.tsx` |
+| `diskonKategoriColors` | `spp/diskon.tsx`, `spp/components/discount-selector.tsx` |
+| `keuanganJenisColors` | `keuangan/index.tsx` |
+
+### Usage Rule
+
+**Never** hardcode badge color strings inline. Always import the relevant map from `@/lib/constants` and apply via `className={colorMap[value]}`.
+
+```tsx
+// ✅ Correct
+import { studentStatusColors } from '@/lib/constants'
+<Badge variant='outline' className={studentStatusColors[status]}>{label}</Badge>
+
+// ❌ Wrong — hardcoded, inconsistent
+<Badge variant='outline' className='bg-green-100/30 text-green-800 ...'>{label}</Badge>
+```

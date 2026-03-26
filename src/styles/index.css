@@ -38,6 +38,28 @@
   }
 }
 
+@layer base {
+  /* ── DataTable inside Card ─────────────────────────────────────────────────
+   * Tables nested in a Card show bg-background cells on a bg-card surface,
+   * which creates a visible gray mismatch in light mode (#fafafa vs #fff).
+   * This scoped override corrects all table cell/head backgrounds to bg-card.
+   * Hover/selected states map to --secondary (Geist Color-2 = #ededed).
+   * ────────────────────────────────────────────────────────────────────────── */
+  [data-slot='card'] [data-slot='table-head'],
+  [data-slot='card'] [data-slot='table-cell'] {
+    background-color: var(--card);
+  }
+
+  [data-slot='card'] [data-slot='table-row']:hover [data-slot='table-head'],
+  [data-slot='card'] [data-slot='table-row']:hover [data-slot='table-cell'] {
+    background-color: var(--secondary);
+  }
+
+  [data-slot='card'] [data-slot='table-row'][data-state='selected'] [data-slot='table-cell'] {
+    background-color: var(--secondary);
+  }
+}
+
 @utility container {
   margin-inline: auto;
   padding-inline: 2rem;

@@ -9,17 +9,10 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover'
 import { formatRupiah } from '@/lib/format'
+import { diskonKategoriColors } from '@/lib/constants'
 import { MOCK_DISCOUNTS } from '../data/mock-data'
 import type { Discount, AppliedDiscount } from '../types'
 
-const KATEGORI_COLOR: Record<string, string> = {
-    yatim: 'border-purple-200 bg-purple-100/50 text-purple-800 dark:text-purple-300 dark:border-purple-800 dark:bg-purple-950/30',
-    dhuafa: 'border-amber-200 bg-amber-100/50 text-amber-800 dark:text-amber-300 dark:border-amber-800 dark:bg-amber-950/30',
-    prestasi: 'border-blue-200 bg-blue-100/50 text-blue-800 dark:text-blue-300 dark:border-blue-800 dark:bg-blue-950/30',
-    pegawai: 'border-green-200 bg-green-100/50 text-green-800 dark:text-green-300 dark:border-green-800 dark:bg-green-950/30',
-    'kakak-adik': 'border-cyan-200 bg-cyan-100/50 text-cyan-800 dark:text-cyan-300 dark:border-cyan-800 dark:bg-cyan-950/30',
-    lainnya: 'border-neutral-200 bg-neutral-100/50 text-neutral-700 dark:text-neutral-400 dark:border-neutral-700 dark:bg-neutral-900/30',
-}
 
 interface DiscountSelectorProps {
     subtotal: number
@@ -85,7 +78,7 @@ export function DiscountSelector({ subtotal, applied, onChange }: DiscountSelect
                         <Badge
                             key={d.id}
                             variant='outline'
-                            className={cn('gap-1.5 pr-1 pl-2 py-0.5 text-xs font-normal', KATEGORI_COLOR[d.kategori])}
+                            className={cn('gap-1.5 pr-1 pl-2 py-0.5 text-xs font-normal', diskonKategoriColors[d.kategori])}
                         >
                             <span>
                                 {d.nama}
@@ -154,7 +147,7 @@ export function DiscountSelector({ subtotal, applied, onChange }: DiscountSelect
                                     </div>
                                     <Badge
                                         variant='outline'
-                                        className={cn('shrink-0 text-[10px] py-0 h-4', KATEGORI_COLOR[discount.kategori])}
+                                        className={cn('shrink-0 text-[10px] py-0 h-4', diskonKategoriColors[discount.kategori])}
                                     >
                                         {isPct ? `${discount.nilai}%` : formatRupiah(discount.nilai)}
                                     </Badge>

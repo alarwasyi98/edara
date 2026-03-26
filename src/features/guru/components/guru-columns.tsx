@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
-import { genderLabels } from '@/lib/constants'
+import { genderLabels, teacherStatusColors } from '@/lib/constants'
 import { type Teacher } from '../data/schema'
 import { GuruRowActions } from './guru-row-actions'
 
@@ -106,9 +106,7 @@ export const guruColumns: ColumnDef<Teacher>[] = [
                     variant='outline'
                     className={cn(
                         'capitalize',
-                        status === 'active'
-                            ? 'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200'
-                            : 'bg-neutral-300/40 border-neutral-300'
+                        teacherStatusColors[status]
                     )}
                 >
                     {status === 'active' ? 'Aktif' : 'Nonaktif'}

@@ -26,11 +26,11 @@ const data = [
 const chartConfig = {
   lunas: {
     label: 'Lunas',
-    color: 'var(--chart-2)',
+    color: 'var(--chart-1)',
   },
   menunggak: {
     label: 'Menunggak',
-    color: 'var(--chart-5)',
+    color: 'var(--chart-2)',
   },
 } satisfies ChartConfig
 
