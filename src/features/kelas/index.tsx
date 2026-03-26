@@ -52,6 +52,7 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard } from '@/components/shared/stat-card'
 import { cn } from '@/lib/utils'
+import { kelasJenjangColors } from '@/lib/constants'
 import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 import { KelasDialog } from './components/kelas-dialog'
 import { KelasRowActions } from './components/kelas-row-actions'
@@ -78,11 +79,6 @@ const initialKelas: Kelas[] = [
     { id: '9', namaKelas: 'IX-C', jenjang: 'IX', waliKelas: 'Ustdz. Zahra Firdaus', jumlahSiswa: 27, kapasitas: 35, tahunAjaran: '2025/2026' },
 ]
 
-const jenjangColor: Record<string, string> = {
-    VII: 'bg-blue-100/30 text-blue-800 dark:text-blue-200 border-blue-200',
-    VIII: 'bg-amber-100/30 text-amber-800 dark:text-amber-200 border-amber-200',
-    IX: 'bg-emerald-100/30 text-emerald-800 dark:text-emerald-200 border-emerald-200',
-}
 
 export function DataKelas() {
     const [kelasList, setKelasList] = useState<Kelas[]>(initialKelas)
@@ -146,7 +142,7 @@ export function DataKelas() {
             cell: ({ row }) => {
                 const jenjang = row.getValue('jenjang') as string
                 return (
-                    <Badge variant='outline' className={jenjangColor[jenjang]}>
+                    <Badge variant='outline' className={kelasJenjangColors[jenjang]}>
                         Kelas {jenjang}
                     </Badge>
                 )

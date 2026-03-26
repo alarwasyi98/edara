@@ -45,6 +45,7 @@ import { StatCard } from '@/components/shared/stat-card'
 import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 import { formatDateShort } from '@/lib/format'
 import { Users, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { ppdbStatusColors } from '@/lib/constants'
 
 faker.seed(22222)
 
@@ -62,10 +63,10 @@ type Applicant = {
 }
 
 const statusConfig: Record<PpdbStatus, { label: string; color: string }> = {
-    diterima: { label: 'Diterima', color: 'bg-green-100/30 text-green-800 dark:text-green-200 border-green-200' },
-    ditolak: { label: 'Ditolak', color: 'bg-red-100/30 text-red-800 dark:text-red-200 border-red-200' },
-    pending: { label: 'Menunggu', color: 'bg-amber-100/30 text-amber-800 dark:text-amber-200 border-amber-200' },
-    verifikasi: { label: 'Verifikasi', color: 'bg-blue-100/30 text-blue-800 dark:text-blue-200 border-blue-200' },
+    diterima:   { label: 'Diterima',  color: ppdbStatusColors.diterima },
+    ditolak:    { label: 'Ditolak',   color: ppdbStatusColors.tidak_lanjut },
+    pending:    { label: 'Menunggu',  color: ppdbStatusColors.daftar_ulang },
+    verifikasi: { label: 'Verifikasi',color: ppdbStatusColors.diverifikasi },
 }
 
 const statusOptions = Object.entries(statusConfig).map(([value, cfg]) => ({

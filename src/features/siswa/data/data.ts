@@ -1,4 +1,4 @@
-import { type StudentStatus } from './schema'
+import { type StudentStatus, studentStatusColors } from '@/lib/constants'
 
 export const statusOptions: {
     label: string
@@ -8,24 +8,22 @@ export const statusOptions: {
         {
             label: 'Aktif',
             value: 'active',
-            color:
-                'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200',
+            color: studentStatusColors.active,
         },
         {
             label: 'Lulus',
             value: 'graduated',
-            color: 'bg-blue-100/30 text-blue-900 dark:text-blue-200 border-blue-200',
+            color: studentStatusColors.graduated,
         },
         {
             label: 'Pindah',
             value: 'transferred',
-            color:
-                'bg-amber-100/30 text-amber-900 dark:text-amber-200 border-amber-200',
+            color: studentStatusColors.transferred,
         },
         {
             label: 'Nonaktif',
             value: 'inactive',
-            color: 'bg-neutral-300/40 border-neutral-300',
+            color: studentStatusColors.inactive,
         },
     ]
 

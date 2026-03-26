@@ -27,6 +27,7 @@ import { formatRupiah, formatDateShort } from '@/lib/format'
 import {
     transactionTypeLabels,
     type TransactionType,
+    keuanganJenisColors,
 } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import {
@@ -173,24 +174,12 @@ export function PencatatanKeuangan() {
                                                 {t.keterangan}
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant='outline'>{t.kategori}</Badge>
+                                                <Badge variant='outline' className={cn('text-xs', keuanganJenisColors[t.jenis])}>{t.kategori}</Badge>
                                             </TableCell>
                                             <TableCell>
-                                                <span
-                                                    className={cn(
-                                                        'inline-flex items-center gap-1 text-sm font-medium',
-                                                        t.jenis === 'income'
-                                                            ? 'text-green-600 dark:text-green-400'
-                                                            : 'text-red-600 dark:text-red-400'
-                                                    )}
-                                                >
-                                                    {t.jenis === 'income' ? (
-                                                        <ArrowUpCircle className='size-3.5' />
-                                                    ) : (
-                                                        <ArrowDownCircle className='size-3.5' />
-                                                    )}
+                                                <Badge variant='outline' className={cn('text-xs', keuanganJenisColors[t.jenis])}>
                                                     {transactionTypeLabels[t.jenis]}
-                                                </span>
+                                                </Badge>
                                             </TableCell>
                                             <TableCell
                                                 className={cn(

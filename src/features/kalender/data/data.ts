@@ -1,5 +1,6 @@
 import { type EventCategory } from './schema'
 import { BookOpen, GraduationCap, Trophy, Users } from 'lucide-react'
+import { kalenderKategoriColors } from '@/lib/constants'
 
 export const categoryOptions: {
     label: string
@@ -10,25 +11,25 @@ export const categoryOptions: {
         {
             label: 'Akademik',
             value: 'akademik',
-            color: 'bg-blue-100/30 text-blue-900 dark:text-blue-200 border-blue-200',
+            color: kalenderKategoriColors.akademik,
             icon: BookOpen,
         },
         {
             label: 'Keagamaan',
             value: 'keagamaan',
-            color: 'bg-green-100/30 text-green-900 dark:text-green-200 border-green-200',
+            color: kalenderKategoriColors.keagamaan,
             icon: GraduationCap,
         },
         {
             label: 'Olahraga',
             value: 'olahraga',
-            color: 'bg-amber-100/30 text-amber-900 dark:text-amber-200 border-amber-200',
+            color: kalenderKategoriColors.olahraga,
             icon: Trophy,
         },
         {
             label: 'Umum',
             value: 'umum',
-            color: 'bg-purple-100/30 text-purple-900 dark:text-purple-200 border-purple-200',
+            color: kalenderKategoriColors.umum,
             icon: Users,
         },
     ]

@@ -80,11 +80,10 @@ export const studentStatusLabels: Record<StudentStatus, string> = {
 }
 
 export const studentStatusColors: Record<StudentStatus, string> = {
-  active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  graduated: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  transferred:
-    'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+  active:      'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  graduated:   'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  transferred: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
+  inactive:    'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400',
 }
 
 // ──────────────────────────────────────────────
@@ -102,6 +101,11 @@ export type TeacherStatus =
 export const teacherStatusLabels: Record<TeacherStatus, string> = {
   active: 'Aktif',
   inactive: 'Nonaktif',
+}
+
+export const teacherStatusColors: Record<TeacherStatus, string> = {
+  active:   'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  inactive: 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400',
 }
 
 // ──────────────────────────────────────────────
@@ -125,11 +129,10 @@ export const sppStatusLabels: Record<SppStatus, string> = {
 }
 
 export const sppStatusColors: Record<SppStatus, string> = {
-  unpaid: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
-  partial:
-    'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  paid: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  overdue: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  unpaid:  'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400',
+  partial: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
+  paid:    'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  overdue: 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400',
 }
 
 // ──────────────────────────────────────────────
@@ -155,15 +158,11 @@ export const ppdbStatusLabels: Record<PpdbStatus, string> = {
 }
 
 export const ppdbStatusColors: Record<PpdbStatus, string> = {
-  baru: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  diverifikasi:
-    'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-  diterima:
-    'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  daftar_ulang:
-    'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  tidak_lanjut:
-    'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+  baru:         'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  diverifikasi: 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-400',
+  diterima:     'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  daftar_ulang: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
+  tidak_lanjut: 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400',
 }
 
 // ──────────────────────────────────────────────
@@ -184,6 +183,87 @@ export const userStatusLabels: Record<UserStatus, string> = {
   inactive: 'Nonaktif',
   invited: 'Diundang',
   suspended: 'Ditangguhkan',
+}
+
+// ──────────────────────────────────────────────
+// Tahun Ajaran Status
+// ──────────────────────────────────────────────
+
+export type TahunAjaranStatus = 'active' | 'completed' | 'upcoming'
+
+export const tahunAjaranStatusLabels: Record<TahunAjaranStatus, string> = {
+  active:    'Aktif',
+  completed: 'Selesai',
+  upcoming:  'Mendatang',
+}
+
+export const tahunAjaranStatusColors: Record<TahunAjaranStatus, string> = {
+  active:    'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  completed: 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400',
+  upcoming:  'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+}
+
+// ──────────────────────────────────────────────
+// Kelas Jenjang
+// ──────────────────────────────────────────────
+
+export const kelasJenjangColors: Record<string, string> = {
+  VII:  'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  VIII: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
+  IX:   'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400',
+}
+
+// ──────────────────────────────────────────────
+// Kalender Kategori
+// ──────────────────────────────────────────────
+
+export type KalenderKategori = 'akademik' | 'keagamaan' | 'olahraga' | 'umum'
+
+export const kalenderKategoriColors: Record<KalenderKategori, string> = {
+  akademik:  'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  keagamaan: 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  olahraga:  'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
+  umum:      'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-400',
+}
+
+// ──────────────────────────────────────────────
+// Jenis Bayar Periode
+// ──────────────────────────────────────────────
+
+export type PeriodeBayar = 'bulanan' | 'tahunan' | 'sekali'
+
+export const periodeBayarLabels: Record<PeriodeBayar, string> = {
+  bulanan: 'Bulanan',
+  tahunan: 'Tahunan',
+  sekali:  'Sekali Bayar',
+}
+
+export const periodeBayarColors: Record<PeriodeBayar, string> = {
+  bulanan: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  tahunan: 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-400',
+  sekali:  'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
+}
+
+// ──────────────────────────────────────────────
+// Diskon Kategori
+// ──────────────────────────────────────────────
+
+export const diskonKategoriColors: Record<string, string> = {
+  yatim:       'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-400',
+  dhuafa:      'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
+  prestasi:    'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  pegawai:     'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  'kakak-adik':'border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/30 dark:text-cyan-400',
+  lainnya:     'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400',
+}
+
+// ──────────────────────────────────────────────
+// Keuangan Jenis Transaksi (Badge)
+// ──────────────────────────────────────────────
+
+export const keuanganJenisColors: Record<string, string> = {
+  income:  'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  expense: 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400',
 }
 
 // ──────────────────────────────────────────────
