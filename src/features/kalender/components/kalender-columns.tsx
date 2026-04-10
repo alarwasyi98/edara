@@ -24,7 +24,7 @@ export const kalenderColumns: ColumnDef<CalendarEvent>[] = [
             />
         ),
         meta: {
-            className: cn('max-md:sticky start-0 z-10 rounded-tl-[inherit]'),
+            className: cn('bg-background max-md:sticky start-0 z-10 rounded-tl-[inherit]'),
         },
         cell: ({ row }) => (
             <Checkbox
@@ -48,7 +48,7 @@ export const kalenderColumns: ColumnDef<CalendarEvent>[] = [
         meta: {
             className: cn(
                 'drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)]',
-                'ps-0.5 max-md:sticky start-6 @4xl/content:table-cell @4xl/content:drop-shadow-none'
+                'bg-background ps-0.5 max-md:sticky start-6 @4xl/content:table-cell @4xl/content:drop-shadow-none'
             ),
         },
         enableHiding: false,
