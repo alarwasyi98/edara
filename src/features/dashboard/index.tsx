@@ -10,6 +10,7 @@ import {
   CreditCard,
   UserPlus,
   BookOpen,
+  MoreHorizontal,
 } from 'lucide-react'
 import {
   Card,
@@ -20,6 +21,12 @@ import {
 } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
@@ -153,9 +160,19 @@ export function Dashboard() {
                       5 pembayaran SPP terakhir hari ini.
                     </CardDescription>
                   </div>
-                  <Button variant="link" size="sm" asChild className="h-auto p-0 text-primary">
-                    <Link to="/spp">Lihat Selengkapnya</Link>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to="/spp">Lihat Selengkapnya</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardHeader>
                 <CardContent>
                   <RecentPayments />
@@ -173,9 +190,19 @@ export function Dashboard() {
                     </CardTitle>
                     <CardDescription>Aktivitas pengguna terkini di sistem</CardDescription>
                   </div>
-                  <Button variant="link" size="sm" asChild className="h-auto p-0 text-primary">
-                    <Link to="/settings">Lihat Selengkapnya</Link>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings">Lihat Selengkapnya</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardHeader>
                 <CardContent>
                   <ul className='space-y-3'>
@@ -205,9 +232,19 @@ export function Dashboard() {
                     </CardTitle>
                     <CardDescription>Jadwal acara dan tenggat yang akan datang</CardDescription>
                   </div>
-                  <Button variant="link" size="sm" asChild className="h-auto p-0 text-primary">
-                    <Link to="/kalender">Lihat Selengkapnya</Link>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Open menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to="/kalender">Lihat Selengkapnya</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardHeader>
                 <CardContent>
                   <ul className='space-y-3'>
