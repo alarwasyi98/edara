@@ -1,0 +1,58 @@
+# ============================================================
+# .prettierignore — EDARA
+# ============================================================
+
+# ignore everything
+/*
+
+# --- Build & output ---
+dist/
+build/
+out/
+.output/
+
+# --- Dependencies ---
+node_modules/
+
+# --- Generated files ---
+src/routeTree.gen.ts
+*.gen.ts
+*.gen.d.ts
+
+# --- Drizzle migrations ---
+# Raw SQL files should not be reformatted by Prettier
+src/server/db/migrations/
+drizzle/
+
+# --- Package manager ---
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# --- Environment files ---
+.env
+.env.*
+!.env.example
+
+# --- Brain System & documentation ---
+# Markdown is formatted deliberately; preserve manual formatting
+docs/
+src/docs/
+CLAUDE.md
+GEMINI.md
+*.md
+
+# --- Test snapshots ---
+**/__snapshots__/
+*.snap
+
+# --- Editor & OS ---
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# --- Public static assets ---
+public/
+
+# --- shadcn/ui component registry config ---
+components.json
