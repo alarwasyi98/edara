@@ -6,6 +6,8 @@ modified: 2026-04-12
 version: 2.0.0
 ---
 
+# EDARA — Technical Specification
+
 **Changelog dari v1.0.0:**
 
 - Tipografi dikoreksi dari Inter/JetBrains Mono ke Geist/Geist Mono (canonical)

@@ -6,6 +6,8 @@ modified: 2026-04-12
 version: 1.2.0
 ---
 
+# Edara Rencana Implementasi dan Rekonsiliasi
+
 Berikut adalah Rencana Tugas Bertahap (_Step-wise Task Plan_) yang sangat mendetail untuk proyek **EDARA**. Rencana ini dirancang secara berurutan agar aplikasi dapat terus berjalan _(buildable)_ di setiap pergantian langkah, dengan transisi aman dari arsitektur _Mock/Vite SPA_ menuju spesifikasi final _TanStack Start + oRPC + Drizzle ORM_.
 
 ---
