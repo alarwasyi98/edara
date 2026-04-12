@@ -136,36 +136,6 @@ export const sppStatusColors: Record<SppStatus, string> = {
 }
 
 // ──────────────────────────────────────────────
-// Status PPDB
-// ──────────────────────────────────────────────
-
-export const PPDB_STATUS = {
-  BARU: 'baru',
-  DIVERIFIKASI: 'diverifikasi',
-  DITERIMA: 'diterima',
-  DAFTAR_ULANG: 'daftar_ulang',
-  TIDAK_LANJUT: 'tidak_lanjut',
-} as const
-
-export type PpdbStatus = (typeof PPDB_STATUS)[keyof typeof PPDB_STATUS]
-
-export const ppdbStatusLabels: Record<PpdbStatus, string> = {
-  baru: 'Baru Masuk',
-  diverifikasi: 'Diverifikasi',
-  diterima: 'Diterima',
-  daftar_ulang: 'Daftar Ulang',
-  tidak_lanjut: 'Tidak Lanjut',
-}
-
-export const ppdbStatusColors: Record<PpdbStatus, string> = {
-  baru:         'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
-  diverifikasi: 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-400',
-  diterima:     'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
-  daftar_ulang: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400',
-  tidak_lanjut: 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400',
-}
-
-// ──────────────────────────────────────────────
 // Status User
 // ──────────────────────────────────────────────
 
