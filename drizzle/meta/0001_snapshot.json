@@ -1,6 +1,6 @@
 {
-  "id": "7973fd7f-e454-4164-b538-b969ae6b0047",
-  "prevId": "3e0431fb-150a-4f40-91dc-46d47374a668",
+  "id": "4b09df5a-0b3b-469b-95b0-7ace4a24724b",
+  "prevId": "2fa5f10f-267d-4dfb-836a-029c92b34c07",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -207,6 +207,21 @@
         }
       },
       "indexes": {
+        "user_assignments_school_idx": {
+          "name": "user_assignments_school_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "user_assignments_clerk_idx": {
           "name": "user_assignments_clerk_idx",
           "columns": [
@@ -470,7 +485,7 @@
         },
         "mata_pelajaran": {
           "name": "mata_pelajaran",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -837,6 +852,21 @@
         }
       },
       "indexes": {
+        "classes_school_idx": {
+          "name": "classes_school_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "classes_year_idx": {
           "name": "classes_year_idx",
           "columns": [
@@ -1083,6 +1113,27 @@
         }
       },
       "indexes": {
+        "enrollments_school_unit_idx": {
+          "name": "enrollments_school_unit_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "unit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "enrollments_student_year_unique": {
           "name": "enrollments_student_year_unique",
           "columns": [
@@ -1251,6 +1302,21 @@
         }
       },
       "indexes": {
+        "class_payment_rates_school_idx": {
+          "name": "class_payment_rates_school_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "class_payment_rates_unique": {
           "name": "class_payment_rates_unique",
           "columns": [
@@ -1407,7 +1473,23 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "discount_schemes_school_idx": {
+          "name": "discount_schemes_school_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
       "foreignKeys": {
         "discount_schemes_school_id_schools_id_fk": {
           "name": "discount_schemes_school_id_schools_id_fk",
@@ -1532,6 +1614,21 @@
         }
       },
       "indexes": {
+        "payment_bills_school_idx": {
+          "name": "payment_bills_school_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "payment_bills_unique": {
           "name": "payment_bills_unique",
           "columns": [
@@ -1689,7 +1786,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "payment_categories_school_unit_idx": {
+          "name": "payment_categories_school_unit_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "unit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
       "foreignKeys": {
         "payment_categories_school_id_schools_id_fk": {
           "name": "payment_categories_school_id_schools_id_fk",
@@ -1799,6 +1918,27 @@
         }
       },
       "indexes": {
+        "payment_transactions_school_date_idx": {
+          "name": "payment_transactions_school_date_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "payment_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "payment_transactions_bill_idx": {
           "name": "payment_transactions_bill_idx",
           "columns": [
@@ -1905,7 +2045,29 @@
           "default": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "cashflow_categories_school_unit_idx": {
+          "name": "cashflow_categories_school_unit_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "unit_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
       "foreignKeys": {
         "cashflow_categories_school_id_schools_id_fk": {
           "name": "cashflow_categories_school_id_schools_id_fk",
@@ -2032,6 +2194,21 @@
         }
       },
       "indexes": {
+        "cashflow_transactions_school_idx": {
+          "name": "cashflow_transactions_school_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "cashflow_transactions_unit_year_idx": {
           "name": "cashflow_transactions_unit_year_idx",
           "columns": [
@@ -2238,6 +2415,21 @@
         }
       },
       "indexes": {
+        "school_events_school_idx": {
+          "name": "school_events_school_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "school_events_unit_year_idx": {
           "name": "school_events_unit_year_idx",
           "columns": [
@@ -2396,6 +2588,21 @@
         }
       },
       "indexes": {
+        "activity_logs_school_idx": {
+          "name": "activity_logs_school_idx",
+          "columns": [
+            {
+              "expression": "school_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        },
         "activity_logs_unit_idx": {
           "name": "activity_logs_unit_idx",
           "columns": [

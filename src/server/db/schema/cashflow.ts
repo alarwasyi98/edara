@@ -41,7 +41,9 @@ export const cashflowCategories = pgTable('cashflow_categories', {
   name: varchar('name', { length: 100 }).notNull(),
   type: varchar('type', { length: 10 }).notNull(), // income, expense
   isActive: boolean('is_active').default(true).notNull(),
-})
+}, (t) => ({
+  schoolUnitIdx: index('cashflow_categories_school_unit_idx').on(t.schoolId, t.unitId),
+}))
 
 export const cashflowTransactions = pgTable(
   'cashflow_transactions',
@@ -72,6 +74,7 @@ export const cashflowTransactions = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => ({
+    schoolIdx: index('cashflow_transactions_school_idx').on(t.schoolId),
     unitYearIdx: index('cashflow_transactions_unit_year_idx').on(
       t.unitId,
       t.academicYearId,

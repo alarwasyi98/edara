@@ -5,15 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1776015707455,
-      "tag": "0000_absurd_wind_dancer",
+      "when": 1776063961055,
+      "tag": "0000_init_tenant_operational_schema",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1776015729809,
-      "tag": "0001_rls-and-constraints",
+      "when": 1776063983226,
+      "tag": "0001_rls_and_constraints",
       "breakpoints": true
     }
   ]

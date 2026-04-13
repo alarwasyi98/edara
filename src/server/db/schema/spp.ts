@@ -72,7 +72,9 @@ export const paymentCategories = pgTable('payment_categories', {
   description: text('description'),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-})
+}, (t) => ({
+  schoolUnitIdx: index('payment_categories_school_unit_idx').on(t.schoolId, t.unitId),
+}))
 
 export const classPaymentRates = pgTable(
   'class_payment_rates',
@@ -93,6 +95,7 @@ export const classPaymentRates = pgTable(
     amount: numeric('amount', { precision: 15, scale: 2 }).notNull(), // ADR-07
   },
   (t) => ({
+    schoolIdx: index('class_payment_rates_school_idx').on(t.schoolId),
     classRateUnique: uniqueIndex('class_payment_rates_unique').on(
       t.classId,
       t.categoryId,
@@ -121,7 +124,9 @@ export const discountSchemes = pgTable('discount_schemes', {
   reason: varchar('reason', { length: 255 }),
   isLocked: boolean('is_locked').default(false).notNull(), // B2: true setelah tahun ajaran aktif
   createdAt: timestamp('created_at').defaultNow().notNull(),
-})
+}, (t) => ({
+  schoolIdx: index('discount_schemes_school_idx').on(t.schoolId),
+}))
 
 /**
  * Payment Bills — the core billing record.
@@ -152,6 +157,7 @@ export const paymentBills = pgTable(
     status: paymentBillStatusEnum('status').default('active').notNull(), // C4: soft-cancel only
   },
   (t) => ({
+    schoolIdx: index('payment_bills_school_idx').on(t.schoolId),
     billUnique: uniqueIndex('payment_bills_unique').on(
       t.enrollmentId,
       t.categoryId,
@@ -196,6 +202,7 @@ export const paymentTransactions = pgTable(
     // CATATAN: Tidak ada updated_at — tabel ini append-only (ADR-04)
   },
   (t) => ({
+    schoolDateIdx: index('payment_transactions_school_date_idx').on(t.schoolId, t.paymentDate), // Fast analytics aggregation
     billIdx: index('payment_transactions_bill_idx').on(t.billId),
   }),
 )

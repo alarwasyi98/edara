@@ -59,7 +59,7 @@ CREATE TABLE "teachers" (
 	"nomor_hp" varchar(20),
 	"alamat" text,
 	"status_kepegawaian" varchar(20) NOT NULL,
-	"mata_pelajaran" text,
+	"mata_pelajaran" jsonb,
 	"tanggal_bergabung" date,
 	"photo_url" text,
 	"is_active" boolean DEFAULT true NOT NULL,
@@ -290,6 +290,7 @@ ALTER TABLE "school_events" ADD CONSTRAINT "school_events_academic_year_id_acade
 ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_school_id_schools_id_fk" FOREIGN KEY ("school_id") REFERENCES "public"."schools"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_unit_id_school_units_id_fk" FOREIGN KEY ("unit_id") REFERENCES "public"."school_units"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "school_units_school_idx" ON "school_units" USING btree ("school_id");--> statement-breakpoint
+CREATE INDEX "user_assignments_school_idx" ON "user_school_assignments" USING btree ("school_id");--> statement-breakpoint
 CREATE INDEX "user_assignments_clerk_idx" ON "user_school_assignments" USING btree ("clerk_user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "user_assignment_unique" ON "user_school_assignments" USING btree ("clerk_user_id","school_id","unit_id");--> statement-breakpoint
 CREATE INDEX "academic_years_unit_idx" ON "academic_years" USING btree ("unit_id");--> statement-breakpoint
@@ -297,18 +298,29 @@ CREATE INDEX "teachers_school_unit_idx" ON "teachers" USING btree ("school_id","
 CREATE INDEX "teachers_nik_idx" ON "teachers" USING btree ("nik");--> statement-breakpoint
 CREATE INDEX "students_school_unit_idx" ON "students" USING btree ("school_id","unit_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "students_nisn_school_unique" ON "students" USING btree ("nisn","school_id");--> statement-breakpoint
+CREATE INDEX "classes_school_idx" ON "classes" USING btree ("school_id");--> statement-breakpoint
 CREATE INDEX "classes_year_idx" ON "classes" USING btree ("academic_year_id");--> statement-breakpoint
 CREATE INDEX "classes_unit_year_idx" ON "classes" USING btree ("unit_id","academic_year_id");--> statement-breakpoint
+CREATE INDEX "enrollments_school_unit_idx" ON "enrollments" USING btree ("school_id","unit_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "enrollments_student_year_unique" ON "enrollments" USING btree ("student_id","academic_year_id");--> statement-breakpoint
 CREATE INDEX "enrollments_class_idx" ON "enrollments" USING btree ("class_id");--> statement-breakpoint
 CREATE INDEX "enrollments_status_idx" ON "enrollments" USING btree ("status");--> statement-breakpoint
+CREATE INDEX "class_payment_rates_school_idx" ON "class_payment_rates" USING btree ("school_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "class_payment_rates_unique" ON "class_payment_rates" USING btree ("class_id","category_id","academic_year_id");--> statement-breakpoint
+CREATE INDEX "discount_schemes_school_idx" ON "discount_schemes" USING btree ("school_id");--> statement-breakpoint
+CREATE INDEX "payment_bills_school_idx" ON "payment_bills" USING btree ("school_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "payment_bills_unique" ON "payment_bills" USING btree ("enrollment_id","category_id","billing_month");--> statement-breakpoint
 CREATE INDEX "payment_bills_enrollment_idx" ON "payment_bills" USING btree ("enrollment_id");--> statement-breakpoint
+CREATE INDEX "payment_categories_school_unit_idx" ON "payment_categories" USING btree ("school_id","unit_id");--> statement-breakpoint
+CREATE INDEX "payment_transactions_school_date_idx" ON "payment_transactions" USING btree ("school_id","payment_date");--> statement-breakpoint
 CREATE INDEX "payment_transactions_bill_idx" ON "payment_transactions" USING btree ("bill_id");--> statement-breakpoint
+CREATE INDEX "cashflow_categories_school_unit_idx" ON "cashflow_categories" USING btree ("school_id","unit_id");--> statement-breakpoint
+CREATE INDEX "cashflow_transactions_school_idx" ON "cashflow_transactions" USING btree ("school_id");--> statement-breakpoint
 CREATE INDEX "cashflow_transactions_unit_year_idx" ON "cashflow_transactions" USING btree ("unit_id","academic_year_id");--> statement-breakpoint
 CREATE INDEX "cashflow_transactions_date_idx" ON "cashflow_transactions" USING btree ("transaction_date");--> statement-breakpoint
+CREATE INDEX "school_events_school_idx" ON "school_events" USING btree ("school_id");--> statement-breakpoint
 CREATE INDEX "school_events_unit_year_idx" ON "school_events" USING btree ("unit_id","academic_year_id");--> statement-breakpoint
 CREATE INDEX "school_events_start_date_idx" ON "school_events" USING btree ("start_date");--> statement-breakpoint
+CREATE INDEX "activity_logs_school_idx" ON "activity_logs" USING btree ("school_id");--> statement-breakpoint
 CREATE INDEX "activity_logs_unit_idx" ON "activity_logs" USING btree ("unit_id");--> statement-breakpoint
 CREATE INDEX "activity_logs_created_at_idx" ON "activity_logs" USING btree ("created_at");

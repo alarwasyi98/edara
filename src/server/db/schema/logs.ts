@@ -48,6 +48,7 @@ export const activityLogs = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => ({
+    schoolIdx: index('activity_logs_school_idx').on(t.schoolId),
     unitIdx: index('activity_logs_unit_idx').on(t.unitId),
     createdAtIdx: index('activity_logs_created_at_idx').on(t.createdAt),
   }),

@@ -66,6 +66,7 @@ export const enrollments = pgTable(
     enrolledAt: timestamp('enrolled_at').defaultNow().notNull(),
   },
   (t) => ({
+    schoolUnitIdx: index('enrollments_school_unit_idx').on(t.schoolId, t.unitId),
     // C6: One enrollment per student per academic year
     studentYearUnique: uniqueIndex('enrollments_student_year_unique').on(
       t.studentId,

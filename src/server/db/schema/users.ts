@@ -48,6 +48,7 @@ export const userSchoolAssignments = pgTable(
     assignedAt: timestamp('assigned_at').defaultNow().notNull(),
   },
   (t) => ({
+    schoolIdx: index('user_assignments_school_idx').on(t.schoolId),
     clerkUserIdx: index('user_assignments_clerk_idx').on(t.clerkUserId),
     uniqueAssignment: uniqueIndex('user_assignment_unique').on(
       t.clerkUserId,

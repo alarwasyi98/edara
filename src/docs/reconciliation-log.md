@@ -34,7 +34,25 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 Memperbaiki error linting pada CI job terkait duplikasi import.
 
 ### 🛠️ File yang Diubah
-- `src/server/db/schema/spp.ts`: Konsolidasi `AnyPgColumn` ke dalam destructured import block.
+  - `src/server/db/schema/spp.ts`: Konsolidasi `AnyPgColumn` ke dalam destructured import block.
+
+---
+
+## 📅 Session: 2026-04-13 — Sesi 5 (Database Schema Optimization)
+
+### 📝 Status Saat Ini
+Melakukan optimasi skema database berdasarkan hasil audit, menambahkan indeks wajib untuk RLS (tenant isolation), menargetkan optimasi agregasi finansial, serta memperbaiki tipe data yang kurang sesuai. History migration Drizzle direset untuk membuat _clean professional baseline_.
+
+### 🛠️ File yang Terpengaruh, Diubah, Dihapus, dan Ditambah
+- **Diubah** `src/server/db/schema/teachers.ts`: Migrasi `mataPelajaran` (ADR-06) dari `text` menjadi `jsonb` untuk performa query array.
+- **Diubah** `src/server/db/schema/spp.ts`, `cashflow.ts`, `events.ts`, `logs.ts`, `classes.ts`, `enrollments.ts`, `users.ts`: Menambahkan B-Tree dan composite indeks pada `school_id`, `unit_id`, serta kolom relasional lainnya demi performa *Row Level Security* (mencegah *Sequential Scan*).
+- **Dihapus** `drizzle/` (keseluruhan folder terhapus sementara): Menghapus _dirty history_ beserta snapshot sebelumnya.
+- **Ditambah** `drizzle/0000_init_tenant_operational_schema.sql`: Dibuat ulang (regenerate) menjadi baseline awal skema database secara keseluruhan.
+- **Ditambah** `drizzle/0001_rls_and_constraints.sql`: Dibuat dari mode `--custom` yang melacak policy RLS dan constrain `UNIQUE` menggunakan SQL murni dari file `.sql` lama.
+
+### 📌 Catatan untuk Sesi Selanjutnya
+- **Prioritas**: Maju ke Phase 1 - Section 3 (Integrasi Auth Clerk) seperti yang direncanakan.
+- **Review**: Pastikan branch `perf/database` dapat di-merge atau di-Pull Request ke main branch kapan pun dibutuhkan.
 
 ---
 

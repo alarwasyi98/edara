@@ -3,7 +3,7 @@
 -- =============================================================================
 --
 -- This migration is a TRACKED CUSTOM MIGRATION generated via:
---   drizzle-kit generate --custom --name=rls-and-constraints
+--   drizzle-kit generate --custom --name=rls_and_constraints
 --
 -- It is applied automatically by `pnpm db:migrate` (NOT via manual Neon Console push).
 --

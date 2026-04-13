@@ -67,6 +67,7 @@ export const schoolEvents = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (t) => ({
+    schoolIdx: index('school_events_school_idx').on(t.schoolId),
     unitYearIdx: index('school_events_unit_year_idx').on(
       t.unitId,
       t.academicYearId,

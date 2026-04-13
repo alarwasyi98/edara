@@ -44,6 +44,7 @@ export const classes = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => ({
+    schoolIdx: index('classes_school_idx').on(t.schoolId),
     yearIdx: index('classes_year_idx').on(t.academicYearId),
     unitYearIdx: index('classes_unit_year_idx').on(
       t.unitId,

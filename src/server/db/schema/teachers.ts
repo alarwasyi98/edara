@@ -14,6 +14,7 @@ import {
   boolean,
   date,
   index,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -43,7 +44,7 @@ export const teachers = pgTable(
     nomorHp: varchar('nomor_hp', { length: 20 }),
     alamat: text('alamat'),
     statusKepegawaian: varchar('status_kepegawaian', { length: 20 }).notNull(), // tetap, honorer, gtt
-    mataPelajaran: text('mata_pelajaran'), // ADR-06: JSON array string
+    mataPelajaran: jsonb('mata_pelajaran').$type<string[]>(), // ADR-06: JSON array
     tanggalBergabung: date('tanggal_bergabung'),
     photoUrl: text('photo_url'),
     isActive: boolean('is_active').default(true).notNull(), // B11: soft-delete
