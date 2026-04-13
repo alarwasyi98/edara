@@ -108,14 +108,17 @@ Menerjemahkan dokumen ERD spesifikasi teknis langsung ke kode Drizzle dengan mem
 Mengganti sistem masuk (login) _mock_ dari sisi klien dengan perlindungan nyata dari layanan autentikasi Clerk dan menghubungkannya dengan API router lokal (oRPC).
 
 - Step 8: Integrasi Clerk Authentication & Route Guards
-  - **Task**: Membuang `mock-access-token` dan menyelimuti lapisan luar _routing_ UI dengan layanan sesi asli dari Clerk.
+  - **Task**: Instalasi SDK `@clerk/tanstack-start`, membuang `mock-access-token`, dan menyelimuti lapisan luar _routing_ UI dengan layanan sesi asli dari Clerk.
+  - **Installation**: `pnpm add @clerk/tanstack-start`
   - **Files**:
     - `src/routes/__root.tsx` (atau `src/app/router.tsx`): Bungkus _provider_ utama dengan `<ClerkProvider>`.
     - `src/features/auth/components/sign-in-form.tsx`: Ganti form UI manual dengan pemanggilan ke komponen `<SignIn>` dari Clerk.
     - `src/stores/auth-store.ts`: Hapus isi tiruan _(mock)_ sepenuhnya; ganti dengan utilitas sederhana pembungkus hook Clerk (`useUser`, `useAuth`) untuk membaca `publicMetadata`.
     - `src/routes/_authenticated.tsx`: Minta router untuk mengalihkan rute ke halaman `/sign-in` jika pengguna belum memiliki _session_ yang valid.
   - **Step Dependencies**: Step 2
-  - **Prerequisites**: Akun dev Clerk terkonfigurasi untuk React SPA (Vite).
+  - **Prerequisites**: 
+    - Akun dev Clerk terkonfigurasi untuk TanStack Start.
+    - Pastikan `drizzle.config.ts` sudah dimodifikasi untuk membaca `.env.local` agar migrasi mengarah ke Neon Dev Branch.
   - **Rollback / Error Handling**: Matikan sementara *Route Guard* di `_authenticated.tsx` jika terjadi *infinite redirect loop*.
   - **User Instructions**: Konfigurasikan halaman pemilih _tenant/unit_ sebagai destinasi setelah login jika pengguna memiliki _multi-unit_.
 
