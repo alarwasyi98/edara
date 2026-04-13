@@ -21,7 +21,6 @@
  */
 
 import { relations, sql } from 'drizzle-orm'
-import type { AnyPgColumn } from 'drizzle-orm/pg-core'
 import {
   boolean,
   check,
@@ -35,6 +34,7 @@ import {
   uniqueIndex,
   uuid,
   varchar,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 import { schools, schoolUnits } from './schools'
 import { academicYears } from './academic-years'

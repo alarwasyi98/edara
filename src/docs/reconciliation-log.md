@@ -2,8 +2,8 @@
 name: reconciliation-log
 description: Reconciliation Log for EDARA
 status: draft
-modified: 2026-04-12
-version: 0.0.3
+modified: 2026-04-13
+version: 0.0.4
 ---
 
 # EDARA Project Reconciliation Log
@@ -13,9 +13,9 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 > [!IMPORTANT]
 > **Project**: EDARA
 > **Status**: Draft
-> **Version**: 0.0.3
-> **Last Updated**: 2026-04-12
-> **Next Target**: Step 4 (Definisi Skema Inti & Tenant)
+> **Version**: 0.0.4
+> **Last Updated**: 2026-04-13
+> **Next Target**: Step 8 (Section 3: Integrasi Auth Clerk)
 
 ## 🏁 Current Sprint Summary
 - **Project**: EDARA
@@ -25,6 +25,16 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 - **Next Target**: Step 8 (Section 3: Integrasi Auth Clerk)
 - **Plan Reference**: [Reconciliation Plan](src/docs/reconciliation-plan.md)
 - **Active Branch**: `recon`
+
+---
+
+## 📅 Session: 2026-04-13 — Sesi 4 (CI Remediation)
+
+### 📝 Status Saat Ini
+Memperbaiki error linting pada CI job terkait duplikasi import.
+
+### 🛠️ File yang Diubah
+- `src/server/db/schema/spp.ts`: Konsolidasi `AnyPgColumn` ke dalam destructured import block.
 
 ---
 
