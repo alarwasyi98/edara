@@ -24,7 +24,7 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 - **Last Updated**: 2026-04-13
 - **Next Target**: Step 8 (Section 3: Integrasi Auth Clerk)
 - **Plan Reference**: [Reconciliation Plan](src/docs/reconciliation-plan.md)
-- **Active Branch**: `recon`
+- **Active Branch**: `recon (deleted/merged)`
 
 ---
 
@@ -44,29 +44,29 @@ Memperbaiki error linting pada CI job terkait duplikasi import.
 Section 2 selesai dieksekusi. 18 tabel didefinisikan dalam 11 file schema, 2 file migrasi SQL di-generate (schema + custom RLS).
 
 ### 🛠️ File yang Dibuat
-| File | Tabel | ADR/Rules |
-|---|---|---|
-| `src/server/db/schema/schools.ts` | `schools`, `school_units` | ADR-02 |
-| `src/server/db/schema/users.ts` | `user_school_assignments` + enum | B10, C7 |
-| `src/server/db/schema/academic-years.ts` | `academic_years` | B1 (partial index in SQL) |
-| `src/server/db/schema/teachers.ts` | `teachers` | ADR-06, B11 |
-| `src/server/db/schema/students.ts` | `students` | B4, B11 |
-| `src/server/db/schema/classes.ts` | `classes` | — |
-| `src/server/db/schema/enrollments.ts` | `enrollments`, `enrollment_status_history` + enum | B5, C6 |
-| `src/server/db/schema/spp.ts` | `payment_categories`, `class_payment_rates`, `discount_schemes`, `payment_bills`, `payment_transactions` + 2 enums | ADR-03, ADR-04, ADR-07, B2, B3, B6, C4, C5 |
-| `src/server/db/schema/cashflow.ts` | `cashflow_categories`, `cashflow_transactions` | ADR-07, B12 |
-| `src/server/db/schema/events.ts` | `school_events` + 2 enums | B13 |
-| `src/server/db/schema/logs.ts` | `activity_logs` | C1, C8 |
-| `src/server/db/schema/index.ts` | (barrel file) | — |
-| `drizzle/0000_absurd_wind_dancer.sql` | (auto-generated schema migration) | — |
-| `drizzle/0001_rls-and-constraints.sql` | (custom RLS + partial index + immutability) | ADR-02, ADR-04, B1 |
+| File                                     | Tabel                                                                                                              | ADR/Rules                                  |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| `src/server/db/schema/schools.ts`        | `schools`, `school_units`                                                                                          | ADR-02                                     |
+| `src/server/db/schema/users.ts`          | `user_school_assignments` + enum                                                                                   | B10, C7                                    |
+| `src/server/db/schema/academic-years.ts` | `academic_years`                                                                                                   | B1 (partial index in SQL)                  |
+| `src/server/db/schema/teachers.ts`       | `teachers`                                                                                                         | ADR-06, B11                                |
+| `src/server/db/schema/students.ts`       | `students`                                                                                                         | B4, B11                                    |
+| `src/server/db/schema/classes.ts`        | `classes`                                                                                                          | —                                          |
+| `src/server/db/schema/enrollments.ts`    | `enrollments`, `enrollment_status_history` + enum                                                                  | B5, C6                                     |
+| `src/server/db/schema/spp.ts`            | `payment_categories`, `class_payment_rates`, `discount_schemes`, `payment_bills`, `payment_transactions` + 2 enums | ADR-03, ADR-04, ADR-07, B2, B3, B6, C4, C5 |
+| `src/server/db/schema/cashflow.ts`       | `cashflow_categories`, `cashflow_transactions`                                                                     | ADR-07, B12                                |
+| `src/server/db/schema/events.ts`         | `school_events` + 2 enums                                                                                          | B13                                        |
+| `src/server/db/schema/logs.ts`           | `activity_logs`                                                                                                    | C1, C8                                     |
+| `src/server/db/schema/index.ts`          | (barrel file)                                                                                                      | —                                          |
+| `drizzle/0000_absurd_wind_dancer.sql`    | (auto-generated schema migration)                                                                                  | —                                          |
+| `drizzle/0001_rls-and-constraints.sql`   | (custom RLS + partial index + immutability)                                                                        | ADR-02, ADR-04, B1                         |
 
 ### ⚖️ Keputusan Teknis (Log Keputusan)
-| Keputusan | Justifikasi |
-|---|---|
-| **enrollment_status_history tanpa school_id** | Tabel ini di-RLS via subquery pada enrollment parent. Tidak perlu duplikasi school_id. |
-| **REVOKE UPDATE/DELETE di-comment** | Part E (ADR-04 enforcement) memerlukan konfirmasi nama role DB. Di-comment sampai setup role selesai. |
-| **check() untuk billing_month** | Drizzle mendukung `check()` constraint. Regex `^\d{4}-(0[1-9]|1[0-2])$` memvalidasi format YYYY-MM di level DB. |
+| Keputusan                                     | Justifikasi                                                                                           |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **enrollment_status_history tanpa school_id** | Tabel ini di-RLS via subquery pada enrollment parent. Tidak perlu duplikasi school_id.                |
+| **REVOKE UPDATE/DELETE di-comment**           | Part E (ADR-04 enforcement) memerlukan konfirmasi nama role DB. Di-comment sampai setup role selesai. |
+| **check() untuk billing_month**               | Drizzle mendukung `check()` constraint. Regex `^\d{4}-(0[1-9]                                         | 1[0-2])$` memvalidasi format YYYY-MM di level DB. |
 
 ### 🚧 Hambatan & Mitigasi
 - **Tidak ada hambatan** — semua typecheck, test, dan migration generation berhasil tanpa error.
@@ -89,13 +89,13 @@ Rencana implementasi Section 2 (Steps 4–7) sudah dibuat dan **di-review oleh u
 - **Git**: Branch `recon` di-merge ke `dev` (fast-forward, 25 files changed)
 
 ### ⚖️ Keputusan Teknis (Log Keputusan)
-| Keputusan | Justifikasi |
-|---|---|
-| **Merge ke dev sebelum Section 2** | Membuat safe baseline. Jika schema DB bermasalah di Section 2, ada titik balik yang bersih. |
-| **Partial Unique Index via Raw SQL** ✅ | DITERIMA. Didokumentasikan sebagai "manual SQL escape hatch". Drizzle tidak mendukung `CREATE UNIQUE INDEX ... WHERE ...`. Ditulis di custom migration (Step 7). |
-| **RLS via Tracked Migration** ❌→✅ | DITOLAK push manual via Neon Console. Menggunakan `drizzle-kit generate --custom` → `pnpm db:migrate`. RLS policies adalah migration file yang terlacak di VCS. |
-| **Transaction-Scoped RLS Context** ✅ | DITERIMA (ketat). `set_config()` hanya dipanggil di dalam `db.transaction()`. DILARANG menggunakan global context expectation. Pada HTTP driver, setiap `db.*` call adalah request terpisah. |
-| **Relations API** | Menggunakan `relations()` di setiap schema file untuk mendukung `db.query.*` relational queries. |
+| Keputusan                              | Justifikasi                                                                                                                                                                                  |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Merge ke dev sebelum Section 2**     | Membuat safe baseline. Jika schema DB bermasalah di Section 2, ada titik balik yang bersih.                                                                                                  |
+| **Partial Unique Index via Raw SQL** ✅ | DITERIMA. Didokumentasikan sebagai "manual SQL escape hatch". Drizzle tidak mendukung `CREATE UNIQUE INDEX ... WHERE ...`. Ditulis di custom migration (Step 7).                             |
+| **RLS via Tracked Migration** ❌→✅      | DITOLAK push manual via Neon Console. Menggunakan `drizzle-kit generate --custom` → `pnpm db:migrate`. RLS policies adalah migration file yang terlacak di VCS.                              |
+| **Transaction-Scoped RLS Context** ✅   | DITERIMA (ketat). `set_config()` hanya dipanggil di dalam `db.transaction()`. DILARANG menggunakan global context expectation. Pada HTTP driver, setiap `db.*` call adalah request terpisah. |
+| **Relations API**                      | Menggunakan `relations()` di setiap schema file untuk mendukung `db.query.*` relational queries.                                                                                             |
 
 ### 🚧 Hambatan & Mitigasi
 - **Issue**: PowerShell tidak mendukung operator `&&` untuk chaining command.
@@ -125,12 +125,12 @@ Infrastruktur dasar backend (ORM, RPC, Testing) sudah terpasang dan terkonfigura
 - **Modified**: `package.json`, `tsconfig.node.json`, `.env.example`
 
 ### ⚖️ Keputusan Teknis (Log Keputusan)
-| Keputusan | Justifikasi |
-|---|---|
-| **Decimal.js Global Setup** | ADR-07 mewajibkan presisi finansial. Setup global menggunakan `ROUND_HALF_UP` dan presisi 20 digit untuk IDR. |
-| **oRPC Scoped Packages** | Mengeksekusi instalasi `@orpc/server`, `@orpc/client`, dan `@orpc/tanstack-query` sebagai standar komunikasi type-safe terbaru (2026). |
-| **Skip Raw PG Driver** | Menggunakan `@neondatabase/serverless` saja karena arsitektur menggunakan Neon. Lebih efisien untuk lingkungan serverless. |
-| **RouteTree Regeneration** | Membiarkan `routeTree.gen.ts` teregenerasi otomatis via Vite plugin untuk menghindari inkonsistensi rute. |
+| Keputusan                   | Justifikasi                                                                                                                            |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Decimal.js Global Setup** | ADR-07 mewajibkan presisi finansial. Setup global menggunakan `ROUND_HALF_UP` dan presisi 20 digit untuk IDR.                          |
+| **oRPC Scoped Packages**    | Mengeksekusi instalasi `@orpc/server`, `@orpc/client`, dan `@orpc/tanstack-query` sebagai standar komunikasi type-safe terbaru (2026). |
+| **Skip Raw PG Driver**      | Menggunakan `@neondatabase/serverless` saja karena arsitektur menggunakan Neon. Lebih efisien untuk lingkungan serverless.             |
+| **RouteTree Regeneration**  | Membiarkan `routeTree.gen.ts` teregenerasi otomatis via Vite plugin untuk menghindari inkonsistensi rute.                              |
 
 ### 🚧 Hambatan & Mitigasi
 - **Issue**: Terminal `pwsh` sempat hang saat instalasi pnpm gara-gara loading profile.
