@@ -49,6 +49,8 @@ Melakukan optimasi skema database berdasarkan hasil audit, menambahkan indeks wa
 - **Dihapus** `drizzle/` (keseluruhan folder terhapus sementara): Menghapus _dirty history_ beserta snapshot sebelumnya.
 - **Ditambah** `drizzle/0000_init_tenant_operational_schema.sql`: Dibuat ulang (regenerate) menjadi baseline awal skema database secara keseluruhan.
 - **Ditambah** `drizzle/0001_rls_and_constraints.sql`: Dibuat dari mode `--custom` yang melacak policy RLS dan constrain `UNIQUE` menggunakan SQL murni dari file `.sql` lama.
+- **Ditambah** `vercel.json`: Konfigurasi *rewrite* untuk mendukung *Single Page Application* (SPA) routing di Vercel.
+- **Dihapus** `netlify.toml`: File konfigurasi lama dihapus karena sudah beralih ke Vercel.
 
 ### 📌 Catatan untuk Sesi Selanjutnya
 - **Prioritas**: Maju ke Phase 1 - Section 3 (Integrasi Auth Clerk) seperti yang direncanakan.
