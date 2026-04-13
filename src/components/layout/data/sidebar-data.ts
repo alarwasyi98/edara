@@ -68,14 +68,6 @@ export const sidebarData: SidebarData = {
               title: 'Tahun Ajaran',
               url: '/tahun-ajaran',
             },
-            {
-              title: 'Alumni',
-              url: '/alumni',
-            },
-            {
-              title: 'PPDB',
-              url: '/ppdb',
-            },
           ],
         },
         {

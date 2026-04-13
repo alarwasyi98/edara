@@ -58,4 +58,7 @@ AI Agent harus membantu menavigasi kode dari _mock-heavy state_ menuju _real bac
 
 ---
 
+> [!IMPORTANT]
+> Catat semua aktivitas pada file `src/docs/reconciliation-log.md`
+
 **Pesan Penutup untuk AI:** Jika pengguna meminta Anda membangun UI form, pastikan terintegrasi dengan `react-hook-form` + `zod` schema yang valid. Jika pengguna meminta integrasi API, pastikan menggunakan `useMutation` / `useQuery` dari oRPC router. Tetap berpegang pada kanon desain (Tailwind CSS v4 + shadcn/ui).

@@ -30,12 +30,10 @@ import { Route as AuthenticatedTahunAjaranIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedSppIndexRouteImport } from './routes/_authenticated/spp/index'
 import { Route as AuthenticatedSiswaIndexRouteImport } from './routes/_authenticated/siswa/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
-import { Route as AuthenticatedPpdbIndexRouteImport } from './routes/_authenticated/ppdb/index'
 import { Route as AuthenticatedKeuanganIndexRouteImport } from './routes/_authenticated/keuangan/index'
 import { Route as AuthenticatedKelasIndexRouteImport } from './routes/_authenticated/kelas/index'
 import { Route as AuthenticatedKalenderIndexRouteImport } from './routes/_authenticated/kalender/index'
 import { Route as AuthenticatedGuruIndexRouteImport } from './routes/_authenticated/guru/index'
-import { Route as AuthenticatedAlumniIndexRouteImport } from './routes/_authenticated/alumni/index'
 import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
@@ -47,7 +45,6 @@ import { Route as AuthenticatedSppStudentIdRouteImport } from './routes/_authent
 import { Route as AuthenticatedSiswaIdRouteImport } from './routes/_authenticated/siswa/$id'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
-import { Route as AuthenticatedPpdbIdRouteImport } from './routes/_authenticated/ppdb/$id'
 import { Route as AuthenticatedKeuanganLaporanRouteImport } from './routes/_authenticated/keuangan/laporan'
 import { Route as AuthenticatedKeuanganKategoriRouteImport } from './routes/_authenticated/keuangan/kategori'
 import { Route as AuthenticatedKeuanganArusKasRouteImport } from './routes/_authenticated/keuangan/arus-kas'
@@ -162,11 +159,6 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
-const AuthenticatedPpdbIndexRoute = AuthenticatedPpdbIndexRouteImport.update({
-  id: '/ppdb/',
-  path: '/ppdb/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedKeuanganIndexRoute =
   AuthenticatedKeuanganIndexRouteImport.update({
     id: '/keuangan/',
@@ -189,12 +181,6 @@ const AuthenticatedGuruIndexRoute = AuthenticatedGuruIndexRouteImport.update({
   path: '/guru/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAlumniIndexRoute =
-  AuthenticatedAlumniIndexRouteImport.update({
-    id: '/alumni/',
-    path: '/alumni/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const ClerkAuthenticatedUserManagementRoute =
   ClerkAuthenticatedUserManagementRouteImport.update({
     id: '/user-management',
@@ -256,11 +242,6 @@ const AuthenticatedSettingsAccountRoute =
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
-const AuthenticatedPpdbIdRoute = AuthenticatedPpdbIdRouteImport.update({
-  id: '/ppdb/$id',
-  path: '/ppdb/$id',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedKeuanganLaporanRoute =
   AuthenticatedKeuanganLaporanRouteImport.update({
     id: '/keuangan/laporan',
@@ -331,7 +312,6 @@ export interface FileRoutesByFullPath {
   '/keuangan/arus-kas': typeof AuthenticatedKeuanganArusKasRoute
   '/keuangan/kategori': typeof AuthenticatedKeuanganKategoriRoute
   '/keuangan/laporan': typeof AuthenticatedKeuanganLaporanRoute
-  '/ppdb/$id': typeof AuthenticatedPpdbIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/siswa/$id': typeof AuthenticatedSiswaIdRoute
@@ -343,12 +323,10 @@ export interface FileRoutesByFullPath {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
-  '/alumni/': typeof AuthenticatedAlumniIndexRoute
   '/guru/': typeof AuthenticatedGuruIndexRoute
   '/kalender/': typeof AuthenticatedKalenderIndexRoute
   '/kelas/': typeof AuthenticatedKelasIndexRoute
   '/keuangan/': typeof AuthenticatedKeuanganIndexRoute
-  '/ppdb/': typeof AuthenticatedPpdbIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/siswa/': typeof AuthenticatedSiswaIndexRoute
   '/spp/': typeof AuthenticatedSppIndexRoute
@@ -376,7 +354,6 @@ export interface FileRoutesByTo {
   '/keuangan/arus-kas': typeof AuthenticatedKeuanganArusKasRoute
   '/keuangan/kategori': typeof AuthenticatedKeuanganKategoriRoute
   '/keuangan/laporan': typeof AuthenticatedKeuanganLaporanRoute
-  '/ppdb/$id': typeof AuthenticatedPpdbIdRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/siswa/$id': typeof AuthenticatedSiswaIdRoute
@@ -388,12 +365,10 @@ export interface FileRoutesByTo {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
-  '/alumni': typeof AuthenticatedAlumniIndexRoute
   '/guru': typeof AuthenticatedGuruIndexRoute
   '/kalender': typeof AuthenticatedKalenderIndexRoute
   '/kelas': typeof AuthenticatedKelasIndexRoute
   '/keuangan': typeof AuthenticatedKeuanganIndexRoute
-  '/ppdb': typeof AuthenticatedPpdbIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/siswa': typeof AuthenticatedSiswaIndexRoute
   '/spp': typeof AuthenticatedSppIndexRoute
@@ -426,7 +401,6 @@ export interface FileRoutesById {
   '/_authenticated/keuangan/arus-kas': typeof AuthenticatedKeuanganArusKasRoute
   '/_authenticated/keuangan/kategori': typeof AuthenticatedKeuanganKategoriRoute
   '/_authenticated/keuangan/laporan': typeof AuthenticatedKeuanganLaporanRoute
-  '/_authenticated/ppdb/$id': typeof AuthenticatedPpdbIdRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/siswa/$id': typeof AuthenticatedSiswaIdRoute
@@ -438,12 +412,10 @@ export interface FileRoutesById {
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
-  '/_authenticated/alumni/': typeof AuthenticatedAlumniIndexRoute
   '/_authenticated/guru/': typeof AuthenticatedGuruIndexRoute
   '/_authenticated/kalender/': typeof AuthenticatedKalenderIndexRoute
   '/_authenticated/kelas/': typeof AuthenticatedKelasIndexRoute
   '/_authenticated/keuangan/': typeof AuthenticatedKeuanganIndexRoute
-  '/_authenticated/ppdb/': typeof AuthenticatedPpdbIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/siswa/': typeof AuthenticatedSiswaIndexRoute
   '/_authenticated/spp/': typeof AuthenticatedSppIndexRoute
@@ -474,7 +446,6 @@ export interface FileRouteTypes {
     | '/keuangan/arus-kas'
     | '/keuangan/kategori'
     | '/keuangan/laporan'
-    | '/ppdb/$id'
     | '/settings/account'
     | '/settings/appearance'
     | '/siswa/$id'
@@ -486,12 +457,10 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
-    | '/alumni/'
     | '/guru/'
     | '/kalender/'
     | '/kelas/'
     | '/keuangan/'
-    | '/ppdb/'
     | '/settings/'
     | '/siswa/'
     | '/spp/'
@@ -519,7 +488,6 @@ export interface FileRouteTypes {
     | '/keuangan/arus-kas'
     | '/keuangan/kategori'
     | '/keuangan/laporan'
-    | '/ppdb/$id'
     | '/settings/account'
     | '/settings/appearance'
     | '/siswa/$id'
@@ -531,12 +499,10 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/clerk/user-management'
-    | '/alumni'
     | '/guru'
     | '/kalender'
     | '/kelas'
     | '/keuangan'
-    | '/ppdb'
     | '/settings'
     | '/siswa'
     | '/spp'
@@ -568,7 +534,6 @@ export interface FileRouteTypes {
     | '/_authenticated/keuangan/arus-kas'
     | '/_authenticated/keuangan/kategori'
     | '/_authenticated/keuangan/laporan'
-    | '/_authenticated/ppdb/$id'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/siswa/$id'
@@ -580,12 +545,10 @@ export interface FileRouteTypes {
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/clerk/_authenticated/user-management'
-    | '/_authenticated/alumni/'
     | '/_authenticated/guru/'
     | '/_authenticated/kalender/'
     | '/_authenticated/kelas/'
     | '/_authenticated/keuangan/'
-    | '/_authenticated/ppdb/'
     | '/_authenticated/settings/'
     | '/_authenticated/siswa/'
     | '/_authenticated/spp/'
@@ -757,13 +720,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
-    '/_authenticated/ppdb/': {
-      id: '/_authenticated/ppdb/'
-      path: '/ppdb'
-      fullPath: '/ppdb/'
-      preLoaderRoute: typeof AuthenticatedPpdbIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/keuangan/': {
       id: '/_authenticated/keuangan/'
       path: '/keuangan'
@@ -790,13 +746,6 @@ declare module '@tanstack/react-router' {
       path: '/guru'
       fullPath: '/guru/'
       preLoaderRoute: typeof AuthenticatedGuruIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/alumni/': {
-      id: '/_authenticated/alumni/'
-      path: '/alumni'
-      fullPath: '/alumni/'
-      preLoaderRoute: typeof AuthenticatedAlumniIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/clerk/_authenticated/user-management': {
@@ -875,13 +824,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/account'
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/ppdb/$id': {
-      id: '/_authenticated/ppdb/$id'
-      path: '/ppdb/$id'
-      fullPath: '/ppdb/$id'
-      preLoaderRoute: typeof AuthenticatedPpdbIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/keuangan/laporan': {
       id: '/_authenticated/keuangan/laporan'
@@ -971,19 +913,16 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedKeuanganArusKasRoute: typeof AuthenticatedKeuanganArusKasRoute
   AuthenticatedKeuanganKategoriRoute: typeof AuthenticatedKeuanganKategoriRoute
   AuthenticatedKeuanganLaporanRoute: typeof AuthenticatedKeuanganLaporanRoute
-  AuthenticatedPpdbIdRoute: typeof AuthenticatedPpdbIdRoute
   AuthenticatedSiswaIdRoute: typeof AuthenticatedSiswaIdRoute
   AuthenticatedSppStudentIdRoute: typeof AuthenticatedSppStudentIdRoute
   AuthenticatedSppDiskonRoute: typeof AuthenticatedSppDiskonRoute
   AuthenticatedSppJenisBayarRoute: typeof AuthenticatedSppJenisBayarRoute
   AuthenticatedSppLaporanRoute: typeof AuthenticatedSppLaporanRoute
   AuthenticatedSppTambahPembayaranRoute: typeof AuthenticatedSppTambahPembayaranRoute
-  AuthenticatedAlumniIndexRoute: typeof AuthenticatedAlumniIndexRoute
   AuthenticatedGuruIndexRoute: typeof AuthenticatedGuruIndexRoute
   AuthenticatedKalenderIndexRoute: typeof AuthenticatedKalenderIndexRoute
   AuthenticatedKelasIndexRoute: typeof AuthenticatedKelasIndexRoute
   AuthenticatedKeuanganIndexRoute: typeof AuthenticatedKeuanganIndexRoute
-  AuthenticatedPpdbIndexRoute: typeof AuthenticatedPpdbIndexRoute
   AuthenticatedSiswaIndexRoute: typeof AuthenticatedSiswaIndexRoute
   AuthenticatedSppIndexRoute: typeof AuthenticatedSppIndexRoute
   AuthenticatedTahunAjaranIndexRoute: typeof AuthenticatedTahunAjaranIndexRoute
@@ -1001,19 +940,16 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedKeuanganArusKasRoute: AuthenticatedKeuanganArusKasRoute,
   AuthenticatedKeuanganKategoriRoute: AuthenticatedKeuanganKategoriRoute,
   AuthenticatedKeuanganLaporanRoute: AuthenticatedKeuanganLaporanRoute,
-  AuthenticatedPpdbIdRoute: AuthenticatedPpdbIdRoute,
   AuthenticatedSiswaIdRoute: AuthenticatedSiswaIdRoute,
   AuthenticatedSppStudentIdRoute: AuthenticatedSppStudentIdRoute,
   AuthenticatedSppDiskonRoute: AuthenticatedSppDiskonRoute,
   AuthenticatedSppJenisBayarRoute: AuthenticatedSppJenisBayarRoute,
   AuthenticatedSppLaporanRoute: AuthenticatedSppLaporanRoute,
   AuthenticatedSppTambahPembayaranRoute: AuthenticatedSppTambahPembayaranRoute,
-  AuthenticatedAlumniIndexRoute: AuthenticatedAlumniIndexRoute,
   AuthenticatedGuruIndexRoute: AuthenticatedGuruIndexRoute,
   AuthenticatedKalenderIndexRoute: AuthenticatedKalenderIndexRoute,
   AuthenticatedKelasIndexRoute: AuthenticatedKelasIndexRoute,
   AuthenticatedKeuanganIndexRoute: AuthenticatedKeuanganIndexRoute,
-  AuthenticatedPpdbIndexRoute: AuthenticatedPpdbIndexRoute,
   AuthenticatedSiswaIndexRoute: AuthenticatedSiswaIndexRoute,
   AuthenticatedSppIndexRoute: AuthenticatedSppIndexRoute,
   AuthenticatedTahunAjaranIndexRoute: AuthenticatedTahunAjaranIndexRoute,
