@@ -1,0 +1,206 @@
+{
+  "version": "1.0.0",
+  "description": "Naming convention dictionary - maps Indonesian identifiers to English equivalents",
+  "generated": "2026-04-18",
+  "mappings": {
+    "folders": {
+      "features": {
+        "guru": "teachers",
+        "siswa": "students",
+        "kelas": "classes",
+        "keuangan": "cashflow",
+        "kalender": "events",
+        "tahun-ajaran": "academic-years"
+      },
+      "routes": {
+        "_authenticated/guru": "_authenticated/teachers",
+        "_authenticated/siswa": "_authenticated/students",
+        "_authenticated/kelas": "_authenticated/classes",
+        "_authenticated/keuangan": "_authenticated/cashflow",
+        "_authenticated/kalender": "_authenticated/events",
+        "_authenticated/tahun-ajaran": "_authenticated/academic-years"
+      }
+    },
+    "urls": {
+      "/guru": "/teachers",
+      "/siswa": "/students",
+      "/kelas": "/classes",
+      "/keuangan": "/cashflow",
+      "/kalender": "/events",
+      "/tahun-ajaran": "/academic-years",
+      "/guru/penugasan": "/teachers/assignments",
+      "/keuangan/akun": "/cashflow/accounts",
+      "/keuangan/kategori": "/cashflow/categories",
+      "/keuangan/laporan": "/cashflow/reports"
+    },
+    "componentFiles": {
+      "teachers": {
+        "guru-action-buttons.tsx": "teacher-action-buttons.tsx",
+        "guru-add-dialog.tsx": "teacher-add-dialog.tsx",
+        "guru-columns.tsx": "teacher-columns.tsx",
+        "guru-dialogs.tsx": "teacher-dialogs.tsx",
+        "guru-provider.tsx": "teacher-provider.tsx",
+        "guru-row-actions.tsx": "teacher-row-actions.tsx",
+        "guru-table.tsx": "teacher-table.tsx"
+      },
+      "students": {
+        "siswa-action-buttons.tsx": "student-action-buttons.tsx",
+        "siswa-add-dialog.tsx": "student-add-dialog.tsx",
+        "siswa-columns.tsx": "student-columns.tsx",
+        "siswa-dialogs.tsx": "student-dialogs.tsx",
+        "siswa-provider.tsx": "student-provider.tsx",
+        "siswa-row-actions.tsx": "student-row-actions.tsx",
+        "siswa-table.tsx": "student-table.tsx"
+      },
+      "events": {
+        "kalender-table.tsx": "events-table.tsx",
+        "calendar-export.tsx": "events-export.tsx"
+      },
+      "classes": {
+        "kelas-dialog.tsx": "classes-dialog.tsx"
+      }
+    },
+    "exports": {
+      "teachers": {
+        "DataGuru": "DataTeacher",
+        "DetailGuru": "DetailTeacher",
+        "GuruProvider": "TeacherProvider",
+        "GuruTable": "TeacherTable",
+        "GuruColumns": "TeacherColumns",
+        "GuruRowActions": "TeacherRowActions",
+        "GuruActionButtons": "TeacherActionButtons",
+        "GuruAddDialog": "TeacherAddDialog",
+        "GuruDialogs": "TeacherDialogs",
+        "GuruImportDialog": "TeacherImportDialog",
+        "GuruExportDialog": "TeacherExportDialog",
+        "GuruPenugasan": "TeacherAssignments",
+        "useGuru": "useTeacher",
+        "guruColumns": "teacherColumns"
+      },
+      "students": {
+        "DataSiswa": "DataStudent",
+        "DetailSiswa": "DetailStudent",
+        "SiswaProvider": "StudentProvider",
+        "SiswaTable": "StudentTable",
+        "SiswaColumns": "StudentColumns",
+        "SiswaRowActions": "StudentRowActions",
+        "SiswaActionButtons": "StudentActionButtons",
+        "SiswaAddDialog": "StudentAddDialog",
+        "SiswaDialogs": "StudentDialogs",
+        "SiswaImportDialog": "StudentImportDialog",
+        "SiswaExportDialog": "StudentExportDialog",
+        "SiswaDeleteDialog": "StudentDeleteDialog",
+        "useSiswa": "useStudent",
+        "siswaColumns": "studentColumns",
+        "SiswaDialogType": "StudentDialogType",
+        "SiswaContextType": "StudentContextType"
+      },
+      "events": {
+        "KalenderActivities": "KalenderActivities",
+        "KalenderTable": "KalenderTable",
+        "CalendarExport": "CalendarExport"
+      },
+      "classes": {
+        "DataKelas": "DataKelas",
+        "KelasDialog": "ClassesDialog",
+        "KelasRowActions": "ClassesRowActions",
+        "KelasDialogProps": "ClassesDialogProps",
+        "KelasDialogMode": "ClassesDialogMode"
+      },
+      "cashflow": {
+        "KeuanganAkun": "CashflowAccounts",
+        "KeuanganKategori": "CashflowCategories",
+        "KeuanganLaporan": "CashflowReports",
+        "ArusKas": "CashflowFlow"
+      },
+      "academic-years": {
+        "TahunAjaran": "TahunAjaran"
+      }
+    },
+    "imports": {
+      "@/features/guru": "@/features/teachers",
+      "@/features/siswa": "@/features/students",
+      "@/features/kelas": "@/features/classes",
+      "@/features/keuangan": "@/features/cashflow",
+      "@/features/kalender": "@/features/events",
+      "@/features/tahun-ajaran": "@/features/academic-years"
+    },
+    "routeApi": {
+      "/_authenticated/guru/": "/_authenticated/teachers/",
+      "/_authenticated/guru/$id": "/_authenticated/teachers/$id",
+      "/_authenticated/guru/penugasan": "/_authenticated/teachers/assignments",
+      "/_authenticated/siswa/": "/_authenticated/students/",
+      "/_authenticated/siswa/$id": "/_authenticated/students/$id",
+      "/_authenticated/kelas/": "/_authenticated/classes/",
+      "/_authenticated/kalender/": "/_authenticated/events/",
+      "/_authenticated/keuangan/": "/_authenticated/cashflow/",
+      "/_authenticated/keuangan/akun": "/_authenticated/cashflow/accounts",
+      "/_authenticated/keuangan/kategori": "/_authenticated/cashflow/categories",
+      "/_authenticated/keuangan/laporan": "/_authenticated/cashflow/reports",
+      "/_authenticated/tahun-ajaran/": "/_authenticated/academic-years/"
+    },
+    "labels": {
+      "sidebar": {
+        "Data Guru": {
+          "indonesian": "Data Guru",
+          "english": "Teachers"
+        },
+        "Data Siswa": {
+          "indonesian": "Data Siswa",
+          "english": "Students"
+        },
+        "Kelas": {
+          "indonesian": "Kelas",
+          "english": "Classes"
+        },
+        "Arus Kas": {
+          "indonesian": "Arus Kas",
+          "english": "Cash Flow"
+        },
+        "Akun": {
+          "indonesian": "Akun",
+          "english": "Accounts"
+        },
+        "Kategori": {
+          "indonesian": "Kategori",
+          "english": "Categories"
+        },
+        "Laporan": {
+          "indonesian": "Laporan",
+          "english": "Reports"
+        },
+        "Kalender Kegiatan": {
+          "indonesian": "Kalender Kegiatan",
+          "english": "Events"
+        },
+        "Tahun Ajaran": {
+          "indonesian": "Tahun Ajaran",
+          "english": "Academic Years"
+        },
+        "Penugasan": {
+          "indonesian": "Penugasan",
+          "english": "Assignments"
+        }
+      }
+    }
+  },
+  "notes": {
+    "description": "This dictionary maps Indonesian identifiers to English equivalents used in the codebase after the naming convention refactoring.",
+    "rules": [
+      "String literals (UI labels, API payloads) remain unchanged",
+      "Database schema uses English table names (unchanged)",
+      "Route paths use English for developer consistency",
+      "Sidebar labels stay Indonesian for user experience"
+    ],
+    "translations": {
+      "akun": "accounts",
+      "kategori": "categories",
+      "laporan": "reports",
+      "penugasan": "assignments"
+    },
+    "filesNotChanged": [
+      "src/server/db/schema/* - Database schema already uses English",
+      "UI labels and user-facing strings preserved in Indonesian"
+    ]
+  }
+}

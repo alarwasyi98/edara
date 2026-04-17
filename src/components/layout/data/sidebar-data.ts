@@ -58,15 +58,15 @@ export const sidebarData: SidebarData = {
           items: [
             {
               title: 'Data Siswa',
-              url: '/siswa',
+              url: '/students',
             },
             {
               title: 'Kelas',
-              url: '/kelas',
+              url: '/classes',
             },
             {
               title: 'Tahun Ajaran',
-              url: '/tahun-ajaran',
+              url: '/academic-years',
             },
           ],
         },
@@ -76,17 +76,17 @@ export const sidebarData: SidebarData = {
           items: [
             {
               title: 'Data Guru',
-              url: '/guru',
+              url: '/teachers',
             },
             {
               title: 'Penugasan',
-              url: '/guru/penugasan',
+              url: '/teachers/penugasan',
             },
           ],
         },
         {
-          title: 'Kalender Kegiatan',
-          url: '/kalender',
+title: 'Kalender Kegiatan',
+              url: '/events',
           icon: CalendarDays,
         },
       ],
@@ -122,19 +122,19 @@ export const sidebarData: SidebarData = {
           items: [
             {
               title: 'Arus Kas',
-              url: '/keuangan',
+              url: '/cashflow',
             },
             {
               title: 'Akun',
-              url: '/keuangan/akun',
+              url: '/cashflow/akun',
             },
             {
               title: 'Kategori',
-              url: '/keuangan/kategori',
+              url: '/cashflow/kategori',
             },
             {
               title: 'Laporan',
-              url: '/keuangan/laporan',
+              url: '/cashflow/laporan',
             },
           ],
         },

@@ -2,8 +2,8 @@
 name: reconciliation-log
 description: Reconciliation Log for EDARA
 status: draft
-modified: 2026-04-13
-version: 0.0.4
+modified: 2026-04-18
+version: 0.0.5
 ---
 
 # EDARA Project Reconciliation Log
@@ -13,16 +13,133 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 > [!IMPORTANT]
 > **Project**: EDARA
 > **Status**: Draft
-> **Version**: 0.0.4
-> **Last Updated**: 2026-04-13
-> **Next Target**: Step 8 (Section 3: Integrasi Auth Clerk)
+> **Version**: 0.0.5
+> **Last Updated**: 2026-04-18
+> **Next Target**: Backend API Layer Implementation (oRPC routers)
+
+---
+
+## 📅 Session: 2026-04-18 — Sesi 7 (Rollup Version Mismatch Fix)
+
+### 📝 Status Saat Ini
+Memperbaiki error build akibat rollup version mismatch yang menyebabkan TypeScript error di `vite.config.ts`.
+
+### 🔍 Masalah yang Ditemukan
+- Dua versi rollup terinstal di proyek:
+  - `4.60.0` (digunakan Vite 7.x)
+  - `4.60.1` (digunakan nitropack via @clerk/tanstack-start)
+- Error: `Type 'Plugin<any>' is not assignable to type 'PluginOption'` di `rollup-plugin-visualizer`
+
+### 🛠️ Solusi yang Diterapkan
+Menambahkan pnpm override di `package.json` untuk force uniform rollup version:
+
+```json
+"pnpm": {
+  "overrides": {
+    "rollup": "4.60.0"
+  }
+}
+```
+
+### 📄 File yang Diubah
+- **Modified**: `package.json` — Menambahkan pnpm overrides untuk rollup
+
+### ✅ Hasil
+- Build berhasil setelah `pnpm install`
+- Hanya tersisa warning untuk chunk size (581KB main bundle bisa dioptimalkan lebih lanjut)
+
+---
+
+## 📅 Session: 2026-04-18 — Sesi 6 (Naming Convention Refactoring)
+
+### 📝 Status Saat Ini
+Menerapkan naming convention refactoring untuk menyelaraskan struktur folder dan file dengan technical-specification.md. Menggunakan Option B (English URLs + Indonesian sidebar labels).
+
+### 🛠️ File & Folder yang Ditanam Ulang (Renamed)
+
+#### Feature Folders (src/features/)
+| Sebelum | Sesudah |
+|---------|---------|
+| `guru` | `teachers` |
+| `siswa` | `students` |
+| `kelas` | `classes` |
+| `keuangan` | `cashflow` |
+| `kalender` | `events` |
+| `tahun-ajaran` | `academic-years` |
+
+#### Route Folders (src/routes/_authenticated/)
+| Sebelum | Sesudah |
+|---------|---------|
+| `guru` | `teachers` |
+| `siswa` | `students` |
+| `kelas` | `classes` |
+| `keuangan` | `cashflow` |
+| `kalender` | `events` |
+| `tahun-ajaran` | `academic-years` |
+
+#### Component Files (Internal)
+| Feature | File Sebelum | File Sesudah |
+|---------|-------------|--------------|
+| teachers | `guru-*.tsx` | `teacher-*.tsx` |
+| students | `siswa-*.tsx` | `student-*.tsx` |
+| events | `kalender-*.tsx`, `calendar-*.tsx` | `events-*.tsx`, `events-*.tsx` |
+| classes | `kelas-dialog.tsx` | `classes-dialog.tsx` |
+
+#### Cashflow Module (Baru Ditambahkan)
+| Sebelum | Sesudah |
+|---------|---------|
+| `arus-kas.tsx` | `cashflow-flow.tsx` |
+
+### 🔄 Exports & Components yang Di-Rename
+
+| Module | Sebelum | Sesudah |
+|--------|---------|---------|
+| teachers | `DataGuru`, `DetailGuru`, `GuruProvider`, `useGuru` | `DataTeacher`, `DetailTeacher`, `TeacherProvider`, `useTeacher` |
+| students | `DataSiswa`, `DetailSiswa`, `SiswaProvider`, `useSiswa` | `DataStudent`, `DetailStudent`, `StudentProvider`, `useStudent` |
+| events | `KalenderActivities` (export alias) | `KalenderActivities` |
+| classes | `KelasDialog`, `KelasRowActions` | `ClassesDialog`, `ClassesRowActions` |
+| cashflow | `ArusKas`, `PencatatanKeuangan` | `CashflowFlow`, `CashflowTransactions` |
+
+### 🔗 URL Paths yang Diperbarui
+
+| Sebelum | Sesudah | Catatan |
+|---------|---------|---------|
+| `/guru` | `/teachers` | |
+| `/guru/penugasan` | `/teachers/penugasan` | (belum di-rename ke assignments) |
+| `/siswa` | `/students` | |
+| `/kelas` | `/classes` | |
+| `/kalender` | `/events` | |
+| `/keuangan` | `/cashflow` | |
+| `/keuangan/arus-kas` | `/cashflow/cashflow-flow` | |
+| `/tahun-ajaran` | `/academic-years` | |
+
+### 📄 File yang Dibuat/Diperbarui
+- **Created**: `src/docs/naming-dictionary.json` — Dictionary mapping untuk referensi
+- **Updated**: Semua route files di `src/routes/_authenticated/*/`
+- **Updated**: `src/components/layout/data/sidebar-data.ts` (URLs only, labels tetap Indonesian)
+- **Updated**: `src/components/command-menu.tsx`
+- **Updated**: `src/features/dashboard/index.tsx`
+
+### ⚖️ Keputusan Teknis (Log Keputusan)
+| Keputusan | Justifikasi |
+|-----------|--------------|
+| **Option B (English URLs)** | Developer consistency dengan technical-specification.md, user labels tetap Indonesian |
+| **Preserve String Literals** | UI labels, API payloads tidak diubah sesuai Rule #3 |
+| **TanStack Router Path Updates** | Semua `createFileRoute()` dan `getRouteApi()` di-update manual karena routeTree.gen.ts belum ter-regenerate |
+
+### 📌 Catatan untuk Sesi Selanjutnya
+- **Next**: Implementasi Backend API Layer (oRPC routers di `src/server/routers/`)
+- **Pending**: Regenerate `routeTree.gen.ts` via `pnpm dev` atau `pnpm build`
+- **Pending**: Cashflow sub-routes (`akun`, `kategori`, `laporan`) perlu desain fitur
+
+---
 
 ## 🏁 Current Sprint Summary
 - **Project**: EDARA
-- **Phase**: Section 2 (Implementasi Skema Database & RLS) — ✅ **COMPLETED**
+- **Phase**: Section 2 (Database Schema) — ✅ **COMPLETED**
 - **Status Progress**: 7/34 Steps Completed (20%)
-- **Last Updated**: 2026-04-13
-- **Next Target**: Step 8 (Section 3: Integrasi Auth Clerk)
+- **Last Updated**: 2026-04-18
+- **Next Target**: Backend API Layer Implementation (oRPC routers)
 - **Plan Reference**: [Reconciliation Plan](src/docs/reconciliation-plan.md)
 - **Active Branch**: `recon (deleted/merged)`
 

@@ -74,14 +74,14 @@ export function CommandMenu() {
           <CommandGroup heading='Aksi Cepat'>
             <CommandItem
               value='tambah-siswa'
-              onSelect={() => runCommand(() => navigate({ to: '/siswa' }))}
+              onSelect={() => runCommand(() => navigate({ to: '/students' }))}
             >
               <UserPlus className='mr-2 h-4 w-4' />
               Tambah Siswa
             </CommandItem>
             <CommandItem
               value='tambah-guru'
-              onSelect={() => runCommand(() => navigate({ to: '/guru' }))}
+              onSelect={() => runCommand(() => navigate({ to: '/teachers' }))}
             >
               <GraduationCap className='mr-2 h-4 w-4' />
               Tambah Guru

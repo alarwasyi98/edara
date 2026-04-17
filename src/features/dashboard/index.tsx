@@ -241,7 +241,7 @@ export function Dashboard() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link to="/kalender">Lihat Selengkapnya</Link>
+                        <Link to="/events">Lihat Selengkapnya</Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
