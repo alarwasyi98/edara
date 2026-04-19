@@ -2,8 +2,8 @@
 name: reconciliation-log
 description: Reconciliation Log for EDARA
 status: draft
-modified: 2026-04-18
-version: 0.0.5
+modified: 2026-04-19
+version: 0.0.6
 ---
 
 # EDARA Project Reconciliation Log
@@ -13,9 +13,40 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 > [!IMPORTANT]
 > **Project**: EDARA
 > **Status**: Draft
-> **Version**: 0.0.5
-> **Last Updated**: 2026-04-18
+> **Version**: 0.0.6
+> **Last Updated**: 2026-04-19
 > **Next Target**: Backend API Layer Implementation (oRPC routers)
+
+---
+
+## 📅 Session: 2026-04-19 — Sesi 8 (Auth Migration Design Refinement)
+
+### 📝 Status Saat Ini
+Meninjau ulang rencana migrasi auth dari Clerk ke Better Auth dan memutakhirkan desain agar selaras dengan arsitektur EDARA saat ini.
+
+### 🔍 Temuan Utama
+- Integrasi Clerk di repo masih berupa dependency, route contoh modular, komentar schema, dan dokumentasi teknis.
+- Auth backend produksi belum benar-benar terintegrasi, sehingga pekerjaan ini lebih tepat diperlakukan sebagai **provider replacement sebelum full integration**, bukan migrasi user aktif.
+- Model terbaik untuk EDARA adalah:
+  - **Better Auth** untuk identity + session
+  - **EDARA domain tables** (`schools`, `school_units`, `user_school_assignments`) untuk tenancy, RBAC, dan RLS context
+- Pendekatan Better Auth Organizations sebagai sumber utama multi-tenancy dinilai berisiko menimbulkan dual source of truth.
+
+### 🛠️ Dokumen yang Dibuat / Diperbarui
+- **Modified**: `docs/superpowers/specs/2026-04-18-clerk-to-betterauth-migration-design.md` — refined ke v2.0.0 dengan keputusan arsitektur final
+- **Created**: `docs/superpowers/specs/2026-04-19-better-auth-implementation-plan.md` — implementation plan terstruktur untuk rollout Better Auth
+
+### ⚖️ Keputusan Teknis (Log Keputusan)
+| Keputusan | Justifikasi |
+|-----------|--------------|
+| **Better Auth hanya untuk identity/session** | Paling selaras dengan skema `school_id` / `unit_id`, RBAC app-specific, dan pola RLS EDARA |
+| **Tidak memakai Better Auth Organizations sebagai source of truth tenancy** | Menghindari sinkronisasi ganda dengan `user_school_assignments` |
+| **Rename field auth identifier ke provider-neutral** | `clerk_user_id` / `clerkUserId` terlalu vendor-specific untuk fondasi jangka panjang |
+| **Fase ini fokus ke auth foundation** | Email verification, password reset, OAuth, dan 2FA ditunda ke phase berikutnya |
+
+### 📌 Catatan untuk Sesi Selanjutnya
+- Implementasi perlu dimulai dari dependency cleanup + schema rename
+- Dokumentasi utama proyek (`README.md`, `technical-specification.md`, `reconciliation-plan.md`, `.agents/rules/system-instructions.md`) masih menyebut Clerk dan perlu diselaraskan saat eksekusi
 
 ---
 
@@ -290,4 +321,3 @@ Infrastruktur dasar backend (ORM, RPC, Testing) sudah terpasang dan terkonfigura
 - [x] Step 7: Row Level Security (RLS) Migration
 - [ ] Step 8: Auth Integration (Next)
 - [ ] ... (Steps 9-34)
-
