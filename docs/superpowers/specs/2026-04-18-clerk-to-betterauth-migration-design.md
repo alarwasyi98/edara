@@ -1,125 +1,162 @@
 ---
 name: clerk-to-betterauth-migration
-description: Migration design from Clerk to Better Auth for EDARA
-status: in-review
-modified: 2026-04-18
-version: 1.1.0
+description: Refined migration design from Clerk to Better Auth for EDARA
+status: approved-for-planning
+modified: 2026-04-19
+version: 2.0.0
 ---
 
-# Migration Design: Clerk → Better Auth
+# Migration Design: Clerk -> Better Auth
 
-**Date:** 2026-04-18
-**Status:** In Review (v1.1)
-**Version:** 1.1.0
-**Previous Review:** v1.0 approved with feedback incorporated
+**Date:** 2026-04-19
+**Status:** Refined for implementation planning
+**Version:** 2.0.0
 
 ---
 
 ## Overview
 
-Migrate EDARA's authentication from Clerk (external SaaS) to Better Auth (self-hosted) using Neon PostgreSQL as the session store.
+EDARA will replace Clerk with Better Auth before real auth is integrated into the application runtime.
 
-**Scope:** Phase 1 MVP Authentication
-**Approach:** Minimal — Users self-signup, admin assigns roles later
+This is best treated as a **provider replacement during pre-integration**, not as a live end-user migration:
 
----
+- Clerk is present in dependencies, example routes, and technical docs
+- Real backend auth, oRPC auth middleware, and production user onboarding are not fully implemented yet
+- There are no existing production users to migrate
 
-## Assumptions
+The goal is to establish a production-ready auth foundation that fits EDARA's existing architecture:
 
-- No existing Clerk users in production yet (fresh start)
-- No 2FA enabled in current Clerk setup
-- No phone authentication in current setup
-- Neon DB is the primary database for both app data and auth
-- Using TanStack Start with oRPC for backend
+- **Better Auth** owns identity, credentials, sessions, and cookies
+- **EDARA domain tables** own tenant membership, school/unit assignments, RBAC, and RLS context
 
 ---
 
-## Architecture
+## Key Decision
 
-### Before
+### Chosen Model
 
-```
-┌─────────────┐
-│  Clerk UI   │ (external hosted)
-│ (iframed)  │
-└──────┬──────┘
-       │
-       ▼ (JWT via Clerk SDK)
-┌─────────────┐
-│ Clerk SDK   │ (frontend only)
-│ @clerk/*   │
-└─────────────┘
-       │
-       ▼ (external API)
-┌─────────────┐
-│ Clerk API   │ (vendor-managed)
-└─────────────┘
-```
+**Better Auth handles identity and session only.**
 
-### After
+EDARA remains the source of truth for:
 
-```
-┌─────────────┐
-│ Better Auth│ (self-hosted)
-│ UI Pages   │ (custom built)
-└──────┬──────┘
-       │
-       ▼ (session cookie)
-┌─────────────┐
-│ oRPC Router│ (TanStack Start)
-│ /auth      │
-└──────┬──────┘
-       │
-       ▼ (SQL)
-┌─────────────┐
-│ Neon DB     │ (same instance)
-│ +better-auth│
-└─────────────┘
+- `schools`
+- `school_units`
+- `user_school_assignments`
+- app-specific roles (`super_admin`, `kepala_sekolah`, `admin_tu`, `bendahara`)
+- active tenant/unit context used by RLS
+
+### Why This Model Fits EDARA Best
+
+1. EDARA already has a richer authorization model than a generic auth organization system.
+2. The database and ADRs already center around app-owned tenant context and RLS.
+3. Mapping Better Auth organizations to tenants would create duplicate access models and synchronization risk.
+4. Because auth is not fully integrated yet, the safest move is replacing the provider without redesigning tenancy.
+
+---
+
+## Non-Goals
+
+This migration does **not** include:
+
+- redesigning EDARA tenancy from `school_id` to organization-based tenancy
+- migrating live Clerk users
+- enabling OAuth providers
+- enabling email verification, password reset, or 2FA in MVP
+- rewriting all historical technical docs in this phase
+
+Those can be handled in follow-up documentation and later auth phases.
+
+---
+
+## Current State Summary
+
+Based on repo review as of 2026-04-19:
+
+- `package.json` still depends on `@clerk/backend` and `@clerk/clerk-react`
+- `src/routes/clerk/*` contains a modular Clerk example flow
+- `src/routeTree.gen.ts` still includes `/clerk/*` routes
+- `src/server/db/schema/users.ts` still uses `clerk_user_id`
+- auth in the main app is still mock-oriented in places such as `src/stores/auth-store.ts`
+- `README.md`, `technical-specification.md`, `reconciliation-plan.md`, and system instructions still describe Clerk as the auth provider
+
+Conclusion: the codebase contains **Clerk scaffolding and documentation debt**, not a deeply integrated production auth system.
+
+---
+
+## Target Architecture
+
+### Responsibility Split
+
+| Concern | Owner |
+|---|---|
+| Sign up / sign in / session lifecycle | Better Auth |
+| Password hashing / credential management | Better Auth |
+| Session cookie issuance and validation | Better Auth |
+| User identity (`user.id`) | Better Auth |
+| School assignment | EDARA |
+| Unit assignment | EDARA |
+| Role assignment | EDARA |
+| RLS session variables | EDARA |
+| Activity log actor references | EDARA, using Better Auth user id |
+
+### High-Level Flow
+
+```text
+Browser
+  -> custom sign-in/sign-up UI
+  -> Better Auth client/server endpoints
+  -> session cookie
+
+TanStack Start / oRPC
+  -> validate session through Better Auth
+  -> resolve EDARA assignment from user_school_assignments
+  -> set Postgres RLS context
+  -> execute application procedures
 ```
 
 ---
 
-## Design Decisions
+## Data Model Strategy
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Database | Same Neon DB | Single source of truth, no sync needed |
-| User signup | Minimal | Users self-register, admin assigns roles later |
-| Multi-tenancy | Better Auth Organizations | Native org support, cleaner architecture |
-| Session storage | Neon DB | Already configured for app data |
-| User management | List + role assignment | Admin assigns roles from table |
-| Migration | Fresh start (no existing users) | No Clerk user migration needed |
+### Better Auth Data
 
----
+Better Auth should own its standard auth tables for:
 
-## Database Schema
+- users
+- sessions
+- accounts
+- verifications
 
-### New Tables (Better Auth)
+Use the Better Auth Drizzle adapter and generate the schema/migration with the official CLI flow.
 
-Better Auth creates these automatically via adapter:
+### EDARA Data
 
-| Table | Purpose |
-|-------|---------|
-| `users` | User accounts (email, name, image) |
-| `sessions` | Active sessions with expiration |
-| `accounts` | OAuth provider links |
-| `verifications` | Email verification tokens |
-| `organization` | Better Auth orgs (→ schools) |
-| `organization_member` | User-org links with role |
-| `organization_invite` | Pending org invitations |
+EDARA keeps the existing assignment model, but changes the auth identifier naming from Clerk-specific to provider-neutral.
 
-### Schema Changes
+### Required Schema Refinement
 
 **File:** `src/server/db/schema/users.ts`
 
-```typescript
-// Remove clerkUserId dependency
-// Use better-auth's user.id instead
+Current field:
+
+- `clerkUserId`
+- database column `clerk_user_id`
+- index names tied to Clerk
+
+Refine to:
+
+- property: `userId`
+- database column: `user_id`
+- index names updated to provider-neutral names
+
+Example target shape:
+
+```ts
 export const userSchoolAssignments = pgTable(
   'user_school_assignments',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    userId: varchar('user_id', { length: 255 }).notNull(), // better-auth user.id
+    userId: varchar('user_id', { length: 255 }).notNull(),
     schoolId: uuid('school_id').references(() => schools.id).notNull(),
     unitId: uuid('unit_id').references(() => schoolUnits.id),
     role: userRoleEnum('role').notNull(),
@@ -127,471 +164,229 @@ export const userSchoolAssignments = pgTable(
     assignedAt: timestamp('assigned_at').defaultNow().notNull(),
   },
   (t) => ({
-    userIdx: index('user_assignments_user_idx').on(t.userId),
     schoolIdx: index('user_assignments_school_idx').on(t.schoolId),
-  })
+    userIdx: index('user_assignments_user_idx').on(t.userId),
+    uniqueAssignment: uniqueIndex('user_assignment_unique').on(
+      t.userId,
+      t.schoolId,
+      t.unitId,
+    ),
+  }),
 )
 ```
 
----
+### Important Note on Other Tables
 
-## Dependencies
+Fields such as:
 
-### Remove
+- `changed_by`
+- `recorded_by`
+- `created_by`
+- `actor_id`
 
-```json
-{
-  "@clerk/backend": "^3.2.8",
-  "@clerk/clerk-react": "^5.58.1"
-}
-```
-
-### Add (Current Versions as of 2026)
-
-```json
-{
-  "better-auth": "^1.6.0",
-  "@better-auth/drizzle-adapter": "^1.6.0"
-}
-```
-
-> **Note:** Verify exact versions on npm. The Drizzle adapter is now `@better-auth/drizzle-adapter`. No separate `@auth/*` packages needed unless using legacy Auth.js features.
+can continue storing the authenticated user id as a string, but comments and docs should stop referring to them as `clerkUserId`.
 
 ---
 
-## Frontend Implementation
-
-### Routes Structure
-
-```
-src/routes/
-├── auth/                    NEW (replaces /clerk)
-│   ├── route.tsx            → AuthProvider wrapper
-│   ├── (auth)/
-│   │   ├── route.tsx        → Layout without sidebar
-│   │   ├── sign-in.tsx      → Custom sign-in form
-│   │   ├── sign-up.tsx      → Custom sign-up form
-│   │   └── _index.tsx      → Redirect to sign-in
-│   └── _authenticated/
-│       └── route.tsx        → Auth required guard
-```
-
-### Sign-In Page (`/auth/sign-in`)
-
-- Email + password form
-- "Forgot password?" link (Phase 2)
-- "Sign up" link to `/auth/sign-up`
-- Success → redirect to `/` (dashboard)
-- Loading state with skeleton
-- Error display for invalid credentials
-
-### Sign-Up Page (`/auth/sign-up`)
-
-- Email + password + confirm password
-- Name field (optional)
-- Terms acceptance checkbox
-- Email verification (Phase 2 — disabled in MVP)
-- Success → redirect to `/` (dashboard)
-- Loading state with skeleton
-
-### UI Design Notes
-
-- Use existing shadcn/ui components (Input, Button, Label, Form)
-- Consider starting with `better-auth-ui` components as base, then customize for your design system
-- Implement accessible labels and ARIA attributes
-- Mobile-responsive layout
-- Same visual treatment as original Clerk pages (Forest/Amber palette)
-
-### User Management Page
-
-`/auth/_authenticated/user-management.tsx` (existing path):
-
-- Table columns: Email, Name, Organization (School), Role, Status, Actions
-- Actions: Edit role dropdown, Toggle active
-- Uses oRPC query to fetch all users
-- Role dropdown syncs with `user_school_assignments.role`
-
----
-
-## Backend Implementation
+## Better Auth Integration Design
 
 ### Auth Configuration
 
-**File:** `src/server/auth/index.ts`
+Create an auth module using:
 
-```typescript
-import { betterAuth } from 'better-auth'
-import { drizzleAdapter } from '@better-auth/drizzle-adapter'
-import { db } from '@/server/db'
+- `better-auth`
+- `@better-auth/drizzle-adapter`
+- `tanstackStartCookies()` plugin for TanStack Start
 
-export const auth = betterAuth({
-  database: drizzleAdapter(db, {
-    provider: 'pg',
-  }),
-  emailAndPassword: {
-    enabled: true,
-    minPasswordLength: 6,
-    requireEmailVerification: false, // Phase 1 MVP
-  },
-  organization: {
-    enabled: true,
-    defaultRole: 'member',
-  },
-  session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24,   // 1 day
-    cookieCacheUntil: 60 * 60 * 24,
-  },
-  advanced: {
-    // Generate UUIDs that match your existing format
-    generateId: () => crypto.randomUUID(),
-  },
-})
-```
+Use Better Auth for:
 
-**Plugins to consider (Phase 2):**
-- Rate limiting plugin
-- Two-factor authentication
+- email/password auth
+- session retrieval on server
+- cookie management for TanStack Start
 
-### oRPC Auth Router
+### Routing Model
 
-**File:** `src/server/routers/auth.ts`
+Mount Better Auth handlers under:
 
-```typescript
-import { ORPCError, oRPCRouter } from '@orpc/server'
-import { z } from 'zod'
-import { auth } from '@/server/auth'
-import { db } from '@/server/db'
-import { userSchoolAssignments } from '@/server/db/schema/users'
+- `/api/auth/*`
 
-export const authRouter = oRPCRouter({
-  signIn: procedure
-    .input(z.object({
-      email: z.string().email(),
-      password: z.string().min(6),
-    }))
-    .mutation(async ({ input }) => {
-      const result = await auth.api.signIn.email({
-        body: {
-          email: input.email,
-          password: input.password,
-        },
-      })
+Recommended files:
 
-      if (!result) {
-        throw new ORPCError('UNAUTHORIZED', 'Invalid email or password')
-      }
+- `src/lib/auth.ts` or `src/server/auth/index.ts`
+- `src/routes/api/auth/$.ts`
 
-      return result
-    }),
+### Session Access
 
-  signUp: procedure
-    .input(z.object({
-      email: z.string().email(),
-      password: z.string().min(6),
-      name: z.string().optional(),
-    }))
-    .mutation(async ({ input }) => {
-      // Check if user exists
-      const existing = await auth.api.getUser({
-        userId: input.email, // This won't work - need proper lookup
-      })
+The application should expose thin helpers such as:
 
-      const result = await auth.api.signUp.email({
-        body: {
-          email: input.email,
-          password: input.password,
-          name: input.name,
-        },
-      })
+- `getSession()`
+- `requireSession()`
+- `getCurrentAssignment()`
+- `requireAssignment()`
 
-      return result
-    }),
+These helpers should:
 
-  getSession: procedure.query(async ({ headers }) => {
-    const session = await auth.api.getSession({ headers })
-
-    if (!session) {
-      throw new ORPCError('UNAUTHORIZED', 'No active session')
-    }
-
-    return session
-  }),
-
-  listUsers: procedure
-    .use(requireRole(['super_admin']))
-    .query(async () => {
-      const users = await db.query.userSchoolAssignments.findMany({
-        orderBy: [desc(userSchoolAssignments.assignedAt)],
-      })
-      return users
-    }),
-
-  updateUserRole: procedure
-    .use(requireRole(['super_admin']))
-    .input(z.object({
-      userId: z.string(),
-      role: userRoleEnum,
-      schoolId: z.uuid(),
-    }))
-    .mutation(async ({ input }) => {
-      await db
-        .update(userSchoolAssignments)
-        .set({ role: input.role })
-        .where(
-          and(
-            eq(userSchoolAssignments.userId, input.userId),
-            eq(userSchoolAssignments.schoolId, input.schoolId)
-          )
-        )
-    }),
-})
-```
+1. read the Better Auth session from request headers/cookies
+2. resolve EDARA assignment records from `user_school_assignments`
+3. return a normalized auth context for downstream middleware and procedures
 
 ---
 
-## Middleware Updates
+## Authorization and RLS Design
 
-### Session Verification
+### Source of Truth
 
-**File:** `src/server/middleware/auth.ts`
+Authorization must come from `user_school_assignments`, not from Better Auth organization roles.
 
-```typescript
-import { auth } from '@/server/auth'
-import { db } from '@/server/db'
-import { userSchoolAssignments } from '@/server/db/schema/users'
-import { eq, and } from 'drizzle-orm'
-import { ORPCError } from '@orpc/server'
+### Recommended Auth Context
 
-export async function requireAuth(headers: Headers) {
-  const session = await auth.api.getSession({ headers })
+After session validation, EDARA should build an auth context like:
 
-  if (!session) {
-    throw new ORPCError('UNAUTHORIZED', 'No active session')
-  }
-
-  return session
-}
-
-export async function requireRole(allowedRoles: string[]) {
-  return async (c: { headers: Headers; session: Session }) => {
-    const assignments = await db.query.userSchoolAssignments.findMany({
-      where: and(
-        eq(userSchoolAssignments.userId, c.session.user.id),
-        eq(userSchoolAssignments.isActive, true)
-      ),
-    })
-
-    const userRole = assignments[0]?.role
-
-    if (!userRole || !allowedRoles.includes(userRole)) {
-      throw new ORPCError('FORBIDDEN', 'Insufficient permissions')
-    }
-
-    return c
-  }
+```ts
+type AuthContext = {
+  userId: string
+  email: string
+  schoolId: string | null
+  unitId: string | null
+  role: 'super_admin' | 'kepala_sekolah' | 'admin_tu' | 'bendahara' | null
+  assignmentId: string | null
 }
 ```
 
-### RLS Context (Multi-Tenancy)
+### RLS Requirement
 
-```typescript
-export async function setTenantContext(session: Session) {
-  // Set RLS session variables
-  await db.execute(sql`
-    SET app.current_user_id = ${session.user.id}
-  `)
+RLS context must continue to be set by EDARA within transaction/request scope. Do not rely on global process state.
 
-  // Get user school assignments from our table
-  const assignments = await db.query.userSchoolAssignments.findMany({
-    where: eq(userSchoolAssignments.userId, session.user.id),
-  })
+The migration must preserve the ADR direction that tenant isolation is enforced in Postgres through request-scoped context, not only in application code.
 
-  // Set primary school context
-  if (assignments.length > 0) {
-    const primary = assignments[0]
-    await db.execute(sql`
-      SET app.current_school = ${primary.schoolId}
-    `)
-    if (primary.unitId) {
-      await db.execute(sql`
-        SET app.current_unit = ${primary.unitId}
-      `)
-    }
-  }
+### Important Correction to Earlier Draft
 
-  return {
-    userId: session.user.id,
-    schoolId: assignments[0]?.schoolId,
-    unitId: assignments[0]?.unitId,
-    role: assignments[0]?.role,
-  }
-}
-```
+The earlier draft used ad hoc `SET app.current_*` examples outside a transaction pattern. Implementation should instead follow the repo ADR direction and set request-scoped database config in the same controlled access layer used by the app's DB procedures.
 
 ---
 
-## Role Sync Strategy
+## UI and UX Design
 
-### Current State
+### Auth Pages
 
-| Source | Role Values |
-|--------|------------|
-| Better Auth Organization | `owner`, `admin`, `member`, `guest` |
-| Your `user_school_assignments` | `super_admin`, `kepala_sekolah`, `admin_tu`, `bendahara` |
+Replace the Clerk example pages with custom auth pages using the existing design system:
 
-### Sync Approach
+- `/auth/sign-in`
+- `/auth/sign-up`
 
-1. **Separate sources**: Better Auth orgs handle access to organization data; `user_school_assignments` handles your custom RBAC roles
-2. **On first login**: If user has no assignment, they get "pending" status — admin assigns role later in user management
-3. **Organization membership**: Auto-added when user is assigned to a school in your table
-4. **Default role in Better Auth**: Set to `member` for all new orgs
+Pages should use:
 
-### User Onboarding Flow (MVP)
+- shadcn/ui inputs, buttons, labels, alerts
+- `react-hook-form`
+- `zod`
 
-```
-1. User signs up at /auth/sign-up
-2. User added to Better Auth users table
-3. User redirected to dashboard (no school access yet)
-4. Super admin assigns role/school in /user-management
-5. User can now access their assigned school data
-```
+### MVP Behavior
 
-This ensures no orphaned access — every user must be explicitly assigned.
+Sign-up:
 
----
+- user creates identity in Better Auth
+- no automatic school/unit/role assignment
+- user lands in an onboarding-safe state
 
-## Security & Production Readiness
+Sign-in:
 
-### Session Cookie Settings
+- if the user has at least one active EDARA assignment, continue into the app
+- if the user has no active assignment, show a clear "awaiting access" state instead of granting tenant access
 
-```typescript
-// In auth config or client
-{
-  session: {
-    // HTTPS only in production
-    cookieSecure: process.env.NODE_ENV === 'production',
-    // Prevent XSS from accessing cookie
-    cookieHttpOnly: true,
-    // CSRF protection
-    cookieSameSite: 'lax',
-    // Path scope
-    cookiePath: '/',
-  }
-}
-```
+### User Management
 
-### Rate Limiting (Phase 2 - Recommended)
+The app should provide an EDARA-managed user administration flow for:
 
-- Add rate limiting to sign-in endpoint
-- Better Auth has official rate limiting plugin
-- Recommended: 5 attempts per 5 minutes per IP
+- listing users known to the app
+- linking Better Auth user identities to assignments
+- assigning school
+- assigning unit
+- assigning role
+- activating/deactivating assignment
 
-### Error Handling
-
-| Error Code | Message | Scenario |
-|------------|---------|-----------|
-| `UNAUTHORIZED` | "Invalid email or password" | Wrong credentials |
-| `UNAUTHORIZED` | "Account not found" | Email not registered |
-| `FORBIDDEN` | "Insufficient permissions" | Role doesn't allow action |
-| `TOO_MANY_REQUESTS` | "Too many attempts" | Rate limit exceeded |
+This is not the same as Better Auth account administration. Better Auth owns identity records; EDARA owns access records.
 
 ---
 
-## Migration Path
+## Migration Strategy
 
-### Phase 0: Preparation (If Needed)
+Because there are no live users, the migration should be treated as a **replacement rollout**, not a dual-provider migration.
 
-| Step | Task | Notes |
-|------|------|-------|
-| 0.1 | Export current Clerk users (if any) | CSV or API |
-| 0.2 | Create Neon branch for testing | `edara-migration-test` |
-| 0.3 | Test migration script on branch | If users exist |
-| 0.4 | Verify foreign keys work | No broken links |
+### What Changes Immediately
 
-> **Current assumption:** No existing users, skip to Phase 1
+- Clerk packages removed
+- Clerk example routes removed
+- Better Auth packages added
+- Better Auth handler mounted
+- schema renamed from Clerk-specific identifiers to provider-neutral identifiers
+- mock auth flow begins transition toward real session-based auth
 
-### Phase 1: Core Migration
+### What Can Stay Deferred Briefly
 
-| Step | Task | Files |
-|------|------|-------|
-| 1.1 | Remove Clerk packages, install better-auth | `package.json` |
-| 1.2 | Create auth config | `src/server/auth/index.ts` |
-| 1.3 | Update user schema | `src/server/db/schema/users.ts` |
-| 1.4 | Run DB setup (creates better-auth tables) | `drizzle-kit push` or direct |
-| 1.5 | Build auth oRPC router | `src/server/routers/auth.ts` |
-| 1.6 | Create middleware | `src/server/middleware/auth.ts` |
-| 1.7 | Build sign-in page | `src/routes/auth/(auth)/sign-in.tsx` |
-| 1.8 | Build sign-up page | `src/routes/auth/(auth)/sign-up.tsx` |
-| 1.9 | Update user management page | `src/routes/auth/_authenticated/user-management.tsx` |
-| 1.10 | Delete old clerk routes | `src/routes/clerk/` |
-
-### Phase 2: Enhancements (Post-MVP)
-
-| Task | Description |
-|------|-------------|
-| Email verification | Send verification emails |
-| Password reset | Forgot password flow |
-| OAuth providers | Google, GitHub login |
-| Organization switcher | Multi-org user UI |
-| Rate limiting | Sign-in protection |
-| Two-factor auth | 2FA for sensitive roles |
+- full admin user-management UX polish
+- email verification
+- forgot password
+- 2FA
+- OAuth
+- full documentation sweep across every historical doc
 
 ---
 
-## Rollback Plan
+## Risks and Mitigations
 
-If migration fails:
-
-1. **Keep Clerk routes temporarily** — Don't delete `/clerk/` until new auth is verified
-2. **Dual auth period** — Run both in parallel during testing
-3. **Neon branch rollback** — Use Neon branches to preserve working state
-4. **Revert package.json** — Keep Clerk packages until full cutover
-
----
-
-## Acceptance Criteria
-
-- [ ] Users can sign up with email + password
-- [ ] Users can sign in with email + password
-- [ ] Session persists across page refreshes
-- [ ] Session cookie is secure (httpOnly, sameSite)
-- [ ] Super admin can view all users
-- [ ] Super admin can assign roles to users
-- [ ] Unauthorized users redirected to sign-in
-- [ ] Old `/clerk/` routes removed
-- [ ] All existing features work with new auth
-- [ ] No 500 errors on auth endpoints
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Mixing Better Auth org concepts with EDARA tenancy | High | Do not use organization plugin as the tenancy source of truth in Phase 1 |
+| Provider-specific naming remains in schema/comments/docs | Medium | Rename schema fields and comments now; schedule wider docs cleanup |
+| Mock auth store and real session state diverge | High | Replace mock auth entry points with a single session-aware auth context |
+| RLS context set inconsistently | High | Centralize session -> assignment -> DB context resolution |
+| Over-scoping auth with Phase 2 features | Medium | Keep MVP to email/password + assignment-gated access |
 
 ---
 
-## Testing Strategy
+## Refined Acceptance Criteria
 
-### Unit Tests
-- Auth router signIn/signUp procedures
-- Middleware role checks
-- RBAC enforcement tests
-
-### E2E Tests
-- Full sign-up flow
-- Full sign-in flow
-- Session persistence
-- Role-based access
-
-### Manual Testing
-- Sign in from different browser
-- Check session expiry
-- Test admin role assignment
+- [ ] Users can sign up with email and password through Better Auth
+- [ ] Users can sign in with email and password through Better Auth
+- [ ] Session persists across refresh via secure cookies
+- [ ] Unauthenticated users are redirected to `/auth/sign-in`
+- [ ] Authenticated users without assignments do not gain tenant access
+- [ ] Authenticated users with assignments receive correct school/unit/role context
+- [ ] `user_school_assignments` no longer uses Clerk-specific identifier naming
+- [ ] Clerk example routes and dependencies are removed
+- [ ] App auth middleware resolves Better Auth session plus EDARA assignment together
+- [ ] RLS context continues to be set from EDARA assignment data
 
 ---
 
-## External Resources
+## What This Design Changes from v1.1
 
-- [Better Auth Documentation](https://www.better-auth.com/docs)
-- [Better Auth Migration Guide](https://better-auth.com/docs/guides/clerk-migration-guide)
-- [Better Auth LLMs.txt](https://better-auth.com/llms.txt)
-- [Better Auth Drizzle Adapter](https://www.better-auth.com/docs/integrations/drizzle)
-- [Neon Documentation](https://neon.tech/docs)
+1. Removes Better Auth Organizations as the recommended multi-tenancy model.
+2. Reframes the work as provider replacement before full auth integration, not a live migration.
+3. Replaces Clerk-specific identifier naming with provider-neutral naming.
+4. Clarifies that EDARA, not Better Auth, owns RBAC and tenant context.
+5. Aligns TanStack Start integration with Better Auth's current handler/cookie plugin guidance.
+
+---
+
+## Follow-Up Documentation Needed
+
+This design intentionally leaves a second documentation pass for:
+
+- `README.md`
+- `.agents/rules/system-instructions.md`
+- `src/docs/technical-specification.md`
+- `src/docs/reconciliation-plan.md`
+
+Those files still describe Clerk and should be updated during implementation or immediately after the auth foundation lands.
+
+---
+
+## External References
+
+- [Better Auth TanStack Start Integration](https://better-auth.com/docs/integrations/tanstack)
+- [Better Auth Drizzle Adapter](https://better-auth.com/docs/adapters/drizzle)
+- [Better Auth Organization Plugin](https://better-auth.com/docs/plugins/organization)
 
 ---
 

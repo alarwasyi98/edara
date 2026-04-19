@@ -48,14 +48,6 @@ Semua implementasi **TIDAK BOLEH** melanggar keputusan berikut:
 - Gunakan tipe kembalian eksplisit untuk fungsi publik.
 - Ekspor interface/type yang bisa digunakan ulang ke folder `types/` atau di samping skema Drizzle.
 
-## 4. Konteks Fase 1 Saat Ini (Audit Remediation)
-
-AI Agent harus membantu menavigasi kode dari _mock-heavy state_ menuju _real backend state_.
-
-- **Abaikan Fitur Luar Cakupan:** Jangan ubah, buat, atau sarankan kode untuk modul `ppdb` dan `alumni`. Fokus pada fitur inti MVP (Guru, Siswa, Kelas, SPP, Cashflow, Kalender).
-- **Hapus Delay Palsu:** Hapus fungsi `sleep()` atau `mock-access-token` saat me-refactor file. Ganti dengan panggilan oRPC asli.
-- **Testing Coverage:** Logika bisnis krusial (terutama formating keuangan dan perhitungan SPP) harus disertai dengan `vitest` unit tests.
-
 ---
 
 > [!IMPORTANT]
