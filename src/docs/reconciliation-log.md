@@ -2,8 +2,8 @@
 name: reconciliation-log
 description: Reconciliation Log for EDARA
 status: draft
-modified: 2026-04-19
-version: 0.0.6
+modified: 2026-04-20
+version: 0.0.8
 ---
 
 # EDARA Project Reconciliation Log
@@ -13,9 +13,44 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 > [!IMPORTANT]
 > **Project**: EDARA
 > **Status**: Draft
-> **Version**: 0.0.6
-> **Last Updated**: 2026-04-19
+> **Version**: 0.0.8
+> **Last Updated**: 2026-04-20
 > **Next Target**: Backend API Layer Implementation (oRPC routers)
+
+---
+
+## 📅 Session: 2026-04-20 — Sesi 10 (Canonical Auth Spec Hardening)
+
+### 📝 Status Saat Ini
+Memutakhirkan dokumen kanonik migrasi Better Auth berdasarkan review implementasi agar siap dieksekusi dengan kontrak teknis yang lebih eksplisit.
+
+### 🔍 Penyempurnaan Utama
+- Menambahkan inventaris referensi Clerk yang lebih lengkap:
+  - `vite.config.ts`
+  - `drizzle/meta/*.json`
+  - komentar schema actor/user id di beberapa file
+  - route tree generated `/clerk/*`
+- Menambahkan kontrak `AuthContext` sebagai bentuk auth context terpadu untuk helper, oRPC, route guard, activity log, dan RLS.
+- Memformalkan aturan pemilihan assignment aktif untuk user multi-assignment.
+- Memperjelas batas integrasi Better Auth:
+  - cookie/session baseline
+  - pemisahan raw provider handler vs app-level auth helpers
+  - satu server-side context builder untuk query dan mutation
+- Menambahkan langkah cleanup eksplisit untuk route tree, build config, komentar legacy, dan pengujian user "authenticated but unassigned".
+
+### 🛠️ Dokumen yang Diperbarui
+- **Modified**: `src/docs/better-auth-migration-spec.md` — versi dinaikkan menjadi `1.1.0` dengan refinement implementasi
+
+### ⚖️ Keputusan Teknis (Log Keputusan)
+| Keputusan | Justifikasi |
+|-----------|--------------|
+| **Gunakan aturan assignment selection yang deterministik** | Mencegah context tenant ambigu untuk user dengan multi-assignment |
+| **Tambahkan `AuthContext` sebagai kontrak bersama** | Menyatukan session resolution, oRPC context, route guard, activity log, dan RLS |
+| **Perbarui aturan sistem proyek lebih awal** | Menghindari implementasi berikutnya tetap diasumsikan berbasis Clerk |
+
+### 📌 Catatan untuk Sesi Selanjutnya
+- Implementasi dapat dimulai dari Phase 2 dengan acuan `src/docs/better-auth-migration-spec.md`
+- Saat coding dimulai, pastikan `.agents/rules/system-instructions.md` ikut diselaraskan pada slice awal
 
 ---
 
@@ -47,6 +82,26 @@ Meninjau ulang rencana migrasi auth dari Clerk ke Better Auth dan memutakhirkan 
 ### 📌 Catatan untuk Sesi Selanjutnya
 - Implementasi perlu dimulai dari dependency cleanup + schema rename
 - Dokumentasi utama proyek (`README.md`, `technical-specification.md`, `reconciliation-plan.md`, `.agents/rules/system-instructions.md`) masih menyebut Clerk dan perlu diselaraskan saat eksekusi
+
+---
+
+## 📅 Session: 2026-04-20 — Sesi 9 (Merged Auth Spec Canonicalization)
+
+### 📝 Status Saat Ini
+Menggabungkan design doc dan implementation plan auth migration menjadi satu dokumen kanonik di `src/docs` agar implementasi memiliki satu source of truth.
+
+### 🛠️ Dokumen yang Dibuat
+- **Created**: `src/docs/better-auth-migration-spec.md` — dokumen gabungan yang memuat keputusan arsitektur, non-goals, target architecture, strategi schema, rollout plan, acceptance criteria, dan definition of done
+
+### ⚖️ Keputusan Teknis (Log Keputusan)
+| Keputusan | Justifikasi |
+|-----------|--------------|
+| **Gunakan satu dokumen kanonik di `src/docs`** | Mengurangi split context antara design rationale dan execution steps |
+| **Dokumen lama di `docs/superpowers/specs/` dipertahankan** | Menjaga histori perumusan awal tanpa mengubah arsip sumber |
+
+### 📌 Catatan untuk Sesi Selanjutnya
+- Implementasi auth sebaiknya mengacu ke `src/docs/better-auth-migration-spec.md`
+- Jika diinginkan, dokumen lama dapat diberi catatan "superseded by" pada sesi berikutnya
 
 ---
 
