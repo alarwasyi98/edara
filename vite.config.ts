@@ -38,9 +38,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'clerk-vendor': ['@clerk/clerk-react'],
-          'recharts-vendor': ['recharts'],
+manualChunks: {
+        'recharts-vendor': ['recharts'],
           'tanstack-vendor': ['@tanstack/react-table', '@tanstack/react-query', '@tanstack/react-router'],
         },
       },
