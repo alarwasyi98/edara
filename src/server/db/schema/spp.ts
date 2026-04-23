@@ -197,7 +197,7 @@ export const paymentTransactions = pgTable(
     reversedById: uuid('reversed_by_id').references(
       (): AnyPgColumn => paymentTransactions.id,
     ), // self-referencing FK for reversal chain
-    recordedBy: varchar('recorded_by', { length: 255 }).notNull(), // clerkUserId
+    recordedBy: varchar('recorded_by', { length: 255 }).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     // CATATAN: Tidak ada updated_at — tabel ini append-only (ADR-04)
   },

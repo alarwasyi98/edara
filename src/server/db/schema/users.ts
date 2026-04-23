@@ -1,8 +1,8 @@
 /**
  * Users & RBAC Schema
  *
- * Maps Clerk users to schools/units with role assignments.
- * Auth is managed by Clerk (C7); this table tracks organizational assignments.
+ * Maps users to schools/units with role assignments.
+ * Auth is managed externally; this table tracks organizational assignments.
  *
  * - `unit_id` nullable: super_admin operates at school-wide level (B10)
  * - Multiple assignments per user allowed for admin_tu/bendahara (B10)
@@ -38,7 +38,7 @@ export const userSchoolAssignments = pgTable(
   'user_school_assignments',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    clerkUserId: varchar('clerk_user_id', { length: 255 }).notNull(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
     schoolId: uuid('school_id')
       .references(() => schools.id)
       .notNull(),
@@ -49,9 +49,9 @@ export const userSchoolAssignments = pgTable(
   },
   (t) => ({
     schoolIdx: index('user_assignments_school_idx').on(t.schoolId),
-    clerkUserIdx: index('user_assignments_clerk_idx').on(t.clerkUserId),
+    userIdx: index('user_assignments_user_idx').on(t.userId),
     uniqueAssignment: uniqueIndex('user_assignment_unique').on(
-      t.clerkUserId,
+      t.userId,
       t.schoolId,
       t.unitId,
     ),

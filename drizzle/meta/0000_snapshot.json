@@ -166,8 +166,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "clerk_user_id": {
-          "name": "clerk_user_id",
+        "user_id": {
+          "name": "user_id",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
@@ -222,11 +222,11 @@
           "method": "btree",
           "with": {}
         },
-        "user_assignments_clerk_idx": {
-          "name": "user_assignments_clerk_idx",
+        "user_assignments_user_idx": {
+          "name": "user_assignments_user_idx",
           "columns": [
             {
-              "expression": "clerk_user_id",
+              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -241,7 +241,7 @@
           "name": "user_assignment_unique",
           "columns": [
             {
-              "expression": "clerk_user_id",
+              "expression": "user_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

@@ -38,7 +38,7 @@ export const activityLogs = pgTable(
       .references(() => schools.id)
       .notNull(),
     unitId: uuid('unit_id').references(() => schoolUnits.id), // nullable for school-wide actions
-    actorId: varchar('actor_id', { length: 255 }).notNull(), // clerkUserId
+    actorId: varchar('actor_id', { length: 255 }).notNull(),
     actorName: varchar('actor_name', { length: 255 }).notNull(),
     action: varchar('action', { length: 100 }).notNull(), // e.g. "student.created"
     entityType: varchar('entity_type', { length: 50 }).notNull(),

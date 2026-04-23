@@ -62,7 +62,7 @@ export const schoolEvents = pgTable(
     location: varchar('location', { length: 255 }),
     description: text('description'),
     status: eventStatusEnum('status').default('scheduled').notNull(),
-    createdBy: varchar('created_by', { length: 255 }).notNull(), // clerkUserId
+    createdBy: varchar('created_by', { length: 255 }).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

@@ -84,7 +84,7 @@ export const enrollmentStatusHistory = pgTable('enrollment_status_history', {
     .notNull(),
   fromStatus: enrollmentStatusEnum('from_status').notNull(),
   toStatus: enrollmentStatusEnum('to_status').notNull(),
-  changedBy: varchar('changed_by', { length: 255 }).notNull(), // clerkUserId
+  changedBy: varchar('changed_by', { length: 255 }).notNull(),
   reason: text('reason'),
   metadata: jsonb('metadata'), // { fromClassId, toClassId, destinationSchool, etc. }
   changedAt: timestamp('changed_at').defaultNow().notNull(),
