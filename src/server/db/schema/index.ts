@@ -21,3 +21,6 @@ export * from './spp'
 export * from './cashflow'
 export * from './events'
 export * from './logs'
+
+// Auth Schema (Better Auth tables)
+export * from './auth'
