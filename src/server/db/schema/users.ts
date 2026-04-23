@@ -1,8 +1,8 @@
 /**
  * Users & RBAC Schema
  *
- * Maps users to schools/units with role assignments.
- * Auth is managed externally; this table tracks organizational assignments.
+ * Maps Better Auth users to schools/units with role assignments.
+ * Auth is managed by Better Auth; this table tracks organizational assignments.
  *
  * - `unit_id` nullable: super_admin operates at school-wide level (B10)
  * - Multiple assignments per user allowed for admin_tu/bendahara (B10)
@@ -39,6 +39,7 @@ export const userSchoolAssignments = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     userId: varchar('user_id', { length: 255 }).notNull(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
     schoolId: uuid('school_id')
       .references(() => schools.id)
       .notNull(),
@@ -50,7 +51,9 @@ export const userSchoolAssignments = pgTable(
   (t) => ({
     schoolIdx: index('user_assignments_school_idx').on(t.schoolId),
     userIdx: index('user_assignments_user_idx').on(t.userId),
+    userIdx: index('user_assignments_user_idx').on(t.userId),
     uniqueAssignment: uniqueIndex('user_assignment_unique').on(
+      t.userId,
       t.userId,
       t.schoolId,
       t.unitId,
