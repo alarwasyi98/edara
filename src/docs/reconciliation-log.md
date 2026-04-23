@@ -2,8 +2,8 @@
 name: reconciliation-log
 description: Reconciliation Log for EDARA
 status: draft
-modified: 2026-04-20
-version: 0.0.8
+modified: 2026-04-24
+version: 0.0.9
 ---
 
 # EDARA Project Reconciliation Log
@@ -13,9 +13,110 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 > [!IMPORTANT]
 > **Project**: EDARA
 > **Status**: Draft
-> **Version**: 0.0.8
-> **Last Updated**: 2026-04-20
-> **Next Target**: Backend API Layer Implementation (oRPC routers)
+> **Version**: 0.0.9
+> **Last Updated**: 2026-04-24
+> **Next Target**: Backend Auth Integration - Fix build errors (see Known Issues)
+> **Worktree**: `D:\Dev\edara\.worktrees\better-auth`
+> **Branch**: `feature/better-auth-migration`
+
+---
+
+## 📅 Session: 2026-04-24 — Sesi 11 (Better Auth Migration Implementation - PARTIAL)
+
+### 📝 Status Saat Ini
+Implementasi migrasi Better Auth telah dimulai dari `src/docs/better-auth-migration-spec.md` sebagai dokumen kanonik. 12 dari 13 task berhasil diselesaikan, namun build gagal akibat beberapa integration errors yang memerlukan debugging lebih lanjut.
+
+### ✅ Task yang Selesai (12/13)
+
+| # | Task | Status | Commit |
+|---|------|--------|--------|
+| 1 | Package Dependencies — remove Clerk, add Better Auth | ✅ Done | `b30b79a` |
+| 2 | Schema Naming — `clerkUserId` → `userId` | ✅ Done | `94de1d8` |
+| 3 | Better Auth Schema — `user`, `session`, `account`, `verification` tables | ✅ Done | `c19b66d` |
+| 4 | Auth Config — `src/lib/auth.ts` dengan Drizzle adapter | ✅ Done | `7128026` |
+| 5 | Auth Handler Route — `/api/auth/$` endpoint | ✅ Done | `23f98d9` |
+| 6 | Session Helpers — `src/lib/auth.functions.ts` | ✅ Done | `7a917ba` |
+| 7 | oRPC Middleware — `context.ts`, `middlewares/auth.ts`, `authorized.ts` | ✅ Done | `1267945` |
+| 8 | Assignment Helper — `resolveAssignment()` di `helpers/assignment.ts` | ✅ Done | `fa3f313` |
+| 9 | Auth Pages — `sign-in`, `sign-up` di `src/routes/auth/` | ✅ Done | `0f56dcc` |
+| 10 | Remove Clerk Routes — hapus `src/routes/clerk/` | ✅ Done | `edbfa6b` |
+| 11 | Admin User Router — `src/server/routers/admin/users.ts` | ✅ Done | `4ec1b59` |
+| 12 | Documentation Update — README, .env.example, system-instructions.md | ✅ Done | `ba62009` |
+
+### 🛠️ File yang Dibuat/Dihapus
+
+**Created:**
+- `src/lib/auth.ts` — Better Auth configuration
+- `src/lib/auth.functions.ts` — Session helper functions (getSession, requireSession, signInEmail, signUpEmail, signOut)
+- `src/routes/api/auth/$.ts` — Auth handler endpoint
+- `src/routes/auth/(auth)/route.tsx` — Auth layout
+- `src/routes/auth/(auth)/sign-in.tsx` — Sign-in page
+- `src/routes/auth/(auth)/sign-up.tsx` — Sign-up page
+- `src/routes/auth/index.tsx` — Auth index (redirect to sign-in)
+- `src/server/db/schema/auth.ts` — Better Auth tables (user, session, account, verification)
+- `src/server/routers/context.ts` — oRPC base context
+- `src/server/routers/middlewares/auth.ts` — Auth middleware
+- `src/server/routers/authorized.ts` — Authorized base for protected procedures
+- `src/server/routers/helpers/assignment.ts` — Assignment resolution helper
+- `src/server/routers/admin/users.ts` — Admin user management router
+
+**Deleted:**
+- `src/routes/clerk/` — Seluruh folder Clerk routes (6 files)
+
+**Modified:**
+- `package.json` — Remove `@clerk/backend`, `@clerk/clerk-react`, add `better-auth`, `@better-auth/drizzle-adapter`
+- `vite.config.ts` — Remove `clerk-vendor` chunk
+- `src/server/db/schema/users.ts` — Rename `clerkUserId` → `userId`, update indexes
+- `src/server/db/schema/spp.ts`, `logs.ts`, `events.ts`, `enrollments.ts`, `cashflow.ts` — Hapus komentar `// clerkUserId`
+- `src/server/db/schema/index.ts` — Export auth schema
+- `drizzle/meta/0000_snapshot.json`, `0001_snapshot.json` — Update `clerk_user_id` → `user_id`
+- `README.md` — Update auth provider ke Better Auth
+- `.env.example` — Ganti Clerk vars ke Better Auth vars
+- `.agents/rules/system-instructions.md` — Update Clerk → Better Auth references
+
+### 🔍 Known Issues (Build Errors)
+
+Build gagal dengan error berikut:
+
+1. **`@tanstack/react-start` not found** — Session helpers menggunakan import dari `@tanstack/react-start` yang belum terinstall
+2. **`generateId` not in BetterAuthAdvancedOptions** — `auth.ts:22` menggunakan `advanced.generateId` yang tidak ada di versi library
+3. **`inputValidator` doesn't exist on oRPC builder** — `admin/users.ts` menggunakan `.inputValidator()` yang bukan API oRPC yang valid
+4. **Routes not in route tree** — `/auth/sign-in`, `/auth/sign-up` tidak dikenali TanStack Router (belum regenerate routeTree)
+5. **`createFileRoute` not imported** — `src/routes/auth/index.tsx` missing import
+
+### 📄 Verifikasi
+
+| Check | Result |
+|-------|--------|
+| `pnpm format:check` | ✅ PASS |
+| `pnpm typecheck` | ✅ PASS |
+| `pnpm lint --max-warnings 10` | ⚠️ 8 warnings (pre-existing TanStack Table issues) |
+| `pnpm build` | ❌ FAIL |
+
+### ⚖️ Keputusan Teknis
+
+| Keputusan | Justifikasi |
+|-----------|--------------|
+| **Better Auth handles identity/session** | EDARA tetap source of truth untuk `user_school_assignments` |
+| **Use worktree untuk isolasi** | Branch `feature/better-auth-migration` di worktree agar tidak ganggu `feat/auth` |
+| **Schema rename dulu sebelum auth integration** | Menghindari Clerk references contaminate Better Auth setup |
+
+### 📌 Catatan untuk Sesi Selanjutnya
+
+- **Fix Integration Errors**: Perbaiki build errors sebelum merge
+- **Install `@tanstack/start`**: Jika menggunakan TanStack Start (bukan TanStack Router biasa)
+- **Fix oRPC pattern**: Gunakan Zod validation pattern yang benar untuk oRPC v1.13.14
+- **Regenerate routeTree**: Jalankan `pnpm dev` untuk regenerate route tree setelah add auth routes
+- **Wire RLS context**: `resolveAssignment()` perlu diintegrasikan ke oRPC middleware
+- **Add AuthProvider**: Tambahkan `AuthProvider` wrapper untuk client-side session management
+
+### 🐛 Root Cause Analysis
+
+Implementasi mengikuti **arsitektur spec** yang benar, tetapi menggunakan **API patterns yang tidak match** dengan library versions di package.json:
+
+1. TanStack Start packages berbeda dari yang diasumsikan
+2. oRPC validation API berbeda dari dokumentasi
+3. Better Auth `generateId` option berbeda dari spec
 
 ---
 
