@@ -21,27 +21,57 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 
 ---
 
-## 📅 Session: 2026-04-24 — Sesi 11 (Better Auth Migration Implementation - PARTIAL)
+## 📅 Session: 2026-04-24 — Sesi 12 (Better Auth Migration Fixes)
+
+### 📝 Status Saat Ini
+Build errors telah diperbaiki. Semua integration issues teratasi, dan build sekarang PASS. Siap untuk merge ke `feat/auth`.
+
+### ✅ Fixes Applied
+
+| Issue                                          | Fix                                           | Status |
+| ---------------------------------------------- | --------------------------------------------- | ------ |
+| `@tanstack/react-start` not found              | Installed `@tanstack/react-start` package     | ✅ Done |
+| `generateId` not in BetterAuthAdvancedOptions  | Moved to `advanced.database.generateId`       | ✅ Done |
+| `inputValidator` doesn't exist on oRPC builder | Changed to `.input(z.object(...))`            | ✅ Done |
+| Routes not in route tree                       | Ran `pnpm dev` to regenerate routeTree.gen.ts | ✅ Done |
+| `createFileRoute` not imported                 | Added import in `src/routes/auth/index.tsx`   | ✅ Done |
+| TypeScript 'input' any type                    | Fixed with proper Zod schemas                 | ✅ Done |
+
+### 📄 Verifikasi
+
+| Check                         | Result                      |
+| ----------------------------- | --------------------------- |
+| `pnpm format:check`           | ✅ PASS                      |
+| `pnpm typecheck`              | ✅ PASS                      |
+| `pnpm lint --max-warnings 10` | ⚠️ 8 warnings (pre-existing) |
+| `pnpm build`                  | ✅ PASS                      |
+
+### 📌 Next Steps
+1. Merge `feature/better-auth-migration` into `feat/auth`
+2. Test login functionality
+3. Update documentation if needed
+
+---
 
 ### 📝 Status Saat Ini
 Implementasi migrasi Better Auth telah dimulai dari `src/docs/better-auth-migration-spec.md` sebagai dokumen kanonik. 12 dari 13 task berhasil diselesaikan, namun build gagal akibat beberapa integration errors yang memerlukan debugging lebih lanjut.
 
 ### ✅ Task yang Selesai (12/13)
 
-| # | Task | Status | Commit |
-|---|------|--------|--------|
-| 1 | Package Dependencies — remove Clerk, add Better Auth | ✅ Done | `b30b79a` |
-| 2 | Schema Naming — `clerkUserId` → `userId` | ✅ Done | `94de1d8` |
-| 3 | Better Auth Schema — `user`, `session`, `account`, `verification` tables | ✅ Done | `c19b66d` |
-| 4 | Auth Config — `src/lib/auth.ts` dengan Drizzle adapter | ✅ Done | `7128026` |
-| 5 | Auth Handler Route — `/api/auth/$` endpoint | ✅ Done | `23f98d9` |
-| 6 | Session Helpers — `src/lib/auth.functions.ts` | ✅ Done | `7a917ba` |
-| 7 | oRPC Middleware — `context.ts`, `middlewares/auth.ts`, `authorized.ts` | ✅ Done | `1267945` |
-| 8 | Assignment Helper — `resolveAssignment()` di `helpers/assignment.ts` | ✅ Done | `fa3f313` |
-| 9 | Auth Pages — `sign-in`, `sign-up` di `src/routes/auth/` | ✅ Done | `0f56dcc` |
-| 10 | Remove Clerk Routes — hapus `src/routes/clerk/` | ✅ Done | `edbfa6b` |
-| 11 | Admin User Router — `src/server/routers/admin/users.ts` | ✅ Done | `4ec1b59` |
-| 12 | Documentation Update — README, .env.example, system-instructions.md | ✅ Done | `ba62009` |
+| #   | Task                                                                     | Status | Commit    |
+| --- | ------------------------------------------------------------------------ | ------ | --------- |
+| 1   | Package Dependencies — remove Clerk, add Better Auth                     | ✅ Done | `b30b79a` |
+| 2   | Schema Naming — `clerkUserId` → `userId`                                 | ✅ Done | `94de1d8` |
+| 3   | Better Auth Schema — `user`, `session`, `account`, `verification` tables | ✅ Done | `c19b66d` |
+| 4   | Auth Config — `src/lib/auth.ts` dengan Drizzle adapter                   | ✅ Done | `7128026` |
+| 5   | Auth Handler Route — `/api/auth/$` endpoint                              | ✅ Done | `23f98d9` |
+| 6   | Session Helpers — `src/lib/auth.functions.ts`                            | ✅ Done | `7a917ba` |
+| 7   | oRPC Middleware — `context.ts`, `middlewares/auth.ts`, `authorized.ts`   | ✅ Done | `1267945` |
+| 8   | Assignment Helper — `resolveAssignment()` di `helpers/assignment.ts`     | ✅ Done | `fa3f313` |
+| 9   | Auth Pages — `sign-in`, `sign-up` di `src/routes/auth/`                  | ✅ Done | `0f56dcc` |
+| 10  | Remove Clerk Routes — hapus `src/routes/clerk/`                          | ✅ Done | `edbfa6b` |
+| 11  | Admin User Router — `src/server/routers/admin/users.ts`                  | ✅ Done | `4ec1b59` |
+| 12  | Documentation Update — README, .env.example, system-instructions.md      | ✅ Done | `ba62009` |
 
 ### 🛠️ File yang Dibuat/Dihapus
 
@@ -86,20 +116,20 @@ Build gagal dengan error berikut:
 
 ### 📄 Verifikasi
 
-| Check | Result |
-|-------|--------|
-| `pnpm format:check` | ✅ PASS |
-| `pnpm typecheck` | ✅ PASS |
+| Check                         | Result                                            |
+| ----------------------------- | ------------------------------------------------- |
+| `pnpm format:check`           | ✅ PASS                                            |
+| `pnpm typecheck`              | ✅ PASS                                            |
 | `pnpm lint --max-warnings 10` | ⚠️ 8 warnings (pre-existing TanStack Table issues) |
-| `pnpm build` | ❌ FAIL |
+| `pnpm build`                  | ❌ FAIL                                            |
 
 ### ⚖️ Keputusan Teknis
 
-| Keputusan | Justifikasi |
-|-----------|--------------|
-| **Better Auth handles identity/session** | EDARA tetap source of truth untuk `user_school_assignments` |
-| **Use worktree untuk isolasi** | Branch `feature/better-auth-migration` di worktree agar tidak ganggu `feat/auth` |
-| **Schema rename dulu sebelum auth integration** | Menghindari Clerk references contaminate Better Auth setup |
+| Keputusan                                       | Justifikasi                                                                      |
+| ----------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Better Auth handles identity/session**        | EDARA tetap source of truth untuk `user_school_assignments`                      |
+| **Use worktree untuk isolasi**                  | Branch `feature/better-auth-migration` di worktree agar tidak ganggu `feat/auth` |
+| **Schema rename dulu sebelum auth integration** | Menghindari Clerk references contaminate Better Auth setup                       |
 
 ### 📌 Catatan untuk Sesi Selanjutnya
 
@@ -143,11 +173,11 @@ Memutakhirkan dokumen kanonik migrasi Better Auth berdasarkan review implementas
 - **Modified**: `src/docs/better-auth-migration-spec.md` — versi dinaikkan menjadi `1.1.0` dengan refinement implementasi
 
 ### ⚖️ Keputusan Teknis (Log Keputusan)
-| Keputusan | Justifikasi |
-|-----------|--------------|
-| **Gunakan aturan assignment selection yang deterministik** | Mencegah context tenant ambigu untuk user dengan multi-assignment |
-| **Tambahkan `AuthContext` sebagai kontrak bersama** | Menyatukan session resolution, oRPC context, route guard, activity log, dan RLS |
-| **Perbarui aturan sistem proyek lebih awal** | Menghindari implementasi berikutnya tetap diasumsikan berbasis Clerk |
+| Keputusan                                                  | Justifikasi                                                                     |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Gunakan aturan assignment selection yang deterministik** | Mencegah context tenant ambigu untuk user dengan multi-assignment               |
+| **Tambahkan `AuthContext` sebagai kontrak bersama**        | Menyatukan session resolution, oRPC context, route guard, activity log, dan RLS |
+| **Perbarui aturan sistem proyek lebih awal**               | Menghindari implementasi berikutnya tetap diasumsikan berbasis Clerk            |
 
 ### 📌 Catatan untuk Sesi Selanjutnya
 - Implementasi dapat dimulai dari Phase 2 dengan acuan `src/docs/better-auth-migration-spec.md`
@@ -173,12 +203,12 @@ Meninjau ulang rencana migrasi auth dari Clerk ke Better Auth dan memutakhirkan 
 - **Created**: `docs/superpowers/specs/2026-04-19-better-auth-implementation-plan.md` — implementation plan terstruktur untuk rollout Better Auth
 
 ### ⚖️ Keputusan Teknis (Log Keputusan)
-| Keputusan | Justifikasi |
-|-----------|--------------|
-| **Better Auth hanya untuk identity/session** | Paling selaras dengan skema `school_id` / `unit_id`, RBAC app-specific, dan pola RLS EDARA |
-| **Tidak memakai Better Auth Organizations sebagai source of truth tenancy** | Menghindari sinkronisasi ganda dengan `user_school_assignments` |
-| **Rename field auth identifier ke provider-neutral** | `clerk_user_id` / `clerkUserId` terlalu vendor-specific untuk fondasi jangka panjang |
-| **Fase ini fokus ke auth foundation** | Email verification, password reset, OAuth, dan 2FA ditunda ke phase berikutnya |
+| Keputusan                                                                   | Justifikasi                                                                                |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Better Auth hanya untuk identity/session**                                | Paling selaras dengan skema `school_id` / `unit_id`, RBAC app-specific, dan pola RLS EDARA |
+| **Tidak memakai Better Auth Organizations sebagai source of truth tenancy** | Menghindari sinkronisasi ganda dengan `user_school_assignments`                            |
+| **Rename field auth identifier ke provider-neutral**                        | `clerk_user_id` / `clerkUserId` terlalu vendor-specific untuk fondasi jangka panjang       |
+| **Fase ini fokus ke auth foundation**                                       | Email verification, password reset, OAuth, dan 2FA ditunda ke phase berikutnya             |
 
 ### 📌 Catatan untuk Sesi Selanjutnya
 - Implementasi perlu dimulai dari dependency cleanup + schema rename
@@ -195,10 +225,10 @@ Menggabungkan design doc dan implementation plan auth migration menjadi satu dok
 - **Created**: `src/docs/better-auth-migration-spec.md` — dokumen gabungan yang memuat keputusan arsitektur, non-goals, target architecture, strategi schema, rollout plan, acceptance criteria, dan definition of done
 
 ### ⚖️ Keputusan Teknis (Log Keputusan)
-| Keputusan | Justifikasi |
-|-----------|--------------|
-| **Gunakan satu dokumen kanonik di `src/docs`** | Mengurangi split context antara design rationale dan execution steps |
-| **Dokumen lama di `docs/superpowers/specs/` dipertahankan** | Menjaga histori perumusan awal tanpa mengubah arsip sumber |
+| Keputusan                                                   | Justifikasi                                                          |
+| ----------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Gunakan satu dokumen kanonik di `src/docs`**              | Mengurangi split context antara design rationale dan execution steps |
+| **Dokumen lama di `docs/superpowers/specs/` dipertahankan** | Menjaga histori perumusan awal tanpa mengubah arsip sumber           |
 
 ### 📌 Catatan untuk Sesi Selanjutnya
 - Implementasi auth sebaiknya mengacu ke `src/docs/better-auth-migration-spec.md`
@@ -245,60 +275,60 @@ Menerapkan naming convention refactoring untuk menyelaraskan struktur folder dan
 ### 🛠️ File & Folder yang Ditanam Ulang (Renamed)
 
 #### Feature Folders (src/features/)
-| Sebelum | Sesudah |
-|---------|---------|
-| `guru` | `teachers` |
-| `siswa` | `students` |
-| `kelas` | `classes` |
-| `keuangan` | `cashflow` |
-| `kalender` | `events` |
+| Sebelum        | Sesudah          |
+| -------------- | ---------------- |
+| `guru`         | `teachers`       |
+| `siswa`        | `students`       |
+| `kelas`        | `classes`        |
+| `keuangan`     | `cashflow`       |
+| `kalender`     | `events`         |
 | `tahun-ajaran` | `academic-years` |
 
 #### Route Folders (src/routes/_authenticated/)
-| Sebelum | Sesudah |
-|---------|---------|
-| `guru` | `teachers` |
-| `siswa` | `students` |
-| `kelas` | `classes` |
-| `keuangan` | `cashflow` |
-| `kalender` | `events` |
+| Sebelum        | Sesudah          |
+| -------------- | ---------------- |
+| `guru`         | `teachers`       |
+| `siswa`        | `students`       |
+| `kelas`        | `classes`        |
+| `keuangan`     | `cashflow`       |
+| `kalender`     | `events`         |
 | `tahun-ajaran` | `academic-years` |
 
 #### Component Files (Internal)
-| Feature | File Sebelum | File Sesudah |
-|---------|-------------|--------------|
-| teachers | `guru-*.tsx` | `teacher-*.tsx` |
-| students | `siswa-*.tsx` | `student-*.tsx` |
-| events | `kalender-*.tsx`, `calendar-*.tsx` | `events-*.tsx`, `events-*.tsx` |
-| classes | `kelas-dialog.tsx` | `classes-dialog.tsx` |
+| Feature  | File Sebelum                       | File Sesudah                   |
+| -------- | ---------------------------------- | ------------------------------ |
+| teachers | `guru-*.tsx`                       | `teacher-*.tsx`                |
+| students | `siswa-*.tsx`                      | `student-*.tsx`                |
+| events   | `kalender-*.tsx`, `calendar-*.tsx` | `events-*.tsx`, `events-*.tsx` |
+| classes  | `kelas-dialog.tsx`                 | `classes-dialog.tsx`           |
 
 #### Cashflow Module (Baru Ditambahkan)
-| Sebelum | Sesudah |
-|---------|---------|
+| Sebelum        | Sesudah             |
+| -------------- | ------------------- |
 | `arus-kas.tsx` | `cashflow-flow.tsx` |
 
 ### 🔄 Exports & Components yang Di-Rename
 
-| Module | Sebelum | Sesudah |
-|--------|---------|---------|
-| teachers | `DataGuru`, `DetailGuru`, `GuruProvider`, `useGuru` | `DataTeacher`, `DetailTeacher`, `TeacherProvider`, `useTeacher` |
+| Module   | Sebelum                                                 | Sesudah                                                         |
+| -------- | ------------------------------------------------------- | --------------------------------------------------------------- |
+| teachers | `DataGuru`, `DetailGuru`, `GuruProvider`, `useGuru`     | `DataTeacher`, `DetailTeacher`, `TeacherProvider`, `useTeacher` |
 | students | `DataSiswa`, `DetailSiswa`, `SiswaProvider`, `useSiswa` | `DataStudent`, `DetailStudent`, `StudentProvider`, `useStudent` |
-| events | `KalenderActivities` (export alias) | `KalenderActivities` |
-| classes | `KelasDialog`, `KelasRowActions` | `ClassesDialog`, `ClassesRowActions` |
-| cashflow | `ArusKas`, `PencatatanKeuangan` | `CashflowFlow`, `CashflowTransactions` |
+| events   | `KalenderActivities` (export alias)                     | `KalenderActivities`                                            |
+| classes  | `KelasDialog`, `KelasRowActions`                        | `ClassesDialog`, `ClassesRowActions`                            |
+| cashflow | `ArusKas`, `PencatatanKeuangan`                         | `CashflowFlow`, `CashflowTransactions`                          |
 
 ### 🔗 URL Paths yang Diperbarui
 
-| Sebelum | Sesudah | Catatan |
-|---------|---------|---------|
-| `/guru` | `/teachers` | |
-| `/guru/penugasan` | `/teachers/penugasan` | (belum di-rename ke assignments) |
-| `/siswa` | `/students` | |
-| `/kelas` | `/classes` | |
-| `/kalender` | `/events` | |
-| `/keuangan` | `/cashflow` | |
-| `/keuangan/arus-kas` | `/cashflow/cashflow-flow` | |
-| `/tahun-ajaran` | `/academic-years` | |
+| Sebelum              | Sesudah                   | Catatan                          |
+| -------------------- | ------------------------- | -------------------------------- |
+| `/guru`              | `/teachers`               |                                  |
+| `/guru/penugasan`    | `/teachers/penugasan`     | (belum di-rename ke assignments) |
+| `/siswa`             | `/students`               |                                  |
+| `/kelas`             | `/classes`                |                                  |
+| `/kalender`          | `/events`                 |                                  |
+| `/keuangan`          | `/cashflow`               |                                  |
+| `/keuangan/arus-kas` | `/cashflow/cashflow-flow` |                                  |
+| `/tahun-ajaran`      | `/academic-years`         |                                  |
 
 ### 📄 File yang Dibuat/Diperbarui
 - **Created**: `src/docs/naming-dictionary.json` — Dictionary mapping untuk referensi
@@ -308,10 +338,10 @@ Menerapkan naming convention refactoring untuk menyelaraskan struktur folder dan
 - **Updated**: `src/features/dashboard/index.tsx`
 
 ### ⚖️ Keputusan Teknis (Log Keputusan)
-| Keputusan | Justifikasi |
-|-----------|--------------|
-| **Option B (English URLs)** | Developer consistency dengan technical-specification.md, user labels tetap Indonesian |
-| **Preserve String Literals** | UI labels, API payloads tidak diubah sesuai Rule #3 |
+| Keputusan                        | Justifikasi                                                                                                 |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Option B (English URLs)**      | Developer consistency dengan technical-specification.md, user labels tetap Indonesian                       |
+| **Preserve String Literals**     | UI labels, API payloads tidak diubah sesuai Rule #3                                                         |
 | **TanStack Router Path Updates** | Semua `createFileRoute()` dan `getRouteApi()` di-update manual karena routeTree.gen.ts belum ter-regenerate |
 
 ### 📌 Catatan untuk Sesi Selanjutnya

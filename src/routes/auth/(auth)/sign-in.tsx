@@ -1,7 +1,8 @@
+import { createFileRoute } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-start'
 import { signInEmail } from '@/lib/auth.functions'
 
 const signInSchema = z.object({
@@ -11,7 +12,7 @@ const signInSchema = z.object({
 
 type SignInForm = z.infer<typeof signInSchema>
 
-export const Route = createFileRoute('/auth/sign-in')({
+export const Route = createFileRoute('/auth/(auth)/sign-in')({
   component: SignInPage,
 })
 

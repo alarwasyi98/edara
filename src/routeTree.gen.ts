@@ -9,8 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ClerkRouteRouteImport } from './routes/clerk/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthIndexRouteImport } from './routes/auth/index'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
@@ -22,8 +22,6 @@ import { Route as authSignIn2RouteImport } from './routes/(auth)/sign-in-2'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
-import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
-import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTeachersIndexRouteImport } from './routes/_authenticated/teachers/index'
@@ -34,9 +32,9 @@ import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedClassesIndexRouteImport } from './routes/_authenticated/classes/index'
 import { Route as AuthenticatedCashflowIndexRouteImport } from './routes/_authenticated/cashflow/index'
 import { Route as AuthenticatedAcademicYearsIndexRouteImport } from './routes/_authenticated/academic-years/index'
-import { Route as ClerkAuthenticatedUserManagementRouteImport } from './routes/clerk/_authenticated/user-management'
-import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
-import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
+import { Route as AuthauthSignUpRouteImport } from './routes/auth/(auth)/sign-up'
+import { Route as AuthauthSignInRouteImport } from './routes/auth/(auth)/sign-in'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthenticatedTeachersPerformaRouteImport } from './routes/_authenticated/teachers/performa'
 import { Route as AuthenticatedTeachersAssignmentsRouteImport } from './routes/_authenticated/teachers/assignments'
 import { Route as AuthenticatedTeachersIdRouteImport } from './routes/_authenticated/teachers/$id'
@@ -54,13 +52,13 @@ import { Route as AuthenticatedCashflowCategoriesRouteImport } from './routes/_a
 import { Route as AuthenticatedCashflowCashFlowRouteImport } from './routes/_authenticated/cashflow/cash-flow'
 import { Route as AuthenticatedCashflowAkunRouteImport } from './routes/_authenticated/cashflow/akun'
 
-const ClerkRouteRoute = ClerkRouteRouteImport.update({
-  id: '/clerk',
-  path: '/clerk',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthIndexRoute = AuthIndexRouteImport.update({
+  id: '/auth/',
+  path: '/auth/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -117,14 +115,6 @@ const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
   id: '/(auth)/forgot-password',
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ClerkAuthenticatedRouteRoute = ClerkAuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => ClerkRouteRoute,
-} as any)
-const ClerkauthRouteRoute = ClerkauthRouteRouteImport.update({
-  id: '/(auth)',
-  getParentRoute: () => ClerkRouteRoute,
 } as any)
 const AuthenticatedSettingsRouteRoute =
   AuthenticatedSettingsRouteRouteImport.update({
@@ -184,21 +174,20 @@ const AuthenticatedAcademicYearsIndexRoute =
     path: '/academic-years/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ClerkAuthenticatedUserManagementRoute =
-  ClerkAuthenticatedUserManagementRouteImport.update({
-    id: '/user-management',
-    path: '/user-management',
-    getParentRoute: () => ClerkAuthenticatedRouteRoute,
-  } as any)
-const ClerkauthSignUpRoute = ClerkauthSignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
-  getParentRoute: () => ClerkauthRouteRoute,
+const AuthauthSignUpRoute = AuthauthSignUpRouteImport.update({
+  id: '/auth/(auth)/sign-up',
+  path: '/auth/sign-up',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ClerkauthSignInRoute = ClerkauthSignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => ClerkauthRouteRoute,
+const AuthauthSignInRoute = AuthauthSignInRouteImport.update({
+  id: '/auth/(auth)/sign-in',
+  path: '/auth/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedTeachersPerformaRoute =
   AuthenticatedTeachersPerformaRouteImport.update({
@@ -296,7 +285,6 @@ const AuthenticatedCashflowAkunRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
-  '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
@@ -308,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/auth/': typeof AuthIndexRoute
   '/cashflow/akun': typeof AuthenticatedCashflowAkunRoute
   '/cashflow/cash-flow': typeof AuthenticatedCashflowCashFlowRoute
   '/cashflow/categories': typeof AuthenticatedCashflowCategoriesRoute
@@ -324,9 +313,9 @@ export interface FileRoutesByFullPath {
   '/teachers/$id': typeof AuthenticatedTeachersIdRoute
   '/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
-  '/clerk/sign-in': typeof ClerkauthSignInRoute
-  '/clerk/sign-up': typeof ClerkauthSignUpRoute
-  '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/auth/sign-in': typeof AuthauthSignInRoute
+  '/auth/sign-up': typeof AuthauthSignUpRoute
   '/academic-years/': typeof AuthenticatedAcademicYearsIndexRoute
   '/cashflow/': typeof AuthenticatedCashflowIndexRoute
   '/classes/': typeof AuthenticatedClassesIndexRoute
@@ -338,7 +327,6 @@ export interface FileRoutesByFullPath {
   '/users/': typeof AuthenticatedUsersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
   '/sign-in': typeof authSignInRoute
@@ -350,6 +338,7 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthIndexRoute
   '/cashflow/akun': typeof AuthenticatedCashflowAkunRoute
   '/cashflow/cash-flow': typeof AuthenticatedCashflowCashFlowRoute
   '/cashflow/categories': typeof AuthenticatedCashflowCategoriesRoute
@@ -366,9 +355,9 @@ export interface FileRoutesByTo {
   '/teachers/$id': typeof AuthenticatedTeachersIdRoute
   '/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
-  '/clerk/sign-in': typeof ClerkauthSignInRoute
-  '/clerk/sign-up': typeof ClerkauthSignUpRoute
-  '/clerk/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/auth/sign-in': typeof AuthauthSignInRoute
+  '/auth/sign-up': typeof AuthauthSignUpRoute
   '/academic-years': typeof AuthenticatedAcademicYearsIndexRoute
   '/cashflow': typeof AuthenticatedCashflowIndexRoute
   '/classes': typeof AuthenticatedClassesIndexRoute
@@ -382,10 +371,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/clerk': typeof ClerkRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
-  '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
-  '/clerk/_authenticated': typeof ClerkAuthenticatedRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/otp': typeof authOtpRoute
   '/(auth)/sign-in': typeof authSignInRoute
@@ -397,6 +383,7 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/auth/': typeof AuthIndexRoute
   '/_authenticated/cashflow/akun': typeof AuthenticatedCashflowAkunRoute
   '/_authenticated/cashflow/cash-flow': typeof AuthenticatedCashflowCashFlowRoute
   '/_authenticated/cashflow/categories': typeof AuthenticatedCashflowCategoriesRoute
@@ -413,9 +400,9 @@ export interface FileRoutesById {
   '/_authenticated/teachers/$id': typeof AuthenticatedTeachersIdRoute
   '/_authenticated/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/_authenticated/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
-  '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
-  '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
-  '/clerk/_authenticated/user-management': typeof ClerkAuthenticatedUserManagementRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/auth/(auth)/sign-in': typeof AuthauthSignInRoute
+  '/auth/(auth)/sign-up': typeof AuthauthSignUpRoute
   '/_authenticated/academic-years/': typeof AuthenticatedAcademicYearsIndexRoute
   '/_authenticated/cashflow/': typeof AuthenticatedCashflowIndexRoute
   '/_authenticated/classes/': typeof AuthenticatedClassesIndexRoute
@@ -430,7 +417,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/clerk'
     | '/settings'
     | '/forgot-password'
     | '/otp'
@@ -442,6 +428,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/auth/'
     | '/cashflow/akun'
     | '/cashflow/cash-flow'
     | '/cashflow/categories'
@@ -458,9 +445,9 @@ export interface FileRouteTypes {
     | '/teachers/$id'
     | '/teachers/assignments'
     | '/teachers/performa'
-    | '/clerk/sign-in'
-    | '/clerk/sign-up'
-    | '/clerk/user-management'
+    | '/api/auth/$'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/academic-years/'
     | '/cashflow/'
     | '/classes/'
@@ -472,7 +459,6 @@ export interface FileRouteTypes {
     | '/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/clerk'
     | '/forgot-password'
     | '/otp'
     | '/sign-in'
@@ -484,6 +470,7 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/auth'
     | '/cashflow/akun'
     | '/cashflow/cash-flow'
     | '/cashflow/categories'
@@ -500,9 +487,9 @@ export interface FileRouteTypes {
     | '/teachers/$id'
     | '/teachers/assignments'
     | '/teachers/performa'
-    | '/clerk/sign-in'
-    | '/clerk/sign-up'
-    | '/clerk/user-management'
+    | '/api/auth/$'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/academic-years'
     | '/cashflow'
     | '/classes'
@@ -515,10 +502,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
-    | '/clerk'
     | '/_authenticated/settings'
-    | '/clerk/(auth)'
-    | '/clerk/_authenticated'
     | '/(auth)/forgot-password'
     | '/(auth)/otp'
     | '/(auth)/sign-in'
@@ -530,6 +514,7 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/auth/'
     | '/_authenticated/cashflow/akun'
     | '/_authenticated/cashflow/cash-flow'
     | '/_authenticated/cashflow/categories'
@@ -546,9 +531,9 @@ export interface FileRouteTypes {
     | '/_authenticated/teachers/$id'
     | '/_authenticated/teachers/assignments'
     | '/_authenticated/teachers/performa'
-    | '/clerk/(auth)/sign-in'
-    | '/clerk/(auth)/sign-up'
-    | '/clerk/_authenticated/user-management'
+    | '/api/auth/$'
+    | '/auth/(auth)/sign-in'
+    | '/auth/(auth)/sign-up'
     | '/_authenticated/academic-years/'
     | '/_authenticated/cashflow/'
     | '/_authenticated/classes/'
@@ -562,7 +547,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  ClerkRouteRoute: typeof ClerkRouteRouteWithChildren
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authOtpRoute: typeof authOtpRoute
   authSignInRoute: typeof authSignInRoute
@@ -573,22 +557,26 @@ export interface RootRouteChildren {
   errors404Route: typeof errors404Route
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
+  AuthIndexRoute: typeof AuthIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  AuthauthSignInRoute: typeof AuthauthSignInRoute
+  AuthauthSignUpRoute: typeof AuthauthSignUpRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/clerk': {
-      id: '/clerk'
-      path: '/clerk'
-      fullPath: '/clerk'
-      preLoaderRoute: typeof ClerkRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/': {
+      id: '/auth/'
+      path: '/auth'
+      fullPath: '/auth/'
+      preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -668,20 +656,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/clerk/_authenticated': {
-      id: '/clerk/_authenticated'
-      path: ''
-      fullPath: '/clerk'
-      preLoaderRoute: typeof ClerkAuthenticatedRouteRouteImport
-      parentRoute: typeof ClerkRouteRoute
-    }
-    '/clerk/(auth)': {
-      id: '/clerk/(auth)'
-      path: ''
-      fullPath: '/clerk'
-      preLoaderRoute: typeof ClerkauthRouteRouteImport
-      parentRoute: typeof ClerkRouteRoute
-    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -752,26 +726,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAcademicYearsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/clerk/_authenticated/user-management': {
-      id: '/clerk/_authenticated/user-management'
-      path: '/user-management'
-      fullPath: '/clerk/user-management'
-      preLoaderRoute: typeof ClerkAuthenticatedUserManagementRouteImport
-      parentRoute: typeof ClerkAuthenticatedRouteRoute
+    '/auth/(auth)/sign-up': {
+      id: '/auth/(auth)/sign-up'
+      path: '/auth/sign-up'
+      fullPath: '/auth/sign-up'
+      preLoaderRoute: typeof AuthauthSignUpRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/clerk/(auth)/sign-up': {
-      id: '/clerk/(auth)/sign-up'
-      path: '/sign-up'
-      fullPath: '/clerk/sign-up'
-      preLoaderRoute: typeof ClerkauthSignUpRouteImport
-      parentRoute: typeof ClerkauthRouteRoute
+    '/auth/(auth)/sign-in': {
+      id: '/auth/(auth)/sign-in'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthauthSignInRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/clerk/(auth)/sign-in': {
-      id: '/clerk/(auth)/sign-in'
-      path: '/sign-in'
-      fullPath: '/clerk/sign-in'
-      preLoaderRoute: typeof ClerkauthSignInRouteImport
-      parentRoute: typeof ClerkauthRouteRoute
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/teachers/performa': {
       id: '/_authenticated/teachers/performa'
@@ -963,52 +937,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface ClerkauthRouteRouteChildren {
-  ClerkauthSignInRoute: typeof ClerkauthSignInRoute
-  ClerkauthSignUpRoute: typeof ClerkauthSignUpRoute
-}
-
-const ClerkauthRouteRouteChildren: ClerkauthRouteRouteChildren = {
-  ClerkauthSignInRoute: ClerkauthSignInRoute,
-  ClerkauthSignUpRoute: ClerkauthSignUpRoute,
-}
-
-const ClerkauthRouteRouteWithChildren = ClerkauthRouteRoute._addFileChildren(
-  ClerkauthRouteRouteChildren,
-)
-
-interface ClerkAuthenticatedRouteRouteChildren {
-  ClerkAuthenticatedUserManagementRoute: typeof ClerkAuthenticatedUserManagementRoute
-}
-
-const ClerkAuthenticatedRouteRouteChildren: ClerkAuthenticatedRouteRouteChildren =
-  {
-    ClerkAuthenticatedUserManagementRoute:
-      ClerkAuthenticatedUserManagementRoute,
-  }
-
-const ClerkAuthenticatedRouteRouteWithChildren =
-  ClerkAuthenticatedRouteRoute._addFileChildren(
-    ClerkAuthenticatedRouteRouteChildren,
-  )
-
-interface ClerkRouteRouteChildren {
-  ClerkauthRouteRoute: typeof ClerkauthRouteRouteWithChildren
-  ClerkAuthenticatedRouteRoute: typeof ClerkAuthenticatedRouteRouteWithChildren
-}
-
-const ClerkRouteRouteChildren: ClerkRouteRouteChildren = {
-  ClerkauthRouteRoute: ClerkauthRouteRouteWithChildren,
-  ClerkAuthenticatedRouteRoute: ClerkAuthenticatedRouteRouteWithChildren,
-}
-
-const ClerkRouteRouteWithChildren = ClerkRouteRoute._addFileChildren(
-  ClerkRouteRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  ClerkRouteRoute: ClerkRouteRouteWithChildren,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authOtpRoute: authOtpRoute,
   authSignInRoute: authSignInRoute,
@@ -1019,6 +949,10 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
+  AuthIndexRoute: AuthIndexRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
+  AuthauthSignInRoute: AuthauthSignInRoute,
+  AuthauthSignUpRoute: AuthauthSignUpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

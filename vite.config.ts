@@ -38,8 +38,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-manualChunks: {
-        'recharts-vendor': ['recharts'],
+        manualChunks: {
+          'recharts-vendor': ['recharts'],
           'tanstack-vendor': ['@tanstack/react-table', '@tanstack/react-query', '@tanstack/react-router'],
         },
       },
