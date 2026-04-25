@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthIndexRouteImport } from './routes/auth/index'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
@@ -32,8 +31,6 @@ import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedClassesIndexRouteImport } from './routes/_authenticated/classes/index'
 import { Route as AuthenticatedCashflowIndexRouteImport } from './routes/_authenticated/cashflow/index'
 import { Route as AuthenticatedAcademicYearsIndexRouteImport } from './routes/_authenticated/academic-years/index'
-import { Route as AuthauthSignUpRouteImport } from './routes/auth/(auth)/sign-up'
-import { Route as AuthauthSignInRouteImport } from './routes/auth/(auth)/sign-in'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthenticatedTeachersPerformaRouteImport } from './routes/_authenticated/teachers/performa'
 import { Route as AuthenticatedTeachersAssignmentsRouteImport } from './routes/_authenticated/teachers/assignments'
@@ -54,11 +51,6 @@ import { Route as AuthenticatedCashflowAkunRouteImport } from './routes/_authent
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthIndexRoute = AuthIndexRouteImport.update({
-  id: '/auth/',
-  path: '/auth/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -174,16 +166,6 @@ const AuthenticatedAcademicYearsIndexRoute =
     path: '/academic-years/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthauthSignUpRoute = AuthauthSignUpRouteImport.update({
-  id: '/auth/(auth)/sign-up',
-  path: '/auth/sign-up',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthauthSignInRoute = AuthauthSignInRouteImport.update({
-  id: '/auth/(auth)/sign-in',
-  path: '/auth/sign-in',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -296,7 +278,6 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
-  '/auth/': typeof AuthIndexRoute
   '/cashflow/akun': typeof AuthenticatedCashflowAkunRoute
   '/cashflow/cash-flow': typeof AuthenticatedCashflowCashFlowRoute
   '/cashflow/categories': typeof AuthenticatedCashflowCategoriesRoute
@@ -314,8 +295,6 @@ export interface FileRoutesByFullPath {
   '/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/auth/sign-in': typeof AuthauthSignInRoute
-  '/auth/sign-up': typeof AuthauthSignUpRoute
   '/academic-years/': typeof AuthenticatedAcademicYearsIndexRoute
   '/cashflow/': typeof AuthenticatedCashflowIndexRoute
   '/classes/': typeof AuthenticatedClassesIndexRoute
@@ -338,7 +317,6 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
-  '/auth': typeof AuthIndexRoute
   '/cashflow/akun': typeof AuthenticatedCashflowAkunRoute
   '/cashflow/cash-flow': typeof AuthenticatedCashflowCashFlowRoute
   '/cashflow/categories': typeof AuthenticatedCashflowCategoriesRoute
@@ -356,8 +334,6 @@ export interface FileRoutesByTo {
   '/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/auth/sign-in': typeof AuthauthSignInRoute
-  '/auth/sign-up': typeof AuthauthSignUpRoute
   '/academic-years': typeof AuthenticatedAcademicYearsIndexRoute
   '/cashflow': typeof AuthenticatedCashflowIndexRoute
   '/classes': typeof AuthenticatedClassesIndexRoute
@@ -383,7 +359,6 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/auth/': typeof AuthIndexRoute
   '/_authenticated/cashflow/akun': typeof AuthenticatedCashflowAkunRoute
   '/_authenticated/cashflow/cash-flow': typeof AuthenticatedCashflowCashFlowRoute
   '/_authenticated/cashflow/categories': typeof AuthenticatedCashflowCategoriesRoute
@@ -401,8 +376,6 @@ export interface FileRoutesById {
   '/_authenticated/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/_authenticated/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/auth/(auth)/sign-in': typeof AuthauthSignInRoute
-  '/auth/(auth)/sign-up': typeof AuthauthSignUpRoute
   '/_authenticated/academic-years/': typeof AuthenticatedAcademicYearsIndexRoute
   '/_authenticated/cashflow/': typeof AuthenticatedCashflowIndexRoute
   '/_authenticated/classes/': typeof AuthenticatedClassesIndexRoute
@@ -428,7 +401,6 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
-    | '/auth/'
     | '/cashflow/akun'
     | '/cashflow/cash-flow'
     | '/cashflow/categories'
@@ -446,8 +418,6 @@ export interface FileRouteTypes {
     | '/teachers/assignments'
     | '/teachers/performa'
     | '/api/auth/$'
-    | '/auth/sign-in'
-    | '/auth/sign-up'
     | '/academic-years/'
     | '/cashflow/'
     | '/classes/'
@@ -470,7 +440,6 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
-    | '/auth'
     | '/cashflow/akun'
     | '/cashflow/cash-flow'
     | '/cashflow/categories'
@@ -488,8 +457,6 @@ export interface FileRouteTypes {
     | '/teachers/assignments'
     | '/teachers/performa'
     | '/api/auth/$'
-    | '/auth/sign-in'
-    | '/auth/sign-up'
     | '/academic-years'
     | '/cashflow'
     | '/classes'
@@ -514,7 +481,6 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
-    | '/auth/'
     | '/_authenticated/cashflow/akun'
     | '/_authenticated/cashflow/cash-flow'
     | '/_authenticated/cashflow/categories'
@@ -532,8 +498,6 @@ export interface FileRouteTypes {
     | '/_authenticated/teachers/assignments'
     | '/_authenticated/teachers/performa'
     | '/api/auth/$'
-    | '/auth/(auth)/sign-in'
-    | '/auth/(auth)/sign-up'
     | '/_authenticated/academic-years/'
     | '/_authenticated/cashflow/'
     | '/_authenticated/classes/'
@@ -557,10 +521,7 @@ export interface RootRouteChildren {
   errors404Route: typeof errors404Route
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
-  AuthIndexRoute: typeof AuthIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  AuthauthSignInRoute: typeof AuthauthSignInRoute
-  AuthauthSignUpRoute: typeof AuthauthSignUpRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -570,13 +531,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/': {
-      id: '/auth/'
-      path: '/auth'
-      fullPath: '/auth/'
-      preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -725,20 +679,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/academic-years/'
       preLoaderRoute: typeof AuthenticatedAcademicYearsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/auth/(auth)/sign-up': {
-      id: '/auth/(auth)/sign-up'
-      path: '/auth/sign-up'
-      fullPath: '/auth/sign-up'
-      preLoaderRoute: typeof AuthauthSignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/(auth)/sign-in': {
-      id: '/auth/(auth)/sign-in'
-      path: '/auth/sign-in'
-      fullPath: '/auth/sign-in'
-      preLoaderRoute: typeof AuthauthSignInRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -949,10 +889,7 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
-  AuthIndexRoute: AuthIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
-  AuthauthSignInRoute: AuthauthSignInRoute,
-  AuthauthSignUpRoute: AuthauthSignUpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
