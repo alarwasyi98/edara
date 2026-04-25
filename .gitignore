@@ -39,6 +39,7 @@ out/
 # Caches
 .eslintcache
 .tanstack/
+.worktrees/
 
 ### Windows ###
 # Windows thumbnail cache files
