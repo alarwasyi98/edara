@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { IconFacebook, IconGithub } from '@/assets/brand-icons'
+import { signUpEmail } from '@/lib/auth.functions'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,6 +41,7 @@ export function SignUpForm({
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,14 +52,28 @@ export function SignUpForm({
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    // eslint-disable-next-line no-console
-    console.log(data)
 
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 3000)
+    await toast.promise(
+      signUpEmail({
+        name: data.email.split('@')[0] ?? data.email,
+        email: data.email,
+        password: data.password,
+      }),
+      {
+        loading: 'Creating account...',
+        success: () => {
+          setIsLoading(false)
+          navigate({ to: '/sign-in', replace: true })
+          return 'Account created. Please sign in.'
+        },
+        error: () => {
+          setIsLoading(false)
+          return 'Unable to create account'
+        },
+      }
+    )
   }
 
   return (
