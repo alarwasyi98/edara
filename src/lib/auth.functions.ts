@@ -1,43 +1,41 @@
-import { createServerFn } from "@tanstack/react-start"
-import { getRequestHeaders } from "@tanstack/react-start/server"
-import { auth } from "@/lib/auth"
+import { z } from 'zod'
+import { authClient } from '@/lib/auth-client'
 
-export const getSession = createServerFn({ method: "GET" }).handler(async () => {
-  const headers = getRequestHeaders()
-  const result = await auth.api.getSession({ headers })
-  return result
+const signInEmailSchema = z.object({
+  email: z.email(),
+  password: z.string().min(1),
 })
 
-export const requireSession = createServerFn({ method: "GET" }).handler(async () => {
-  const headers = getRequestHeaders()
-  const result = await auth.api.getSession({ headers })
+const signUpEmailSchema = z.object({
+  name: z.string().min(1),
+  email: z.email(),
+  password: z.string().min(7),
+})
+
+export async function getSession() {
+  const result = await authClient.getSession()
+  return result.data ?? null
+}
+
+export async function requireSession() {
+  const result = await getSession()
   if (!result?.session || !result?.user) {
-    throw new Error("Unauthorized")
+    throw new Error('Unauthorized')
   }
   return result
-})
+}
 
-export const signInEmail = createServerFn({ method: "POST" })
-  .validator((data: { email: string; password: string }) => data)
-  .handler(async ({ data }) => {
-    const headers = getRequestHeaders()
-    return await auth.api.signInEmail({
-      body: data,
-      headers,
-    })
-  })
+type SignInEmailInput = z.infer<typeof signInEmailSchema>
+type SignUpEmailInput = z.infer<typeof signUpEmailSchema>
 
-export const signUpEmail = createServerFn({ method: "POST" })
-  .validator((data: { email: string; password: string; name?: string }) => data)
-  .handler(async ({ data }) => {
-    const headers = getRequestHeaders()
-    return await auth.api.signUpEmail({
-      body: data,
-      headers,
-    })
-  })
+export async function signInEmail(input: SignInEmailInput) {
+  return authClient.signIn.email(signInEmailSchema.parse(input))
+}
 
-export const signOut = createServerFn({ method: "POST" }).handler(async () => {
-  const headers = getRequestHeaders()
-  return await auth.api.signOut({ headers })
-})
+export async function signUpEmail(input: SignUpEmailInput) {
+  return authClient.signUp.email(signUpEmailSchema.parse(input))
+}
+
+export async function signOut() {
+  return authClient.signOut()
+}
