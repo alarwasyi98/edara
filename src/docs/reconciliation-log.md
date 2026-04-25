@@ -21,9 +21,99 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 
 ---
 
+
+## 📅 Session: 2026-04-25 — Sesi 13 (Better Auth Recovery on `feat/auth`)
+
+### 📝 Status Saat Ini
+
+Recovery migrasi Better Auth pada branch `feat/auth` berhasil distabilkan. White screen hilang, auth routes kembali konsisten, checks CI utama lulus, preview production bundle dapat diakses, dan Better Auth schema sudah direkam sebagai forward migration tanpa push database.
+
+### ✅ Fixes Applied
+
+| Area                    | Fix                                                                                                                                                                               | Status |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Route strategy          | Menghapus duplikasi `src/routes/auth/*` dan mempertahankan canonical auth URLs yang sudah ada: `/sign-in`, `/sign-up`, `/forgot-password`                                         | ✅ Done |
+| Route tree              | Regenerate `src/routeTree.gen.ts` setelah cleanup route sehingga `/api/auth/$` dan root `(auth)` routes kembali sinkron                                                           | ✅ Done |
+| Route guards            | Menambahkan guard pada `/_authenticated` untuk redirect ke `/sign-in?redirect=...` jika belum login, dan guard pada public auth pages untuk redirect user yang sudah login ke `/` | ✅ Done |
+| Better Auth client flow | Mengganti mock auth Zustand/cookie flow pada form sign-in/sign-up dan sign-out dialog menjadi Better Auth client calls                                                            | ✅ Done |
+| TanStack compatibility  | Menghapus dependensi runtime ke `createServerFn` untuk auth UI karena repo berjalan sebagai Vite SPA + TanStack Router, bukan full TanStack Start runtime                         | ✅ Done |
+| Better Auth config      | Menghapus plugin `tanstackStartCookies()` dari `src/lib/auth.ts` karena memicu leak `@tanstack/start-server-core` ke build client                                                 | ✅ Done |
+| Lint scope              | Menambahkan ignore untuk `.worktrees` pada ESLint, Prettier, dan `.gitignore` agar nested worktree tidak mengotori checks root repo                                               | ✅ Done |
+| Drizzle history         | Generate forward migration `drizzle/0002_next_power_pack.sql` + snapshot baru untuk tabel Better Auth (`user`, `session`, `account`, `verification`)                              | ✅ Done |
+
+### 🐛 Root Cause Analysis
+
+1. **Dua sistem route auth hidup bersamaan**: repo sudah punya root `(auth)` routes, tetapi migrasi menambahkan tree baru di `src/routes/auth/*`, sehingga route tree dan redirect target menjadi inkonsisten.
+2. **API dan import pattern tidak cocok dengan runtime repo**: beberapa file auth memakai asumsi TanStack Start penuh (`createServerFn`, import router dari `@tanstack/react-start`, plugin cookies Start), padahal aplikasi masih berjalan sebagai Vite SPA dengan TanStack Router plugin.
+3. **Local worktree ikut terlint**: `.worktrees/better-auth` berada di dalam repo dan sebelumnya ikut dipindai oleh ESLint, sehingga error/warning dari clone nested repo mencemari hasil lint branch utama.
+4. **Worktree “fix” tidak bisa dipercaya sebagai source of truth**: log dan commit sebelumnya menyatakan build PASS, tetapi implementasi yang ada tetap mengandung mismatch API dan route duplication.
+
+### ⚖️ Keputusan Teknis
+
+| Keputusan                                                           | Justifikasi                                                                                           |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Pertahankan `/sign-in` sebagai canonical auth URL**               | Paling rendah risiko karena sesuai dengan route group `(auth)` yang sudah dipakai aplikasi            |
+| **Gunakan Better Auth client untuk UI auth flow**                   | Kompatibel dengan SPA build saat ini dan tidak menarik runtime server TanStack Start ke bundle client |
+| **Jangan pakai `tanstackStartCookies()` saat ini**                  | Plugin tersebut memicu kegagalan build pada setup repo sekarang                                       |
+| **Route guards cukup berbasis session Better Auth terlebih dahulu** | Backend API oRPC penuh belum discaffold, jadi RBAC/assignment-aware guard ditunda                     |
+| **Generate migration, tapi jangan apply/push DB**                   | Menjaga perubahan schema tercatat di VCS tanpa melanggar constraint bahwa DB belum siap dipush        |
+| **Rekonsiliasi dilakukan langsung di `feat/auth`**                  | Lebih aman dibanding mencoba menyelamatkan merge lama/worktree state yang sudah drift                 |
+
+### 🛠️ File yang Dibuat / Dihapus / Diperbarui
+
+- **Created**: `src/lib/auth-client.ts`
+- **Created**: `src/lib/auth-routing.ts`
+- **Created**: `src/lib/__tests__/auth-routing.test.ts`
+- **Created**: `drizzle/0002_next_power_pack.sql`
+- **Created**: `drizzle/meta/0002_snapshot.json`
+- **Deleted**: `src/routes/auth/(auth)/route.tsx`
+- **Deleted**: `src/routes/auth/(auth)/sign-in.tsx`
+- **Deleted**: `src/routes/auth/(auth)/sign-up.tsx`
+- **Deleted**: `src/routes/auth/index.tsx`
+- **Modified**: `src/features/auth/sign-in/components/user-auth-form.tsx`
+- **Modified**: `src/features/auth/sign-up/components/sign-up-form.tsx`
+- **Modified**: `src/components/sign-out-dialog.tsx`
+- **Modified**: `src/routes/(auth)/sign-in.tsx`
+- **Modified**: `src/routes/(auth)/sign-up.tsx`
+- **Modified**: `src/routes/_authenticated/route.tsx`
+- **Modified**: `src/routes/api/auth/$.ts`
+- **Modified**: `src/lib/auth.functions.ts`
+- **Modified**: `src/lib/auth.ts`
+- **Modified**: `src/main.tsx`
+- **Modified**: `src/routeTree.gen.ts`
+- **Modified**: `eslint.config.js`, `.prettierignore`, `.gitignore`, `drizzle/meta/_journal.json`
+
+### 📄 Verifikasi
+
+| Check                                                  | Result                                                |
+| ------------------------------------------------------ | ----------------------------------------------------- |
+| `pnpm test:run src/lib/__tests__/auth-routing.test.ts` | ✅ PASS                                                |
+| `pnpm format:check`                                    | ✅ PASS                                                |
+| `pnpm typecheck`                                       | ✅ PASS                                                |
+| `pnpm lint --max-warnings 10`                          | ✅ PASS (8 warnings, sesuai baseline yang ditoleransi) |
+| `pnpm build`                                           | ✅ PASS                                                |
+| `pnpm preview` smoke test                              | ✅ PASS                                                |
+| `/sign-in` on preview                                  | ✅ `200 OK`, halaman memuat konten `Edara`             |
+| `/` on preview                                         | ✅ `200 OK`, HTML app shell termuat                    |
+
+### 📌 Merge & Database Status
+
+- **Merged to `feat/auth`**: Recovery dikerjakan langsung di branch `feat/auth`; merge lama dari worktree tidak dipakai sebagai baseline final.
+- **Merged to `dev` / `main`**: Belum, sesuai constraint.
+- **Drizzle migration**: `0002_next_power_pack.sql` sudah di-generate dan terlacak di VCS.
+- **Database push / migrate**: Belum dijalankan. `db:push` tetap **tidak** digunakan.
+
+### 📌 Catatan untuk Sesi Selanjutnya
+
+- Uji login flow end-to-end setelah migration Better Auth diterapkan ke database non-production / disposable.
+- Scaffold backend API oRPC dan integrasikan assignment resolution + RLS context ke middleware auth.
+- Bersihkan sisa jejak Clerk yang masih non-blocking pada output build, misalnya chunk name `clerk-vendor`.
+- Setelah manual QA selesai, perubahan ini bisa di-stage/commit di `feat/auth` tanpa merge ke `dev` atau `main`.
+
 ## 📅 Session: 2026-04-24 — Sesi 12 (Better Auth Migration Fixes)
 
 ### 📝 Status Saat Ini
+
 Build errors telah diperbaiki. Semua integration issues teratasi, dan build sekarang PASS. Siap untuk merge ke `feat/auth`.
 
 ### ✅ Fixes Applied
