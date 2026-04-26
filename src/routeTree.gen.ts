@@ -31,7 +31,6 @@ import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedClassesIndexRouteImport } from './routes/_authenticated/classes/index'
 import { Route as AuthenticatedCashflowIndexRouteImport } from './routes/_authenticated/cashflow/index'
 import { Route as AuthenticatedAcademicYearsIndexRouteImport } from './routes/_authenticated/academic-years/index'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthenticatedTeachersPerformaRouteImport } from './routes/_authenticated/teachers/performa'
 import { Route as AuthenticatedTeachersAssignmentsRouteImport } from './routes/_authenticated/teachers/assignments'
 import { Route as AuthenticatedTeachersIdRouteImport } from './routes/_authenticated/teachers/$id'
@@ -166,11 +165,6 @@ const AuthenticatedAcademicYearsIndexRoute =
     path: '/academic-years/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedTeachersPerformaRoute =
   AuthenticatedTeachersPerformaRouteImport.update({
     id: '/teachers/performa',
@@ -294,7 +288,6 @@ export interface FileRoutesByFullPath {
   '/teachers/$id': typeof AuthenticatedTeachersIdRoute
   '/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/academic-years/': typeof AuthenticatedAcademicYearsIndexRoute
   '/cashflow/': typeof AuthenticatedCashflowIndexRoute
   '/classes/': typeof AuthenticatedClassesIndexRoute
@@ -333,7 +326,6 @@ export interface FileRoutesByTo {
   '/teachers/$id': typeof AuthenticatedTeachersIdRoute
   '/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/academic-years': typeof AuthenticatedAcademicYearsIndexRoute
   '/cashflow': typeof AuthenticatedCashflowIndexRoute
   '/classes': typeof AuthenticatedClassesIndexRoute
@@ -375,7 +367,6 @@ export interface FileRoutesById {
   '/_authenticated/teachers/$id': typeof AuthenticatedTeachersIdRoute
   '/_authenticated/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/_authenticated/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authenticated/academic-years/': typeof AuthenticatedAcademicYearsIndexRoute
   '/_authenticated/cashflow/': typeof AuthenticatedCashflowIndexRoute
   '/_authenticated/classes/': typeof AuthenticatedClassesIndexRoute
@@ -417,7 +408,6 @@ export interface FileRouteTypes {
     | '/teachers/$id'
     | '/teachers/assignments'
     | '/teachers/performa'
-    | '/api/auth/$'
     | '/academic-years/'
     | '/cashflow/'
     | '/classes/'
@@ -456,7 +446,6 @@ export interface FileRouteTypes {
     | '/teachers/$id'
     | '/teachers/assignments'
     | '/teachers/performa'
-    | '/api/auth/$'
     | '/academic-years'
     | '/cashflow'
     | '/classes'
@@ -497,7 +486,6 @@ export interface FileRouteTypes {
     | '/_authenticated/teachers/$id'
     | '/_authenticated/teachers/assignments'
     | '/_authenticated/teachers/performa'
-    | '/api/auth/$'
     | '/_authenticated/academic-years/'
     | '/_authenticated/cashflow/'
     | '/_authenticated/classes/'
@@ -521,7 +509,6 @@ export interface RootRouteChildren {
   errors404Route: typeof errors404Route
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -679,13 +666,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/academic-years/'
       preLoaderRoute: typeof AuthenticatedAcademicYearsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/teachers/performa': {
       id: '/_authenticated/teachers/performa'
@@ -889,7 +869,6 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -39,7 +39,6 @@ export const userSchoolAssignments = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     userId: varchar('user_id', { length: 255 }).notNull(),
-    userId: varchar('user_id', { length: 255 }).notNull(),
     schoolId: uuid('school_id')
       .references(() => schools.id)
       .notNull(),
@@ -51,9 +50,7 @@ export const userSchoolAssignments = pgTable(
   (t) => ({
     schoolIdx: index('user_assignments_school_idx').on(t.schoolId),
     userIdx: index('user_assignments_user_idx').on(t.userId),
-    userIdx: index('user_assignments_user_idx').on(t.userId),
     uniqueAssignment: uniqueIndex('user_assignment_unique').on(
-      t.userId,
       t.userId,
       t.schoolId,
       t.unitId,

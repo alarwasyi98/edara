@@ -13,8 +13,14 @@ const signUpEmailSchema = z.object({
 })
 
 export async function getSession() {
-  const result = await authClient.getSession()
-  return result.data ?? null
+  try {
+    const result = await authClient.getSession()
+    if (result.error) return null
+    return result.data ?? null
+  } catch {
+    // Backend not available (SPA mode without server)
+    return null
+  }
 }
 
 export async function requireSession() {
