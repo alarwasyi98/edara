@@ -2,8 +2,8 @@
 name: reconciliation-log
 description: Reconciliation Log for EDARA
 status: draft
-modified: 2026-04-24
-version: 0.0.9
+modified: 2026-04-26
+version: 0.0.10
 ---
 
 # EDARA Project Reconciliation Log
@@ -13,14 +13,106 @@ Dokumen ini melacak "Current State" dan histori perubahan selama proses rekonsil
 > [!IMPORTANT]
 > **Project**: EDARA
 > **Status**: Draft
-> **Version**: 0.0.9
-> **Last Updated**: 2026-04-24
-> **Next Target**: Backend Auth Integration - Fix build errors (see Known Issues)
-> **Worktree**: `D:\Dev\edara\.worktrees\better-auth`
-> **Branch**: `feature/better-auth-migration`
+> **Version**: 0.0.10
+> **Last Updated**: 2026-04-26
+> **Next Target**: Regenerasi migration history Drizzle + scaffold backend auth server untuk testing login flow end-to-end
+> **Branch**: `feat/auth`
+> **PR**: https://github.com/alarwasyi98/edara/pull/9 (`feat/auth` → `dev`)
 
 ---
 
+## 📅 Session: 2026-04-26 — Sesi 14 (Finalisasi SPA Auth & PR ke `dev`)
+
+### 📝 Status Saat Ini
+
+Blank page pada dev server berhasil diperbaiki. Tiga root cause ditemukan dan difix: duplikasi properti di schema `users.ts` (build blocker), `baseURL` Better Auth client yang invalid, dan route API auth server-side yang menarik dependensi Node.js ke bundle client. Seluruh CI pipeline lulus, halaman `/sign-in` dan `/sign-up` render dengan benar, route guard berfungsi (redirect ke `/sign-in?redirect=...`), dan PR #9 telah dibuat dari `feat/auth` ke `dev`.
+
+### 🐛 Root Cause Analysis
+
+1. **Duplikasi properti di `users.ts`**: Field `userId` didefinisikan dua kali (baris 41–42), index `userIdx` didefinisikan dua kali (baris 53–54), dan `t.userId` muncul dua kali di unique index (baris 55–58). Ini menyebabkan `tsc` gagal dengan error `TS1117: An object literal cannot have multiple properties with the same name`, sehingga build tidak bisa jalan sama sekali.
+2. **`baseURL` Better Auth client invalid**: `auth-client.ts` menggunakan `baseURL: '/api/auth'` (path relatif), padahal Better Auth client membutuhkan URL absolut. Ini menghasilkan error runtime `"Invalid base URL: /api/auth"` yang meng-crash aplikasi sebelum React sempat render.
+3. **Route API auth menarik server deps ke client bundle**: `src/routes/api/auth/$.ts` meng-import `auth` dari `@/lib/auth` → `db` dari `@/server/db` → `neon()` dari `@neondatabase/serverless`. Karena file ini berada di `src/routes/`, TanStack Router memasukkannya ke route tree dan Vite mem-bundle-nya ke client. Kode server-side (`process.env.DATABASE_URL`, Neon HTTP driver) tidak bisa berjalan di browser.
+
+### ✅ Fixes Applied
+
+| Area | Fix | Status |
+| --- | --- | --- |
+| Schema duplikasi | Menghapus duplikasi `userId`, `userIdx`, dan entry ganda di unique index pada `src/server/db/schema/users.ts` | ✅ Done |
+| Better Auth baseURL | Mengubah `baseURL` dari `'/api/auth'` menjadi `window.location.origin` di `src/lib/auth-client.ts` | ✅ Done |
+| Server-side route leak | Menghapus `src/routes/api/auth/$.ts` yang menarik `db`/`neon` ke client bundle | ✅ Done |
+| Route tree cleanup | Memperbarui `src/routeTree.gen.ts` untuk menghapus semua referensi `/api/auth/$` | ✅ Done |
+| Session fallback | Menambahkan try/catch + error check di `getSession()` agar return `null` saat backend belum tersedia | ✅ Done |
+| Gitignore | Menambahkan `.playwright-mcp/` ke `.gitignore` | ✅ Done |
+
+### ⚖️ Keputusan Teknis
+
+| Keputusan | Justifikasi |
+| --- | --- |
+| **Hapus `src/routes/api/auth/$.ts` sepenuhnya** | File ini menggunakan pola `server.handlers` yang hanya berfungsi di TanStack Start dengan SSR runtime. Pada mode Vite SPA, route ini tidak bisa melayani request API dan justru menarik dependensi server ke bundle client. |
+| **Gunakan `window.location.origin` sebagai baseURL** | Sesuai dokumentasi Better Auth: client membutuhkan URL absolut root server, bukan path. `window.location.origin` aman karena kode ini hanya berjalan di browser (SPA). |
+| **`getSession()` return `null` saat error** | Tanpa backend, `authClient.getSession()` akan gagal (network error atau error response). Daripada crash, fungsi ini mengembalikan `null` yang berarti "tidak terautentikasi" — route guard akan redirect ke `/sign-in` secara normal. |
+| **Buat backup branch sebelum fix** | `feat/auth-backup-2026-04-26` menyimpan state sebelum perubahan untuk safety net. |
+| **Tetap SPA-only, tidak tambah dev server** | Backend oRPC belum di-scaffold. Menambahkan server auth sekarang akan menambah kompleksitas prematur. Login flow UI sudah bisa diverifikasi secara visual. |
+
+### 🛠️ File yang Dibuat / Dihapus / Diperbarui
+
+- **Deleted**: `src/routes/api/auth/$.ts`
+- **Modified**: `src/server/db/schema/users.ts` — hapus duplikasi properti
+- **Modified**: `src/lib/auth-client.ts` — fix baseURL
+- **Modified**: `src/lib/auth.functions.ts` — tambah error handling di `getSession()`
+- **Modified**: `src/routeTree.gen.ts` — hapus referensi `/api/auth/$`
+- **Modified**: `.gitignore` — tambah `.playwright-mcp/`
+
+### 📄 Verifikasi
+
+| Check | Result |
+| --- | --- |
+| `pnpm format:check` | ✅ PASS |
+| `pnpm typecheck` | ✅ PASS |
+| `pnpm lint --max-warnings 10` | ✅ PASS (8 warnings, baseline yang ditoleransi) |
+| `pnpm build` | ✅ PASS |
+| `pnpm test:run` | ✅ PASS (11 tests, 2 test files) |
+| `/sign-in` di dev server | ✅ Render lengkap (form email, password, tombol sign-in, OAuth buttons) |
+| `/sign-up` di dev server | ✅ Render lengkap |
+| `/` redirect ke `/sign-in?redirect=%2F` | ✅ Route guard berfungsi |
+| Console errors | ✅ Tidak ada error |
+
+### 📌 Merge & PR Status
+
+- **PR**: https://github.com/alarwasyi98/edara/pull/9 (`feat/auth` → `dev`)
+- **Backup branch**: `feat/auth-backup-2026-04-26`
+- **Database push/migrate**: Belum dijalankan
+
+### 🔍 Audit Implementasi Better Auth (per Sesi 14)
+
+Implementasi Better Auth saat ini dinilai **~40% selesai**. Arsitektur sudah benar (Better Auth untuk identity/session, EDARA untuk tenancy/RBAC), client-side layer fungsional, tetapi server-side masih scaffolding tanpa runtime.
+
+**Yang sudah baik:**
+- Schema auth (`user`, `session`, `account`, `verification`) sesuai struktur Better Auth
+- Pemisahan concern: Better Auth = identity, `user_school_assignments` = tenancy/RBAC
+- Client layer (`auth-client.ts`, `auth.functions.ts`, `auth-routing.ts`) bersih dan testable
+- oRPC middleware scaffolding (`context.ts` → `auth.ts` → `authorized.ts`) pola yang benar
+
+**Yang belum selesai / bermasalah:**
+- Tidak ada server runtime yang menjalankan `betterAuth()` instance — kode server auth adalah dead code
+- `src/lib/auth.ts` berada di path yang bisa diakses client (seharusnya di `src/server/`)
+- `userSchoolAssignments.userId` tidak punya FK ke `user.id` — orphaned assignments mungkin terjadi
+- Schema auth tidak mendeklarasikan kolom `password`/`hashedPassword` secara eksplisit
+- Admin router (`admin/users.ts`) tidak cek role — semua user terautentikasi bisa list/assign
+- `@tanstack/react-start` terinstall sebagai devDependency tapi tidak digunakan
+- Migration history Drizzle mengandung drift: snapshot sudah `user_id`, tapi SQL `0000` masih `clerk_user_id`
+
+### 📌 Catatan untuk Sesi Selanjutnya
+
+- **Regenerasi migration Drizzle**: Nuke `drizzle/` dan generate ulang dari scratch agar SQL cocok dengan TypeScript schema saat ini. Tidak ada database yang sudah di-push, jadi aman.
+- **Scaffold backend auth server**: Tambahkan lightweight server (Hono/Express) untuk mount Better Auth handler, agar login flow bisa ditest end-to-end.
+- **Seed user dummy**: Buat script `scripts/seed-auth.ts` yang memanggil `auth.api.signUpEmail()` untuk membuat user test (e.g., `admin@edara.test`).
+- **Pindahkan `src/lib/auth.ts` ke `src/server/auth/`**: Mencegah import server-side code dari client secara tidak sengaja.
+- **Tambahkan FK `userId` → `user.id`** pada `user_school_assignments`.
+- **Tambahkan role check** pada admin router.
+- **Hapus `@tanstack/react-start`** dari devDependencies jika tidak dibutuhkan.
+
+---
 
 ## 📅 Session: 2026-04-25 — Sesi 13 (Better Auth Recovery on `feat/auth`)
 
