@@ -14,6 +14,7 @@
 |---------|-------|--------|
 | 1. Stabilization & Infrastructure | 1–3 | ✅ Done |
 | 2. Database Schema & RLS | 4–7 | ✅ Done |
+| 2.5. TanStack Start SPA Migration | 0 | ❌ Not Started |
 | 3. Auth Backend & Middleware | 8–11 | 🔄 Step 8 ~40% |
 | 4. oRPC Foundation & Root Router | 12–13 | ❌ Not Started |
 | 5. Tenant & Org Structure | 14–15 | ❌ Not Started |
@@ -24,7 +25,7 @@
 | 10. SPP Payment System | 28–34 | ❌ Not Started |
 | 11. Cashflow, Events & Export | 35–40 | ❌ Not Started |
 
-**Total: 11 sections, 40 steps.**
+**Total: 12 sections, 41 steps (Step 0 + Steps 1–40).**
 
 ---
 
@@ -92,6 +93,49 @@
 
 ---
 
+## Section 2.5 — TanStack Start SPA Migration (Prerequisite)
+
+> **Refs:** PRD §1.2 ("Full-stack Framework: TanStack Start"), PRD §2.2 (data flow), ADR-01 ("SPA Phase 1, SSR Phase 2")
+>
+> **Why this step exists:** The current codebase is a plain Vite SPA using `@tanstack/router-plugin/vite` for file-based routing. However, Steps 9 and 12 require **server-side API routes** (`src/routes/api/auth/$.ts`, `src/routes/api/rpc/$.ts`) which only work with TanStack Start's server runtime (Nitro). Without this migration, Better Auth and oRPC have no HTTP handler — they are dead code. TanStack Start's SPA mode gives us the server runtime for API routes while keeping the client-side SPA behavior unchanged (no SSR).
+
+### Step 0: Migrate Vite SPA → TanStack Start SPA Mode
+
+- **Task:** Convert the build pipeline from plain Vite + TanStack Router plugin to TanStack Start SPA mode with Nitro server runtime. This enables file-based API routes (`src/routes/api/**`) while keeping the app as a client-rendered SPA (no SSR). The migration touches the build config, entry points, and root route — all existing page routes remain unchanged.
+- **Sub-tasks:**
+  1. **Package changes:** Move `@tanstack/react-start` from `devDependencies` → `dependencies`. Add `nitro` package. Optionally replace `@vitejs/plugin-react-swc` with `@vitejs/plugin-react` (official docs only show non-SWC; SWC may work but is untested with Start). Remove `@tanstack/router-plugin` (superseded by `tanstackStart()` which includes router generation).
+  2. **`vite.config.ts`:** Replace `tanstackRouter()` from `@tanstack/router-plugin/vite` with `tanstackStart({ spa: { enabled: true } })` from `@tanstack/react-start/plugin/vite`. Add `nitro()` from `nitro/vite`. Keep `tailwindcss()`, compression, and visualizer plugins. Use `resolve: { tsconfigPaths: true }` instead of manual `path.resolve` alias (optional but recommended). Plugin order: `tanstackStart()` → `viteReact()` → `tailwindcss()` → others.
+  3. **`src/router.tsx` (new):** Extract router creation from `main.tsx` into a `getRouter()` factory function. Move `QueryClient` creation and router context here. Export `getRouter` (TanStack Start requires a factory, not a singleton). Keep `createRouter({ routeTree, context: { queryClient }, ... })` config.
+  4. **`src/server.ts` (new):** Create minimal server entry point using `createServerEntry` from `@tanstack/react-start/server-entry`.
+  5. **`src/routes/__root.tsx`:** Add full HTML document structure (`<html>`, `<head>`, `<body>`). Import and render `<HeadContent />` in `<head>` and `<Scripts />` at end of `<body>`. Move meta tags from `index.html` into `head()` return value (charset, viewport, title, OG tags, favicon links, font preloads). Keep `createRootRouteWithContext<{ queryClient: QueryClient }>()` — this works with TanStack Start. Keep existing `Outlet`, `Toaster`, devtools, `NavigationProgress`, error/notFound components. Wrap everything in `RootDocument` component pattern.
+  6. **`src/main.tsx` → delete or gut:** TanStack Start manages entry points automatically. The `ReactDOM.createRoot` + `RouterProvider` pattern is replaced by Start's internal hydration. If keeping the file, it should only re-export from router.tsx. The `QueryClientProvider`, `ThemeProvider`, `FontProvider`, `DirectionProvider` wrappers move into `__root.tsx`'s `RootDocument` component.
+  7. **`index.html` → delete:** TanStack Start generates the HTML document from `__root.tsx`'s `head()` + `RootDocument`. The static `index.html` is no longer used.
+  8. **`package.json` scripts:** Update `"build"` script — `tsc -b && vite build` may need adjustment for Nitro build output. `"dev": "vite"` should still work. Verify `"preview"` still works.
+  9. **`tsconfig.app.json`:** Ensure `include` covers server files (`src/server.ts`, `src/router.tsx`). These should already be under `src/`.
+- **Files (7):**
+  - `vite.config.ts (exists)` ← rewrite: tanstackStart + nitro + viteReact
+  - `src/router.tsx` ← new: getRouter() factory with QueryClient context
+  - `src/server.ts` ← new: createServerEntry
+  - `src/routes/__root.tsx (exists)` ← rewrite: full HTML document + head() + providers
+  - `src/main.tsx (exists)` ← delete or reduce to re-export
+  - `index.html (exists)` ← delete (replaced by __root.tsx)
+  - `package.json (exists)` ← move @tanstack/react-start to deps, add nitro, update scripts
+- **Step Dependencies:** Step 3 (stable build)
+- **User Instructions:**
+  1. Run `pnpm install` after package.json changes
+  2. Run `pnpm dev` — app should start and render identically to before (SPA mode = same client behavior)
+  3. Verify all existing routes still work (navigate through the app)
+  4. Verify `http://localhost:3000/api/auth/ok` returns 404 (no auth handler yet — but the route system is ready)
+  5. Run `pnpm build` — must pass (output will now include Nitro server bundle)
+- **Rollback:** `git checkout -- vite.config.ts src/routes/__root.tsx src/main.tsx index.html package.json && git clean -fd src/router.tsx src/server.ts && pnpm install`
+- **Risk Notes:**
+  - The `rollup` override (`4.60.0`) in package.json may conflict with Nitro's bundler — test and remove if needed.
+  - `vite-plugin-compression` and `rollup-plugin-visualizer` should still work but verify.
+  - `manualChunks` config in `build.rollupOptions` may need adjustment for Nitro's output format.
+  - If `@vitejs/plugin-react-swc` works with Start, keep it for faster builds — but switch to `@vitejs/plugin-react` if any issues arise.
+
+---
+
 ## Section 3 — Auth Backend & Middleware
 
 > **Refs:** AUTH-01–05, C7, C9, ADR-01, Better Auth Migration Spec (all 8 phases)
@@ -110,7 +154,7 @@
   - `src/lib/auth.functions.ts (exists)` ← update import path
   - `src/stores/auth-store.ts (exists)` ← keep for now, will replace in Step 10
   - `src/lib/constants.ts (exists)` ← fix role names: admin→super_admin, tata_usaha→admin_tu
-- **Step Dependencies:** Step 7
+- **Step Dependencies:** Step 0 (TanStack Start SPA migration — required for API routes in Step 9), Step 7
 - **User Instructions:**
   1. Ensure `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` are set in `.env`
   2. Run `pnpm db:generate` to regenerate migrations with FK fix
@@ -119,12 +163,12 @@
 
 ### Step 9: Auth API Route Handler
 
-- **Task:** Create the Better Auth HTTP handler route. Since ADR-01 forbids SSR/`createServerFn`, mount Better Auth as an API route that the SPA can call. Create `src/routes/api/auth/$.ts` as a catch-all route that delegates to `auth.handler`. This is the runtime entry point that makes Better Auth functional (currently dead code).
+- **Task:** Create the Better Auth HTTP handler route. Since ADR-01 forbids SSR/`createServerFn`, mount Better Auth as an API route that the SPA can call. Create `src/routes/api/auth/$.ts` as a catch-all route that delegates to `auth.handler` using TanStack Start's `createFileRoute` with `server.handlers` (enabled by Step 0's Nitro migration). This is the runtime entry point that makes Better Auth functional (currently dead code).
 - **Files (3):**
-  - `src/routes/api/auth/$.ts` ← new (Better Auth catch-all handler)
+  - `src/routes/api/auth/$.ts` ← new (Better Auth catch-all handler using `createFileRoute` + `server.handlers`)
   - `src/server/auth/index.ts (exists)` ← ensure handler export
   - `src/lib/auth-client.ts (exists)` ← verify baseURL points to `/api/auth`
-- **Step Dependencies:** Step 8
+- **Step Dependencies:** Step 0 (provides Nitro server runtime for API routes), Step 8
 - **User Instructions:**
   1. Run `pnpm dev`
   2. Test: `curl http://localhost:3000/api/auth/ok` should return Better Auth health check
@@ -184,7 +228,7 @@
 - **Files (8):**
   - `src/server/routers/app-router.ts` ← new: root appRouter composing all domain routers
   - `src/server/routers/index.ts` ← new: barrel export for router + type
-  - `src/routes/api/rpc/$.ts` ← new: oRPC HTTP handler catch-all route
+  - `src/routes/api/rpc/$.ts` ← new: oRPC HTTP handler catch-all route (uses TanStack Start server routes from Step 0)
   - `src/lib/orpc-client.ts` ← new: oRPC client with cookie credentials
   - `src/lib/orpc-react.ts` ← new: TanStack Query integration (createORPCReactQueryUtils)
   - `src/server/routers/admin/users.ts (exists)` ← add role checks (requireRole(['super_admin']))
@@ -780,8 +824,9 @@
 
 | PRD Feature | Steps | ADRs | Business Rules |
 |-------------|-------|------|----------------|
+| Full-stack Framework (PRD §1.2) | 0 | ADR-01 | — |
 | MT-01–05 (Tenant) | 14, 15 | ADR-02 | B1 |
-| AUTH-01–05 (Auth) | 8, 9, 10, 11, 39 | ADR-01, C7, C9 | — |
+| AUTH-01–05 (Auth) | 0, 8, 9, 10, 11, 39 | ADR-01, C7, C9 | — |
 | AY-01–04 (Academic Year) | 16, 17 | — | B2 |
 | DASH-01–05 (Dashboard) | 18, 19 | ADR-03, ADR-07 | B4 |
 | TCH-01–05 (Teachers) | 20, 21, 22 | ADR-06 | B8, B12 |
@@ -794,20 +839,20 @@
 ## Appendix B — Dependency Graph (Simplified)
 
 ```
-Section 1–2 (Done) ──→ Section 3 (Auth) ──→ Section 4 (oRPC Foundation)
-                                                    │
-                    ┌───────────────────────────────┤
-                    ▼                               ▼
-              Section 5 (Tenant)              Section 6 (Academic Year)
-                    │                               │
-                    ▼                               ▼
-              Section 7 (Dashboard)           Section 8 (Teachers)
-                                                    │
-                                              Section 9 (Classes → Students)
-                                                    │
-                                              Section 10 (SPP)
-                                                    │
-                                              Section 11 (Cashflow, Events, Users, Polish)
+Section 1–2 (Done) ──→ Section 2.5 (TanStack Start SPA) ──→ Section 3 (Auth) ──→ Section 4 (oRPC Foundation)
+                                                                                          │
+                                                          ┌───────────────────────────────┤
+                                                          ▼                               ▼
+                                                    Section 5 (Tenant)              Section 6 (Academic Year)
+                                                          │                               │
+                                                          ▼                               ▼
+                                                    Section 7 (Dashboard)           Section 8 (Teachers)
+                                                                                          │
+                                                                                    Section 9 (Classes → Students)
+                                                                                          │
+                                                                                    Section 10 (SPP)
+                                                                                          │
+                                                                                    Section 11 (Cashflow, Events, Users, Polish)
 ```
 
 ## Appendix C — Known Issues to Resolve
@@ -822,7 +867,7 @@ Section 1–2 (Done) ──→ Section 3 (Auth) ──→ Section 4 (oRPC Founda
 | 6 | `userSchoolAssignments.userId` missing FK | Step 8 |
 | 7 | Auth schema missing `hashedPassword` | Step 8 (verify — Better Auth stores in `account`) |
 | 8 | Admin router has no role check | Step 12 |
-| 9 | `@tanstack/react-start` unused | Step 8 (evaluate removal) |
+| 9 | `@tanstack/react-start` in devDeps but unused | Step 0 (move to deps + activate via tanstackStart plugin) |
 | 10 | Drizzle migration drift | Step 8 |
 | 11 | Large chunk warning (581KB) | Step 3 (Done) |
 | 12 | Role name mismatch in constants | Step 11 |
