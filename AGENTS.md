@@ -1,39 +1,48 @@
-# AGENTS.md — EDARA Project
+# AGENTS.md — EDARA Universal Activation Contract
 
-This file contains critical context for AI agents working on this codebase.
+> This file is the entry point for ALL AI agents working on this codebase.
+> Read this file first, then follow the memory system for deeper context.
 
-## Required Reading
+---
 
-Before any work, read these files:
-- `.agents/rules/system-instructions.md` — Architecture rules and ADRs (mandatory)
-- `src/docs/reconciliation-log.md` — Recent changes and current state
+## Memory System
 
-## Tech Stack
+This project uses a layered memory architecture. Read files in this order:
 
-- **Framework**: TanStack Start (Vite SPA mode — NO SSR)
-- **Routing**: TanStack Router (file-based, type-safe)
-- **API**: oRPC (type-safe RPC)
-- **Database**: Neon (PostgreSQL) + Drizzle ORM
-- **Auth**: Clerk
-- **Styling**: Tailwind CSS v4 + shadcn/ui (Radix)
+| Priority | File | Purpose |
+|----------|------|---------|
+| 🔴 Must | `.agents/memory/system.md` | Tech stack, constraints, naming conventions |
+| 🔴 Must | `.agents/memory/project.md` | Current state, feature inventory, known gotchas |
+| 🟡 Before coding | `.agents/memory/decisions.md` | ADRs — architectural decisions you must not violate |
+| 🟡 Before coding | `.agents/rules/coding-standards.md` | Code style, patterns, forbidden practices |
+| 🟢 Context | `.agents/memory/log.md` | Session history — what happened recently |
+| 🟢 Context | `.agents/memory/graph.md` | Module dependencies, table relationships |
+| 🔵 Reference | `.agents/external/sources.md` | External docs, library links |
+| 🔵 Reference | `.agents/rules/commit-convention.md` | Commit message format |
+| 🔵 Reference | `.agents/rules/review-checklist.md` | Pre-merge verification |
 
-## Critical Rules (from ADRs)
+## Critical Rules (Quick Reference)
 
-1. **Financial calculations**: NEVER use JS `+ - * /` for money. Use `decimal.js`:
-   ```ts
-   import Decimal from 'decimal.js'
-   const total = new Decimal(amount).minus(discount).times(quantity)
-   ```
+1. **No SSR** — Vite SPA only. No `loader`, no `getServerSideProps`, no `createServerFn`.
+2. **decimal.js for money** — NEVER use JS `+ - * /` for financial calculations.
+3. **Append-only transactions** — `payment_transactions` has no UPDATE/DELETE. Use reversals.
+4. **Multi-tenancy** — Every table MUST have `school_id`. RLS enforced at DB level.
+5. **Activity logs** — Use `withActivityLog` middleware, not manual inserts.
+6. **Better Auth** — NOT Clerk. Auth provider is Better Auth. See decisions.md C7.
+7. **TypeScript strict** — No `any`. Explicit return types on exports.
 
-2. **Append-only transactions**: `payment_transactions` has no UPDATE/DELETE. Corrections use reversal transactions.
+## Tech Stack (Summary)
 
-3. **Multi-tenancy**: Every table MUST have `school_id`. RLS enforced at DB level via `set_config()`.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, TanStack Start (SPA), TanStack Router/Query, Zustand |
+| Styling | Tailwind CSS v4, shadcn/ui |
+| API | oRPC |
+| Auth | Better Auth (identity/session) + EDARA RBAC (`user_school_assignments`) |
+| Database | Neon PostgreSQL, Drizzle ORM, pg-boss |
+| Financial | decimal.js (mandatory) |
 
-4. **Client-side only**: No `loader` functions. All data fetching via oRPC + TanStack Query.
-
-5. **Activity logs**: Use `withActivityLog` middleware for mutations, not manual inserts.
-
-## Development Commands
+## Dev Commands
 
 ```bash
 pnpm dev          # Start dev server
@@ -47,48 +56,36 @@ pnpm db:generate  # Drizzle: generate migrations
 pnpm db:push      # Drizzle: push schema to DB
 ```
 
-## CI Pipeline (GitHub Actions)
+## CI Pipeline
 
-Run in this order:
-1. `pnpm format:check`
-2. `pnpm typecheck`
-3. `pnpm lint --max-warnings 10`
-4. `pnpm build`
-
-## Project Structure
-
-```
-src/
-├── components/ui/     # shadcn/ui components
-├── features/          # Feature modules (teachers, students, spp, cashflow, etc.)
-├── lib/               # Utilities (formatters, validators, decimal-setup)
-├── routes/            # TanStack Router routes
-├── server/
-│   ├── db/schema/     # Drizzle schemas
-│   ├── routers/       # oRPC routers (NOT YET IMPLEMENTED)
-│   └── middleware/    # Auth, RLS (NOT YET IMPLEMENTED)
-├── stores/            # Zustand stores
-└── docs/              # Documentation
-```
+Run in order: `format:check` → `typecheck` → `lint --max-warnings 10` → `build`
 
 ## Current Status
 
-- **Phase**: Section 2 (Database Schema) — Completed
-- **Next Target**: Backend API Layer Implementation (oRPC routers)
-- **Route files**: Use English paths (`/teachers`, `/students`, `/cashflow`)
-- **Sidebar labels**: Indonesian (per Option B convention)
+- **Phase:** Phase 1 — Migration from Mock to Real Backend
+- **Progress:** Steps 1–7 done, Step 8 in progress (~40%)
+- **Next:** Scaffold backend auth server, regenerate Drizzle migrations
 
-## Windows Development Environment
+## Documentation Map
 
-This project is primarily developed on a Windows machine at the office. Some UNIX commands may not work reliably. Use PowerShell 7 commands instead.
+| Document | Path |
+|----------|------|
+| Product Requirements | `docs/PRD.md` |
+| Implementation Plan | `docs/implementation-plan.md` |
+| Technical Specification | `src/docs/technical-specification.md` |
+| Feature Stories | `src/docs/features-stories.md` |
+| Better Auth Migration | `src/docs/better-auth-migration-spec.md` |
+| Naming Dictionary | `docs/naming-dictionary.json` |
 
-- Use `pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "your_command_here"` for shell operations
-- Commands like `grep`, `glob`, `del`, `copy`, `move` may be broken — use PowerShell equivalents or the dedicated tools in this CLI
-- If default tools fail, use Windows shell reliability commands
+## After Your Session
 
-## Quirks & Gotchas
+1. Update `.agents/memory/log.md` — append a new session entry at the top
+2. Update `.agents/memory/project.md` — if feature status changed
+3. Record new ADRs in `.agents/memory/decisions.md` — if architectural decisions were made
+4. Follow commit convention in `.agents/rules/commit-convention.md`
 
-- **pnpm overrides**: `package.json` has `pnpm.overrides.rollup` to force version 4.60.0
-- **ESLint warnings**: 8 warnings from `react-hooks/incompatible-library` for TanStack Table — safe to ignore
-- **Build warning**: Large chunk (581KB) — future optimization target
-- **No SSR**: Never generate `loader` functions; use `useQuery` / `useMutation` instead
+## Environment Notes
+
+- **OS:** Windows (use PowerShell, not UNIX commands)
+- **Package manager:** pnpm only
+- **Quirks:** rollup 4.60.0 override, 8 ESLint warnings baseline, 581KB chunk warning

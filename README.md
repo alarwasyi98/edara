@@ -119,6 +119,19 @@ pnpm lint
 ## Project Structure
 
 ```
+├── .agents/                # AI agent memory & rules
+│   ├── memory/            # Layered memory system
+│   │   ├── system.md     # Tech stack, constraints, conventions
+│   │   ├── project.md    # Feature inventory, status, gotchas
+│   │   ├── decisions.md  # ADR log with rationale
+│   │   ├── log.md        # Session log (what happened)
+│   │   └── graph.md      # Dependency/relationship map
+│   ├── external/          # External memory sources
+│   └── rules/            # Coding standards, commit conventions
+├── docs/                   # Project documentation
+│   ├── PRD.md            # Product Requirements Document
+│   ├── implementation-plan.md
+│   └── naming-dictionary.json
 ├── src/
 │   ├── components/          # Reusable UI components
 │   │   ├── layout/        # App shell, sidebar, header
@@ -145,11 +158,10 @@ pnpm lint
 │   │   ├── middleware/# Auth, RLS, RBAC
 │   │   └── jobs/       # pg-boss workers
 │   ├── stores/           # Zustand stores
-│   └── docs/            # Documentation
-│       ├── technical-specification.md
-│       ├── reconciliation-plan.md
-│       └── reconciliation-log.md
+│   └── docs/            # Technical specs (canonical source)
+│       └── technical-specification.md
 ├── .github/              # GitHub configs
+├── AGENTS.md             # AI agent activation contract
 ├── package.json
 └── README.md
 ```
@@ -173,7 +185,7 @@ pnpm lint
 | **Events Calendar** | Table and calendar views for school activities |
 | **Export Reports** | Excel/PDF generation via background jobs |
 
-For feature specifications, see: [Technical Specification - Feature Specifications](src/docs/technical-specification.md#3-feature-specifications)
+For feature specifications, see: [PRD - Feature Specifications](docs/PRD.md#3-feature-specifications)
 
 ---
 
@@ -181,13 +193,13 @@ For feature specifications, see: [Technical Specification - Feature Specificatio
 
 ### Current Sprint
 
-The project follows a staged reconciliation plan from Mock/Vite SPA toward TanStack Start + oRPC + Drizzle ORM.
+The project follows a staged implementation plan from Mock/Vite SPA toward TanStack Start + oRPC + Drizzle ORM.
 
-- **Current Phase**: Section 1 (Stabilization & Basic Infrastructure)
-- **Progress**: Step 3 of 34 completed (8%)
-- **Next Target**: Step 4 (Core Tenant Schema Definition)
+- **Completed**: Section 1 (Stabilization) + Section 2 (DB Schema & RLS) — Steps 1–7
+- **In Progress**: Section 3 (Auth & API) — Step 8 (Better Auth integration, ~40%)
+- **Next Target**: Step 9 (oRPC Auth Middleware)
 
-For full plan, see: [Reconciliation Plan](src/docs/reconciliation-plan.md)
+For full plan, see: [Implementation Plan](docs/implementation-plan.md)
 
 ### Branch Strategy
 
@@ -248,6 +260,7 @@ This project is licensed under the [ISC License](LICENSE).
 
 ## Documentation Links
 
-- [Technical Specification](src/docs/technical-specification.md) — Full system spec
-- [Implementation/Reconciliation Plan](src/docs/reconciliation-plan.md) — Step-by-step implementation
-- [Current Sprint](src/docs/reconciliation-log.md) — Progress tracking
+- [Product Requirements (PRD)](docs/PRD.md) — Feature specs, data architecture, API design
+- [Technical Specification](src/docs/technical-specification.md) — Full canonical system spec (includes UI specs)
+- [Implementation Plan](docs/implementation-plan.md) — Step-by-step implementation with progress
+- [Naming Dictionary](docs/naming-dictionary.json) — Indonesian ↔ English identifier mapping
