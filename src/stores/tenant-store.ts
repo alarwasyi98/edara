@@ -1,31 +1,54 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { type Tenant, tenants } from '@/lib/constants'
+
+export interface TenantAssignment {
+  assignmentId: string
+  schoolId: string
+  schoolName: string
+  unitId: string | null
+  unitName: string | null
+  role: string
+}
 
 interface TenantState {
-    activeTenantId: string
-    setActiveTenantId: (id: string) => void
-    getActiveTenant: () => Tenant
+  assignments: TenantAssignment[]
+  activeAssignmentId: string | null
+  setAssignments: (assignments: TenantAssignment[]) => void
+  setActiveAssignmentId: (id: string) => void
+  getActiveAssignment: () => TenantAssignment | null
+  reset: () => void
 }
 
 export const useTenantStore = create<TenantState>()(
-    persist(
-        (set, get) => ({
-            activeTenantId: tenants[0].id,
+  persist(
+    (set, get) => ({
+      assignments: [],
+      activeAssignmentId: null,
 
-            setActiveTenantId: (id: string) => {
-                set({ activeTenantId: id })
-            },
+      setAssignments: (assignments) => {
+        const current = get().activeAssignmentId
+        const stillValid = assignments.some((a) => a.assignmentId === current)
+        set({
+          assignments,
+          activeAssignmentId: stillValid
+            ? current
+            : (assignments[0]?.assignmentId ?? null),
+        })
+      },
 
-            getActiveTenant: () => {
-                const { activeTenantId } = get()
-                return (
-                    tenants.find((t) => t.id === activeTenantId) ?? tenants[0]
-                )
-            },
-        }),
-        {
-            name: 'uims-tenant',
-        }
-    )
+      setActiveAssignmentId: (id) => set({ activeAssignmentId: id }),
+
+      getActiveAssignment: () => {
+        const { assignments, activeAssignmentId } = get()
+        return (
+          assignments.find((a) => a.assignmentId === activeAssignmentId) ??
+          assignments[0] ??
+          null
+        )
+      },
+
+      reset: () => set({ assignments: [], activeAssignmentId: null }),
+    }),
+    { name: 'edara-tenant' }
+  )
 )

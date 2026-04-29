@@ -1,20 +1,18 @@
-import { useTenantStore } from '@/stores/tenant-store'
-import { tenants } from '@/lib/constants'
+import { useTenantStore, type TenantAssignment } from '@/stores/tenant-store'
 
-/**
- * Hook untuk mengakses tenant aktif dan fungsi switching.
- */
 export function useTenant() {
-    const activeTenantId = useTenantStore((s) => s.activeTenantId)
-    const setActiveTenantId = useTenantStore((s) => s.setActiveTenantId)
+  const assignments = useTenantStore((s) => s.assignments)
+  const activeAssignmentId = useTenantStore((s) => s.activeAssignmentId)
+  const setActiveAssignmentId = useTenantStore((s) => s.setActiveAssignmentId)
 
-    const activeTenant =
-        tenants.find((t) => t.id === activeTenantId) ?? tenants[0]
+  const activeAssignment: TenantAssignment | null =
+    assignments.find((a) => a.assignmentId === activeAssignmentId) ??
+    assignments[0] ??
+    null
 
-    return {
-        activeTenant,
-        activeTenantId: activeTenant.id,
-        setActiveTenantId,
-        tenants,
-    }
+  return {
+    activeAssignment,
+    assignments,
+    setActiveAssignmentId,
+  }
 }

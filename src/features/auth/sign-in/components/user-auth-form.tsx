@@ -53,27 +53,25 @@ export function UserAuthForm({
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-
-    await toast.promise(
-      signInEmail({
+    try {
+      const result = await signInEmail({
         email: data.email,
         password: data.password,
-      }),
-      {
-        loading: 'Signing in...',
-        success: () => {
-        setIsLoading(false)
-        const targetPath = getPostSignInTarget(redirectTo)
-        navigate({ to: targetPath, replace: true })
+      })
 
-        return `Welcome back, ${data.email}!`
-        },
-        error: () => {
-          setIsLoading(false)
-          return 'Unable to sign in'
-        },
+      if (result.error) {
+        toast.error(result.error.message ?? 'Invalid email or password')
+        return
       }
-    )
+
+      toast.success(`Welcome back, ${data.email}!`)
+      const targetPath = getPostSignInTarget(redirectTo)
+      navigate({ to: targetPath, replace: true })
+    } catch {
+      toast.error('Unable to sign in. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

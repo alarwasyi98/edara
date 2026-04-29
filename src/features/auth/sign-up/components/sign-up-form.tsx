@@ -54,26 +54,25 @@ export function SignUpForm({
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-
-    await toast.promise(
-      signUpEmail({
+    try {
+      const result = await signUpEmail({
         name: data.email.split('@')[0] ?? data.email,
         email: data.email,
         password: data.password,
-      }),
-      {
-        loading: 'Creating account...',
-        success: () => {
-          setIsLoading(false)
-          navigate({ to: '/sign-in', replace: true })
-          return 'Account created. Please sign in.'
-        },
-        error: () => {
-          setIsLoading(false)
-          return 'Unable to create account'
-        },
+      })
+
+      if (result.error) {
+        toast.error(result.error.message ?? 'Unable to create account')
+        return
       }
-    )
+
+      toast.success('Account created. Please sign in.')
+      navigate({ to: '/sign-in', replace: true })
+    } catch {
+      toast.error('Unable to create account. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

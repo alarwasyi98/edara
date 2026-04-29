@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { authClient } from '@/lib/auth-client'
+import { useAuthStore } from '@/stores/auth-store'
 
 const signInEmailSchema = z.object({
   email: z.email(),
@@ -15,10 +16,28 @@ const signUpEmailSchema = z.object({
 export async function getSession() {
   try {
     const result = await authClient.getSession()
-    if (result.error) return null
+    if (result.error) {
+      useAuthStore.getState().reset()
+      return null
+    }
+    if (result.data) {
+      useAuthStore.getState().setSession({
+        user: {
+          id: result.data.user.id,
+          name: result.data.user.name,
+          email: result.data.user.email,
+          image: result.data.user.image,
+        },
+        session: {
+          id: result.data.session.id,
+          userId: result.data.session.userId,
+          expiresAt: new Date(result.data.session.expiresAt),
+        },
+      })
+    }
     return result.data ?? null
   } catch {
-    // Backend not available (SPA mode without server)
+    useAuthStore.getState().reset()
     return null
   }
 }
@@ -35,7 +54,23 @@ type SignInEmailInput = z.infer<typeof signInEmailSchema>
 type SignUpEmailInput = z.infer<typeof signUpEmailSchema>
 
 export async function signInEmail(input: SignInEmailInput) {
-  return authClient.signIn.email(signInEmailSchema.parse(input))
+  const result = await authClient.signIn.email(signInEmailSchema.parse(input))
+  if (result.data) {
+    useAuthStore.getState().setSession({
+      user: {
+        id: result.data.user.id,
+        name: result.data.user.name,
+        email: result.data.user.email,
+        image: result.data.user.image,
+      },
+      session: {
+        id: result.data.session.id,
+        userId: result.data.session.userId,
+        expiresAt: new Date(result.data.session.expiresAt),
+      },
+    })
+  }
+  return result
 }
 
 export async function signUpEmail(input: SignUpEmailInput) {
@@ -43,5 +78,6 @@ export async function signUpEmail(input: SignUpEmailInput) {
 }
 
 export async function signOut() {
+  useAuthStore.getState().reset()
   return authClient.signOut()
 }

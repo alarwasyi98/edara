@@ -57,7 +57,7 @@ const upcomingEvents = [
 ]
 
 export function Dashboard() {
-  const { activeTenant } = useTenant()
+  const { activeAssignment } = useTenant()
   const [sppTimeRange, setSppTimeRange] = useState('12')
 
   return (
@@ -75,7 +75,7 @@ export function Dashboard() {
         <div className='mb-2 flex flex-wrap items-center justify-between gap-2'>
           <div>
             <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
-            <p className='text-muted-foreground'>{activeTenant.name}</p>
+            <p className='text-muted-foreground'>{activeAssignment?.schoolName ?? 'No school assigned'}</p>
           </div>
         </div>
         <Tabs
