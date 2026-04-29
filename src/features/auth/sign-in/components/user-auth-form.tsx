@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { IconFacebook, IconGithub } from '@/assets/brand-icons'
@@ -41,7 +41,6 @@ export function UserAuthForm({
   ...props
 }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,8 +65,9 @@ export function UserAuthForm({
 
       toast.success(`Welcome back, ${data.email}!`)
       const targetPath = getPostSignInTarget(redirectTo)
-      navigate({ to: targetPath, replace: true })
-    } catch {
+      window.location.href = targetPath
+    } catch (err) {
+      console.error('[sign-in] error:', err)
       toast.error('Unable to sign in. Please try again.')
     } finally {
       setIsLoading(false)
@@ -88,7 +88,7 @@ export function UserAuthForm({
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder='name@example.com' {...field} />
+                <Input placeholder='name@example.com' autoComplete='email' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,7 +101,7 @@ export function UserAuthForm({
             <FormItem className='relative'>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <PasswordInput placeholder='********' {...field} />
+                <PasswordInput placeholder='********' autoComplete='current-password' {...field} />
               </FormControl>
               <FormMessage />
               <Link
