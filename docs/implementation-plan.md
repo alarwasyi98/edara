@@ -17,7 +17,7 @@
 | 2.5. TanStack Start SPA Migration | 0 | ✅ Done |
 | 3. Auth Backend & Middleware | 8–11 | ✅ Done |
 | 4. oRPC Foundation & Root Router | 12–13 | ✅ Done |
-| 5. Tenant & Org Structure | 14–15 | ❌ Not Started |
+| 5. Tenant & Org Structure | 14–15 | 🔶 In Progress (Step 14 ✅) |
 | 6. Academic Year Management | 16–17 | ❌ Not Started |
 | 7. Dashboard & Activity Log | 18–19 | ❌ Not Started |
 | 8. Teacher Management | 20–22 | ❌ Not Started |
@@ -262,7 +262,7 @@
 
 > **Refs:** MT-01–05, Feature Stories §1 (Foundation Registration, Unit Management, Unit Switcher)
 
-### Step 14: Tenant & Unit API Routers
+### Step 14: Tenant & Unit API Routers ✅
 
 - **Task:** Create `tenantRouter` with procedures for foundation (school) management and unit CRUD. Procedures: `schools.get` (current school details), `units.list` (all units for school), `units.create`, `units.update`, `units.getById`. Unit create/update validates NPSN format (8 digits). All procedures use `requireUnitContext` middleware (except `schools.get` which only needs auth). Register in `appRouter`.
 - **Files (7):**

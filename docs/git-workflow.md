@@ -10,7 +10,7 @@
 - [Branch Structure](#branch-structure)
 - [The Golden Rule](#the-golden-rule)
 - [Workflow: Building a Feature](#workflow-building-a-feature)
-- [Workflow: Promoting Dev to Main](#workflow-promoting-dev-to-main)
+- [Workflow: Merging the PR (Squash and Sync)](#workflow-merging-the-pr-squash-and-sync)
 - [Workflow: Syncing Dev After a Squash Merge](#workflow-syncing-dev-after-a-squash-merge)
 - [Understanding the Sync Problem](#understanding-the-sync-problem)
 - [Two Sync Methods](#two-sync-methods)
@@ -65,7 +65,7 @@ The sync step resolves this by telling `dev` about the squash commit on `main`.
 
 ## Workflow: Building a Feature
 
-This is the day-to-day workflow for implementing something new.
+This is the day-to-day workflow for implementing something new. Feature branches stay local — they never get pushed to the remote. This keeps the workflow short and avoids double PRs.
 
 ### Step 1 — Start from Dev
 
@@ -93,51 +93,41 @@ git add .
 git commit -m "feat: add payment validation schema"
 ```
 
-Push your branch to the remote when you're ready for review (or just for backup):
+### Step 4 — Merge Locally into Dev
+
+When the feature is complete, merge it back into `dev` locally. Do not push the feature branch to the remote:
 
 ```bash
-git push -u origin feat/my-feature
+git checkout dev
+git merge feat/my-feature
 ```
 
-### Step 4 — Open a Pull Request to Dev
+### Step 5 — Push Dev and Open a PR to Main
 
-On GitHub, create a pull request targeting `dev` (not `main`). Describe what the feature does, why it exists, and any decisions you made along the way.
+Push the updated `dev` branch to the remote, then create a pull request targeting `main`:
 
-The merge method for feature-to-dev PRs is flexible — regular merge or squash, your choice. The important squash happens later, when `dev` goes to `main`.
+```bash
+git push origin dev
+gh pr create --base main --head dev \
+  --title "feat: summary of what this includes" \
+  --body "Describe the changes at a high level."
+```
 
-### Step 5 — Clean Up
+### Step 6 — Clean Up
 
-After the PR is merged, delete the feature branch. It has served its purpose, and the commits are preserved in `dev`'s history:
+Delete the local feature branch. Since it was never pushed, there's nothing to clean up on the remote:
 
 ```bash
 git branch -d feat/my-feature
-git push origin --delete feat/my-feature
 ```
 
 ---
 
-## Workflow: Promoting Dev to Main
+## Workflow: Merging the PR (Squash and Sync)
 
-When `dev` has accumulated enough work to justify a release (a completed feature, a milestone, a sprint boundary), it's time to bring `main` up to date.
+Once the PR from `dev` to `main` is reviewed and ready, complete it with a squash merge and immediately sync `dev`.
 
-### Step 1 — Make Sure Dev Is Current
-
-```bash
-git checkout dev
-git pull origin dev
-```
-
-### Step 2 — Create the Pull Request
-
-Open a PR from `dev` to `main`. You can do this on GitHub's web interface or via the CLI:
-
-```bash
-gh pr create --base main --head dev \
-  --title "feat: summary of what this release includes" \
-  --body "Describe the changes at a high level."
-```
-
-### Step 3 — Squash and Merge
+### Step 1 — Squash and Merge
 
 Merge the PR using **squash and merge**. This collapses all of `dev`'s individual commits into a single commit on `main`. The result is a clean, readable history on `main` where each commit represents a meaningful body of work.
 
@@ -147,7 +137,7 @@ gh pr merge <PR_NUMBER> --squash
 
 Or use the GitHub web interface and select "Squash and merge" from the merge button dropdown.
 
-### Step 4 — Sync Dev (Critical)
+### Step 2 — Sync Dev (Critical)
 
 **Do this immediately.** See the next section for the full explanation and both available methods.
 
@@ -279,7 +269,7 @@ You just squash-merged dev → main. Now what?
 
 **Symptom:** Merge conflicts everywhere. The feature branch has drifted so far from `dev` that integrating it becomes a multi-hour ordeal.
 
-**Fix:** Keep feature branches short-lived. Merge into `dev` frequently — per feature, not per sprint. If a feature takes weeks, break it into smaller incremental PRs.
+**Fix:** Keep feature branches short-lived. Merge into `dev` locally and push frequently — per feature, not per sprint. If a feature takes weeks, break it into smaller incremental merges.
 
 ### 4. Not Pulling Before Branching
 
@@ -301,13 +291,13 @@ You just squash-merged dev → main. Now what?
 DAILY WORK:
   git checkout dev && git pull
   git checkout -b feat/thing
-  # ... work, commit, push ...
-  # PR: feat/thing → dev (merge)
-  # Delete feat/thing
-
-RELEASE TO MAIN:
-  git checkout dev && git pull
+  # ... work, commit ...
+  git checkout dev && git merge feat/thing
+  git push origin dev
   # PR: dev → main (squash merge)
+  git branch -d feat/thing
+
+AFTER SQUASH MERGE:
   # IMMEDIATELY sync dev:
   #   Method A: git checkout dev && git reset --hard main && git push --force-with-lease
   #   Method B: git checkout dev && git merge main && git push
