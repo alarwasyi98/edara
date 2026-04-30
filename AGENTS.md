@@ -83,11 +83,23 @@ This project enforces a strict branching discipline. Understanding it is mandato
 
 ### Branch Hierarchy
 
-We maintain two long-lived branches: `main` and `dev`. All feature work happens on short-lived branches created from `dev`. Code flows upward — from feature branches into `dev`, and from `dev` into `main` — never the other direction, and never by direct push.
+We maintain two long-lived branches: `main` and `dev`. All feature work happens on short-lived **local** branches created from `dev`. Feature branches are never pushed to the remote — they are merged locally into `dev`, then `dev` is pushed and a PR is opened directly to `main`.
 
 - **`main`** is the production branch. It receives code only through pull requests, and those PRs are always **squash-merged**. This keeps `main`'s history clean: one commit per meaningful body of work.
-- **`dev`** is the integration branch. Feature branches merge here first. `dev` accumulates granular commits — that's expected and fine.
-- **Feature branches** (`feat/`, `fix/`, `chore/`, `docs/`, `refactor/`) are created from `dev` and merged back into `dev` via PR. They should be short-lived.
+- **`dev`** is the integration branch. Feature branches merge here locally first. `dev` accumulates granular commits — that's expected and fine.
+- **Feature branches** (`feat/`, `fix/`, `chore/`, `docs/`, `refactor/`) are created from `dev`, worked on locally, and merged back into `dev` locally. They are never pushed to the remote. There is only one PR per feature: `dev` → `main`.
+
+### Daily Workflow
+
+```bash
+git checkout dev && git pull origin dev     # Start from current dev
+git checkout -b feat/thing                  # Create local feature branch
+# ... work, commit ...
+git checkout dev && git merge feat/thing    # Merge locally into dev
+git push origin dev                         # Push dev to remote
+gh pr create --base main --head dev         # One PR: dev → main
+git branch -d feat/thing                    # Delete local branch
+```
 
 ### The Non-Negotiable Rule
 

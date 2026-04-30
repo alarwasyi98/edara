@@ -202,8 +202,8 @@ For full plan, see: [Implementation Plan](docs/implementation-plan.md)
 ### Branch Strategy
 
 - `main` — Production-ready, receives code only via squash-merged PRs
-- `dev` — Integration branch, all feature work lands here first
-- Feature branches from `dev`: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`
+- `dev` — Integration branch, all feature work merges here locally first
+- Feature branches (`feat/`, `fix/`, `chore/`, `docs/`, `refactor/`) are local only — never pushed to the remote. One PR per feature: `dev` → `main`.
 
 > **Important:** After every squash merge from `dev` to `main`, sync `dev` back immediately. See [Git Workflow](docs/git-workflow.md) for the full guide.
 
