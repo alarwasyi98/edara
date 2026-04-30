@@ -4,6 +4,68 @@ import { School, Building2, GraduationCap } from 'lucide-react'
 // Tenant / Kampus
 // ──────────────────────────────────────────────
 
+// ── Unit Level ───────────────────────────────────────────────
+
+export const UNIT_LEVELS = {
+  MI: 'MI',
+  MTS: 'MTs',
+  MA: 'MA',
+  SD: 'SD',
+  SMP: 'SMP',
+  SMA: 'SMA',
+  SMK: 'SMK',
+} as const
+
+export type UnitLevel = (typeof UNIT_LEVELS)[keyof typeof UNIT_LEVELS]
+
+export const unitLevelLabels: Record<UnitLevel, string> = {
+  MI: 'Madrasah Ibtidaiyah',
+  MTs: 'Madrasah Tsanawiyah',
+  MA: 'Madrasah Aliyah',
+  SD: 'Sekolah Dasar',
+  SMP: 'Sekolah Menengah Pertama',
+  SMA: 'Sekolah Menengah Atas',
+  SMK: 'Sekolah Menengah Kejuruan',
+}
+
+/** Grouped options for <select> / <optgroup> in unit form */
+export const unitLevelGroups = [
+  {
+    label: 'Madrasah',
+    options: [
+      { label: 'MI — Madrasah Ibtidaiyah', value: UNIT_LEVELS.MI },
+      { label: 'MTs — Madrasah Tsanawiyah', value: UNIT_LEVELS.MTS },
+      { label: 'MA — Madrasah Aliyah', value: UNIT_LEVELS.MA },
+    ],
+  },
+  {
+    label: 'Umum',
+    options: [
+      { label: 'SD — Sekolah Dasar', value: UNIT_LEVELS.SD },
+      { label: 'SMP — Sekolah Menengah Pertama', value: UNIT_LEVELS.SMP },
+      { label: 'SMA — Sekolah Menengah Atas', value: UNIT_LEVELS.SMA },
+      { label: 'SMK — Sekolah Menengah Kejuruan', value: UNIT_LEVELS.SMK },
+    ],
+  },
+] as const
+
+export const unitLevelColors: Record<UnitLevel, string> = {
+  MI:  'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  MTs: 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  MA:  'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  SD:  'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  SMP: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  SMA: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+  SMK: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400',
+}
+
+export const unitStatusColors = {
+  active:   'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400',
+  inactive: 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400',
+} as const
+
+// ── Legacy Tenant (kept for backward compat) ────────────────
+
 export type TenantLevel = 'mi' | 'mts' | 'ma'
 
 export interface Tenant {
