@@ -201,9 +201,11 @@ For full plan, see: [Implementation Plan](docs/implementation-plan.md)
 
 ### Branch Strategy
 
-- `main` — Production-ready code
-- `develop` — Integration branch
-- Feature branches: `feature/feature-name`
+- `main` — Production-ready, receives code only via squash-merged PRs
+- `dev` — Integration branch, all feature work lands here first
+- Feature branches from `dev`: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`
+
+> **Important:** After every squash merge from `dev` to `main`, sync `dev` back immediately. See [Git Workflow](docs/git-workflow.md) for the full guide.
 
 ---
 

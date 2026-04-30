@@ -74,7 +74,39 @@ Run in order: `format:check` → `typecheck` → `lint --max-warnings 10` → `b
 | Implementation Plan | `docs/implementation-plan.md` |
 | Feature Stories | `docs/features-stories.md` |
 | Better Auth Migration | `docs/better-auth-migration-spec.md` |
+| Git Workflow | `docs/git-workflow.md` |
 | Naming Dictionary | `docs/naming-dictionary.json` |
+
+## Git Workflow
+
+This project enforces a strict branching discipline. Understanding it is mandatory before making any commits or pull requests.
+
+### Branch Hierarchy
+
+We maintain two long-lived branches: `main` and `dev`. All feature work happens on short-lived branches created from `dev`. Code flows upward — from feature branches into `dev`, and from `dev` into `main` — never the other direction, and never by direct push.
+
+- **`main`** is the production branch. It receives code only through pull requests, and those PRs are always **squash-merged**. This keeps `main`'s history clean: one commit per meaningful body of work.
+- **`dev`** is the integration branch. Feature branches merge here first. `dev` accumulates granular commits — that's expected and fine.
+- **Feature branches** (`feat/`, `fix/`, `chore/`, `docs/`, `refactor/`) are created from `dev` and merged back into `dev` via PR. They should be short-lived.
+
+### The Non-Negotiable Rule
+
+**Every time `dev` is squash-merged into `main`, you must sync `dev` back to `main` immediately.** Squash merging creates a new commit on `main` with a different SHA than anything on `dev`. If you don't sync, the next PR from `dev` to `main` will show phantom diffs — old commits appearing as new changes, even though the content is identical.
+
+There are two sync methods:
+
+1. **Reset (clean):** `git checkout dev && git reset --hard main && git push origin dev --force-with-lease` — makes `dev` identical to `main`. Requires force push.
+2. **Merge (safe):** `git checkout dev && git merge main -m "chore: sync dev with main" && git push origin dev` — creates a merge commit but doesn't require force push.
+
+After syncing, verify with `git diff --stat main dev` — it should produce no output.
+
+### Direct Pushes to Main Are Forbidden
+
+All changes to `main` must arrive through a pull request. No exceptions. This applies to both human contributors and AI agents.
+
+> **Full guide with diagrams, decision trees, and common mistakes:** [`docs/git-workflow.md`](docs/git-workflow.md)
+
+---
 
 ## After Your Session
 
