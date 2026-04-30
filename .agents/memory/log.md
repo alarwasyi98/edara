@@ -5,6 +5,44 @@
 
 ---
 
+## Session 19 — 2025-07-15: Step 14 — Tenant & Unit API Routers
+
+**Branch:** `feature/step-14-tenant-unit-routers` (from `dev`, merged and deleted)
+**PR:** #15 (feature → dev), #16 (dev → main, merged)
+**Final SHA:** `309bfd5` (main and dev synced)
+
+### What Happened
+Implemented Section 5, Step 14 of the implementation plan: Tenant & Unit API Routers. Created school and unit CRUD procedures, Zod validators with NPSN validation, and registered the tenant router in the app router.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/lib/validators/tenant.ts` | Zod schemas: `npsnSchema` (8-digit regex), `updateSchoolSchema`, `createUnitSchema`, `updateUnitSchema` |
+| `src/server/routers/tenant/index.ts` | Barrel export for tenant router procedures |
+| `src/server/routers/tenant/schools.ts` | `getSchool`, `updateSchool` — uses `authOnly` base (no unit context) |
+| `src/server/routers/tenant/units.ts` | `listUnits`, `getUnitById`, `createUnit`, `updateUnit` — uses `authorized` base with RLS |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/server/routers/authorized.ts` | Extracted `authOnly = base.use(authMiddleware)`, refactored `authorized = authOnly.use(requireUnitContextMiddleware)` |
+| `src/server/routers/app-router.ts` | Registered `tenant.schools.{get, update}` and `tenant.units.{list, getById, create, update}` |
+
+### Key Decisions
+- **`authOnly` middleware layer** — `schools.get/update` don't need RLS/unit context; they resolve the user's school from their assignment via `resolveAssignment()` and use `db` directly (not `context.tx`)
+- **Validators in `src/lib/validators/`** — per plan, positioned for future client-side form reuse with react-hook-form + zodResolver
+- **Tenant-scoped queries** — all unit operations filter by `context.schoolId` as defense-in-depth alongside PostgreSQL RLS
+- **Role gating** — unit mutations restricted to `super_admin` and `kepala_sekolah` via `tenantAdmin = authorized.use(requireRole([...]))`
+
+### Verification
+- `tsc --noEmit` → 0 errors
+- `eslint` → 0 errors (fixed one duplicate import)
+- PR #16 merged dev → main, both branches synced to same SHA
+
+---
+
 ## Session 18 — 2025-07-14: Steps 12–13 — oRPC Foundation & Root Router
 
 **Branch:** `feature/step-12-13-orpc-foundation` (from `dev`)
@@ -385,7 +423,7 @@ Initial project stabilization. Cleaned up legacy code, established project struc
 
 | Step | Description | Status |
 |------|------------|--------|
-| 14 | Tenant & Unit API Routers | ❌ Not Started |
+| 14 | Tenant & Unit API Routers | ✅ Done |
 | 15 | Tenant Frontend — Unit Management & Switcher | ❌ Not Started |
 
 ### Section 6 — Academic Year Management
