@@ -1,5 +1,5 @@
 import { Outlet } from '@tanstack/react-router'
-import { Palette, Wrench, UserCog } from 'lucide-react'
+import { Building2, Palette, Wrench, UserCog } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
@@ -14,6 +14,11 @@ const sidebarNavItems = [
     title: 'Profil',
     href: '/settings',
     icon: <UserCog size={18} />,
+  },
+  {
+    title: 'Unit',
+    href: '/settings/units',
+    icon: <Building2 size={18} />,
   },
   {
     title: 'Akun',
