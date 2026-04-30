@@ -42,6 +42,7 @@ import { Route as AuthenticatedSppLaporanRouteImport } from './routes/_authentic
 import { Route as AuthenticatedSppDiscountsRouteImport } from './routes/_authenticated/spp/discounts'
 import { Route as AuthenticatedSppAddPaymentRouteImport } from './routes/_authenticated/spp/add-payment'
 import { Route as AuthenticatedSppStudentIdRouteImport } from './routes/_authenticated/spp/$studentId'
+import { Route as AuthenticatedSettingsUnitsRouteImport } from './routes/_authenticated/settings/units'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
@@ -228,6 +229,12 @@ const AuthenticatedSppStudentIdRoute =
     path: '/spp/$studentId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsUnitsRoute =
+  AuthenticatedSettingsUnitsRouteImport.update({
+    id: '/units',
+    path: '/units',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsAppearanceRoute =
   AuthenticatedSettingsAppearanceRouteImport.update({
     id: '/appearance',
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/settings/units': typeof AuthenticatedSettingsUnitsRoute
   '/spp/$studentId': typeof AuthenticatedSppStudentIdRoute
   '/spp/add-payment': typeof AuthenticatedSppAddPaymentRoute
   '/spp/discounts': typeof AuthenticatedSppDiscountsRoute
@@ -331,6 +339,7 @@ export interface FileRoutesByTo {
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/settings/units': typeof AuthenticatedSettingsUnitsRoute
   '/spp/$studentId': typeof AuthenticatedSppStudentIdRoute
   '/spp/add-payment': typeof AuthenticatedSppAddPaymentRoute
   '/spp/discounts': typeof AuthenticatedSppDiscountsRoute
@@ -374,6 +383,7 @@ export interface FileRoutesById {
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/_authenticated/settings/units': typeof AuthenticatedSettingsUnitsRoute
   '/_authenticated/spp/$studentId': typeof AuthenticatedSppStudentIdRoute
   '/_authenticated/spp/add-payment': typeof AuthenticatedSppAddPaymentRoute
   '/_authenticated/spp/discounts': typeof AuthenticatedSppDiscountsRoute
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
+    | '/settings/units'
     | '/spp/$studentId'
     | '/spp/add-payment'
     | '/spp/discounts'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
+    | '/settings/units'
     | '/spp/$studentId'
     | '/spp/add-payment'
     | '/spp/discounts'
@@ -499,6 +511,7 @@ export interface FileRouteTypes {
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
+    | '/_authenticated/settings/units'
     | '/_authenticated/spp/$studentId'
     | '/_authenticated/spp/add-payment'
     | '/_authenticated/spp/discounts'
@@ -770,6 +783,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSppStudentIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/units': {
+      id: '/_authenticated/settings/units'
+      path: '/units'
+      fullPath: '/settings/units'
+      preLoaderRoute: typeof AuthenticatedSettingsUnitsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/appearance': {
       id: '/_authenticated/settings/appearance'
       path: '/appearance'
@@ -825,6 +845,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
+  AuthenticatedSettingsUnitsRoute: typeof AuthenticatedSettingsUnitsRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -832,6 +853,7 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
   {
     AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
     AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
+    AuthenticatedSettingsUnitsRoute: AuthenticatedSettingsUnitsRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 

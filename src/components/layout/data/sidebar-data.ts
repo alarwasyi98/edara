@@ -158,6 +158,11 @@ title: 'Kalender Kegiatan',
               icon: UserCog,
             },
             {
+              title: 'Unit',
+              url: '/settings/units',
+              icon: Building2,
+            },
+            {
               title: 'Akun',
               url: '/settings/account',
               icon: Wrench,
