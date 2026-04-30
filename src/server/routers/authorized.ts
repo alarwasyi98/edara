@@ -3,9 +3,9 @@ import { authMiddleware, requireUnitContextMiddleware } from './middlewares'
 import type { Role } from '@/lib/constants'
 import type { db } from '@/server/db'
 
-export const authorized = base
-  .use(authMiddleware)
-  .use(requireUnitContextMiddleware)
+export const authOnly = base.use(authMiddleware)
+
+export const authorized = authOnly.use(requireUnitContextMiddleware)
 
 export type AuthContext = {
   session: {
