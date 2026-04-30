@@ -31,6 +31,7 @@ import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedClassesIndexRouteImport } from './routes/_authenticated/classes/index'
 import { Route as AuthenticatedCashflowIndexRouteImport } from './routes/_authenticated/cashflow/index'
 import { Route as AuthenticatedAcademicYearsIndexRouteImport } from './routes/_authenticated/academic-years/index'
+import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthenticatedTeachersPerformaRouteImport } from './routes/_authenticated/teachers/performa'
 import { Route as AuthenticatedTeachersAssignmentsRouteImport } from './routes/_authenticated/teachers/assignments'
@@ -166,6 +167,11 @@ const AuthenticatedAcademicYearsIndexRoute =
     path: '/academic-years/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
+  id: '/api/rpc/$',
+  path: '/api/rpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -295,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/rpc/$': typeof ApiRpcSplatRoute
   '/academic-years/': typeof AuthenticatedAcademicYearsIndexRoute
   '/cashflow/': typeof AuthenticatedCashflowIndexRoute
   '/classes/': typeof AuthenticatedClassesIndexRoute
@@ -334,6 +341,7 @@ export interface FileRoutesByTo {
   '/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/rpc/$': typeof ApiRpcSplatRoute
   '/academic-years': typeof AuthenticatedAcademicYearsIndexRoute
   '/cashflow': typeof AuthenticatedCashflowIndexRoute
   '/classes': typeof AuthenticatedClassesIndexRoute
@@ -376,6 +384,7 @@ export interface FileRoutesById {
   '/_authenticated/teachers/assignments': typeof AuthenticatedTeachersAssignmentsRoute
   '/_authenticated/teachers/performa': typeof AuthenticatedTeachersPerformaRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/rpc/$': typeof ApiRpcSplatRoute
   '/_authenticated/academic-years/': typeof AuthenticatedAcademicYearsIndexRoute
   '/_authenticated/cashflow/': typeof AuthenticatedCashflowIndexRoute
   '/_authenticated/classes/': typeof AuthenticatedClassesIndexRoute
@@ -418,6 +427,7 @@ export interface FileRouteTypes {
     | '/teachers/assignments'
     | '/teachers/performa'
     | '/api/auth/$'
+    | '/api/rpc/$'
     | '/academic-years/'
     | '/cashflow/'
     | '/classes/'
@@ -457,6 +467,7 @@ export interface FileRouteTypes {
     | '/teachers/assignments'
     | '/teachers/performa'
     | '/api/auth/$'
+    | '/api/rpc/$'
     | '/academic-years'
     | '/cashflow'
     | '/classes'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/_authenticated/teachers/assignments'
     | '/_authenticated/teachers/performa'
     | '/api/auth/$'
+    | '/api/rpc/$'
     | '/_authenticated/academic-years/'
     | '/_authenticated/cashflow/'
     | '/_authenticated/classes/'
@@ -522,6 +534,7 @@ export interface RootRouteChildren {
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -679,6 +692,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/academic-years/'
       preLoaderRoute: typeof AuthenticatedAcademicYearsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/rpc/$': {
+      id: '/api/rpc/$'
+      path: '/api/rpc/$'
+      fullPath: '/api/rpc/$'
+      preLoaderRoute: typeof ApiRpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -890,6 +910,7 @@ const rootRouteChildren: RootRouteChildren = {
   errors500Route: errors500Route,
   errors503Route: errors503Route,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

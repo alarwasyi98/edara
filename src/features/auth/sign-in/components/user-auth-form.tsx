@@ -67,6 +67,7 @@ export function UserAuthForm({
       const targetPath = getPostSignInTarget(redirectTo)
       window.location.href = targetPath
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('[sign-in] error:', err)
       toast.error('Unable to sign in. Please try again.')
     } finally {

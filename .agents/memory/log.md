@@ -5,6 +5,40 @@
 
 ---
 
+## Session 18 — 2025-07-14: Steps 12–13 — oRPC Foundation & Root Router
+
+**Branch:** `feature/step-12-13-orpc-foundation` (from `dev`)
+**Commit:** `5a9bac3` (reset, will recommit with log update)
+
+### What Happened
+Implemented Section 4 of the implementation plan: oRPC Foundation & Root Router (Steps 12–13). Created the full oRPC server-to-client pipeline and shared API utilities.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/server/routers/app-router.ts` | Root `appRouter` — plain object composing `admin.users` domain router |
+| `src/server/routers/index.ts` | Barrel exporting `appRouter` + `AppRouter` type |
+| `src/routes/api/rpc/$.ts` | Catch-all handler wiring oRPC `RPCHandler` to `/api/rpc/*` via `createFileRoute` + `server.handlers` |
+| `src/lib/orpc-client.ts` | Typed `RouterClient<AppRouter>` with `RPCLink` + `credentials: 'include'` for cookie auth |
+| `src/lib/orpc-react.ts` | `orpc` TanStack Query utils via `createTanstackQueryUtils(client)` |
+| `src/server/shared/validators.ts` | Shared Zod v4 validators: `uuidSchema`, `idParam`, `paginationSchema`, `paginationToOffset`, `PaginatedResult<T>`, `paginate()`, `dateRangeSchema`, `searchSchema`, `sortDirectionSchema`, `sortableSchema(columns)` |
+| `src/server/shared/errors.ts` | Error helpers (all `: never`): `notFound`, `unauthorized`, `forbidden`, `badRequest`, `conflict`, `internalError` — all throw `ORPCError` |
+| `src/server/shared/index.ts` | Barrel re-exporting all shared validators + errors |
+
+### Key Decisions
+- **Router as plain object** — oRPC v1 uses plain JS objects with procedures as values (no `createRouter` needed)
+- **Shared validators in `src/server/shared/`** — not `src/lib/validators/` as originally planned, to keep server-only code separate
+- **Error helpers return `: never`** — enables TypeScript narrowing after throw
+- **`RPCHandler` from `@orpc/server/fetch`** — Fetch API compatible handler for Nitro runtime
+- **`RouterClient` from `@orpc/server`** — typed client type (not from `@orpc/client`)
+
+### Verification
+- `tsc --noEmit` → 0 errors ✅
+- `eslint` on all 8 new files → 0 errors ✅
+
+---
+
 ## Session 17 — 2026-04-30: Step 9 — Auth API Route (Blockers Log)
 
 **Branch:** `backup/step0-plan-update`
@@ -336,16 +370,16 @@ Initial project stabilization. Cleaned up legacy code, established project struc
 | Step | Description | Status |
 |------|------------|--------|
 | 8 | Better Auth Server Setup | ✅ Done |
-| 9 | Auth API Route Handler | 🔄 In Progress (code done, commit pending) |
-| 10 | oRPC Auth Middleware Stack | ❌ Not Started |
-| 11 | Frontend Auth Flow & Stores | ❌ Not Started |
+| 9 | Auth API Route Handler | ✅ Done |
+| 10 | oRPC Auth Middleware Stack | ✅ Done |
+| 11 | Frontend Auth Flow & Stores | ✅ Done |
 
 ### Section 4 — oRPC Foundation & Root Router
 
 | Step | Description | Status |
 |------|------------|--------|
-| 12 | oRPC Server Setup & Root Router | ❌ Not Started |
-| 13 | Shared Validators & API Utilities | ❌ Not Started |
+| 12 | oRPC Server Setup & Root Router | ✅ Done |
+| 13 | Shared Validators & API Utilities | ✅ Done |
 
 ### Section 5 — Tenant & Org Structure
 

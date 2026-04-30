@@ -14,9 +14,9 @@
 |---------|-------|--------|
 | 1. Stabilization & Infrastructure | 1–3 | ✅ Done |
 | 2. Database Schema & RLS | 4–7 | ✅ Done |
-| 2.5. TanStack Start SPA Migration | 0 | ❌ Not Started |
-| 3. Auth Backend & Middleware | 8–11 | 🔄 Steps 8–10 ✅, Step 11 not started |
-| 4. oRPC Foundation & Root Router | 12–13 | ❌ Not Started |
+| 2.5. TanStack Start SPA Migration | 0 | ✅ Done |
+| 3. Auth Backend & Middleware | 8–11 | ✅ Done |
+| 4. oRPC Foundation & Root Router | 12–13 | ✅ Done |
 | 5. Tenant & Org Structure | 14–15 | ❌ Not Started |
 | 6. Academic Year Management | 16–17 | ❌ Not Started |
 | 7. Dashboard & Activity Log | 18–19 | ❌ Not Started |
@@ -93,13 +93,13 @@
 
 ---
 
-## Section 2.5 — TanStack Start SPA Migration (Prerequisite)
+## Section 2.5 — TanStack Start SPA Migration (Prerequisite) ✅
 
 > **Refs:** PRD §1.2 ("Full-stack Framework: TanStack Start"), PRD §2.2 (data flow), ADR-01 ("SPA Phase 1, SSR Phase 2")
 >
 > **Why this step exists:** The current codebase is a plain Vite SPA using `@tanstack/router-plugin/vite` for file-based routing. However, Steps 9 and 12 require **server-side API routes** (`src/routes/api/auth/$.ts`, `src/routes/api/rpc/$.ts`) which only work with TanStack Start's server runtime (Nitro). Without this migration, Better Auth and oRPC have no HTTP handler — they are dead code. TanStack Start's SPA mode gives us the server runtime for API routes while keeping the client-side SPA behavior unchanged (no SSR).
 
-### Step 0: Migrate Vite SPA → TanStack Start SPA Mode
+### Step 0: Migrate Vite SPA → TanStack Start SPA Mode ✅
 
 - **Task:** Convert the build pipeline from plain Vite + TanStack Router plugin to TanStack Start SPA mode with Nitro server runtime. This enables file-based API routes (`src/routes/api/**`) while keeping the app as a client-rendered SPA (no SSR). The migration touches the build config, entry points, and root route — all existing page routes remain unchanged.
 - **Sub-tasks:**
@@ -136,7 +136,7 @@
 
 ---
 
-## Section 3 — Auth Backend & Middleware
+## Section 3 — Auth Backend & Middleware ✅
 
 > **Refs:** AUTH-01–05, C7, C9, ADR-01, Better Auth Migration Spec (all 8 phases)
 
@@ -192,7 +192,7 @@
 - **User Instructions:** Run `pnpm build` — must pass. Middleware is not yet called by any router (tested in Step 12).
 - **Rollback:** `git checkout -- src/server/routers/`
 
-### Step 11: Frontend Auth Flow & Stores
+### Step 11: Frontend Auth Flow & Stores ✅
 
 - **Task:** Replace mock auth store with real Better Auth integration. Update `auth-store.ts` to use `authClient.getSession()` for session state. Update `tenant-store.ts` to fetch real assignments from API (will use oRPC after Step 13, for now use authClient). Update `_authenticated/route.tsx` to use real session check. Update login page (`sign-in.tsx`) to call `authClient.signIn.email()`. Remove mock token logic. Fix role constants in `constants.ts` to match DB enum (`super_admin`, `kepala_sekolah`, `admin_tu`, `bendahara`). Update `AuthenticatedLayout` and route guards.
 - **Files (12):**
@@ -218,11 +218,11 @@
 
 ---
 
-## Section 4 — oRPC Foundation & Root Router
+## Section 4 — oRPC Foundation & Root Router ✅
 
 > **Refs:** PRD §5.1, ADR-01, ADR-02, Coding Standards (middleware stack order)
 
-### Step 12: oRPC Server Setup & Root Router
+### Step 12: oRPC Server Setup & Root Router ✅
 
 - **Task:** Create the oRPC server entry point and root `appRouter`. Set up the oRPC HTTP handler as a Vite API route. Create the router registry that composes all domain routers (initially empty, filled in subsequent steps). Export `AppRouter` type for client-side type inference. Create the oRPC client with TanStack Query integration.
 - **Files (8):**
@@ -241,7 +241,7 @@
   3. Run `pnpm build` — must pass
 - **Rollback:** Delete new files, revert `admin/users.ts`.
 
-### Step 13: Shared Validators & API Utilities
+### Step 13: Shared Validators & API Utilities ✅
 
 - **Task:** Create shared Zod v4 validation schemas used across multiple routers. Create pagination utilities (`paginationSchema`, `paginatedResponse`), common ID validators, date range validators, search/filter schemas. Create API error helpers. These are consumed by all subsequent domain routers.
 - **Files (7):**
