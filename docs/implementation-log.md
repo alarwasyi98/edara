@@ -105,3 +105,13 @@
   - Aligned `.env` `DATABASE_URL` to dev branch (green-resonance)
   - Ran `db:push` — applied `ALTER TABLE "account" ADD COLUMN "password"`
 - **Action Required:** Restart dev server, register a new user (old user has no password hash).
+- **Commit:** `4f8806e` — `feat: frontend auth flow + fix missing password column (Step 11)`
+- **Result:** ✅ Login flow verified — sign-up and sign-in both working.
+
+---
+
+## Minor: Sign-in UX tweak
+
+- **Date:** 2026-04-29
+- **Change:** Added "Don't have an account? Sign up" link to sign-in card footer (`sign-in/index.tsx`).
+- **Commit:** _(pending)_

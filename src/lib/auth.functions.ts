@@ -55,7 +55,7 @@ type SignUpEmailInput = z.infer<typeof signUpEmailSchema>
 
 export async function signInEmail(input: SignInEmailInput) {
   const result = await authClient.signIn.email(signInEmailSchema.parse(input))
-  if (result.data) {
+  if (result.data?.user && result.data?.session) {
     useAuthStore.getState().setSession({
       user: {
         id: result.data.user.id,
