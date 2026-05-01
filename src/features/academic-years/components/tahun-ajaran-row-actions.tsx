@@ -1,34 +1,25 @@
-import { MoreHorizontal, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
+import { MoreHorizontal, Pencil, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import type { AcademicYearRecord } from '../types'
+import type { TahunAjaranStatus } from '@/lib/constants'
 
-type TahunAjaranItem = {
-    id: string
-    nama: string
-    mulai: string
-    selesai: string
-    semester: string
-    status: 'active' | 'completed' | 'upcoming'
-    keterangan?: string
-}
+type AcademicYearRow = AcademicYearRecord & { status: TahunAjaranStatus }
 
 interface TahunAjaranRowActionsProps {
-    item: TahunAjaranItem
-    onEdit: (item: TahunAjaranItem) => void
-    onDelete: (item: TahunAjaranItem) => void
-    onActivate: (item: TahunAjaranItem) => void
+    item: AcademicYearRow
+    onEdit: (item: AcademicYearRow) => void
+    onActivate: (item: AcademicYearRow) => void
 }
 
 export function TahunAjaranRowActions({
     item,
     onEdit,
-    onDelete,
     onActivate,
 }: TahunAjaranRowActionsProps) {
     return (
@@ -52,15 +43,6 @@ export function TahunAjaranRowActions({
                 <DropdownMenuItem onClick={() => onEdit(item)}>
                     <Pencil className='mr-2 h-4 w-4' />
                     Edit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    className='text-destructive focus:text-destructive'
-                    onClick={() => onDelete(item)}
-                    disabled={item.status === 'active'}
-                >
-                    <Trash2 className='mr-2 h-4 w-4' />
-                    Hapus
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

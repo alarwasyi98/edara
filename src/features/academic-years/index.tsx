@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
     type ColumnDef,
     type SortingState,
@@ -14,7 +15,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { CheckCircle2, Clock, BookOpen, CalendarRange } from 'lucide-react'
+import { CheckCircle2, Clock, BookOpen, CalendarRange, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,6 +43,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
@@ -52,6 +54,7 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { PageHeader } from '@/components/shared/page-header'
 import { DataTableToolbar, DataTablePagination, DataTableColumnHeader } from '@/components/data-table'
 import { cn } from '@/lib/utils'
+import { orpc } from '@/lib/orpc-react'
 import {
     tahunAjaranStatusColors,
     tahunAjaranStatusLabels,
@@ -59,24 +62,9 @@ import {
 } from '@/lib/constants'
 import { TahunAjaranDialog } from './components/tahun-ajaran-dialog'
 import { TahunAjaranRowActions } from './components/tahun-ajaran-row-actions'
+import { type AcademicYearRecord, deriveStatus } from './types'
 
-
-type TahunAjaranItem = {
-    id: string
-    nama: string
-    mulai: string
-    selesai: string
-    semester: string
-    status: TahunAjaranStatus
-    keterangan?: string
-}
-
-const initialData: TahunAjaranItem[] = [
-    { id: '1', nama: '2025/2026', mulai: '15 Juli 2025', selesai: '20 Juni 2026', semester: 'Genap (Jan–Jun 2026)', status: 'active', keterangan: 'Sedang berjalan' },
-    { id: '2', nama: '2024/2025', mulai: '17 Juli 2024', selesai: '21 Juni 2025', semester: 'Genap & Ganjil', status: 'completed', keterangan: 'Sudah selesai' },
-    { id: '3', nama: '2023/2024', mulai: '17 Juli 2023', selesai: '22 Juni 2024', semester: 'Genap & Ganjil', status: 'completed', keterangan: 'Sudah selesai' },
-    { id: '4', nama: '2026/2027', mulai: '13 Juli 2026', selesai: '19 Juni 2027', semester: 'Belum dimulai', status: 'upcoming', keterangan: 'Tahun ajaran mendatang' },
-]
+type AcademicYearRow = AcademicYearRecord & { status: TahunAjaranStatus }
 
 const statusConfig: Record<TahunAjaranStatus, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
     active:    { label: tahunAjaranStatusLabels.active,    color: tahunAjaranStatusColors.active,    icon: CheckCircle2 },
@@ -89,12 +77,21 @@ const statusOptions = Object.entries(statusConfig).map(([value, cfg]) => ({
     value,
 }))
 
+function formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    })
+}
+
 export function TahunAjaran() {
-    const [tahunList, setTahunList] = useState<TahunAjaranItem[]>(initialData)
+    const queryClient = useQueryClient()
+
     const [dialogOpen, setDialogOpen] = useState(false)
     const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
-    const [selected, setSelected] = useState<TahunAjaranItem | undefined>()
-    const [deleteTarget, setDeleteTarget] = useState<TahunAjaranItem | null>(null)
+    const [selected, setSelected] = useState<AcademicYearRow | undefined>()
+    const [activateTarget, setActivateTarget] = useState<AcademicYearRow | null>(null)
 
     // Table state
     const [sorting, setSorting] = useState<SortingState>([])
@@ -102,7 +99,31 @@ export function TahunAjaran() {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
     const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
 
+    // ─── Data Fetching ────────────────────────────────────────
+    const { data: rawList = [], isLoading } = useQuery(
+        orpc.tenant.academicYears.list.queryOptions({})
+    )
+
+    const tahunList: AcademicYearRow[] = rawList.map((item) => ({
+        ...item,
+        status: deriveStatus(item),
+    }))
+
     const active = tahunList.find((t) => t.status === 'active')
+
+    // ─── Mutations ────────────────────────────────────────────
+    const activateMutation = useMutation(
+        orpc.tenant.academicYears.activate.mutationOptions({
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: orpc.tenant.academicYears.list.key() })
+                toast.success(`Tahun ajaran berhasil diaktifkan.`)
+                setActivateTarget(null)
+            },
+            onError: (error) => {
+                toast.error(error.message || 'Gagal mengaktifkan tahun ajaran.')
+            },
+        })
+    )
 
     const handleAdd = () => {
         setDialogMode('add')
@@ -110,61 +131,38 @@ export function TahunAjaran() {
         setDialogOpen(true)
     }
 
-    const handleEdit = (item: TahunAjaranItem) => {
+    const handleEdit = (item: AcademicYearRow) => {
         setDialogMode('edit')
         setSelected(item)
         setDialogOpen(true)
     }
 
-    const handleActivate = (item: TahunAjaranItem) => {
-        setTahunList((prev) =>
-            prev.map((t) => ({
-                ...t,
-                status: t.id === item.id ? 'active' : t.status === 'active' ? 'completed' : t.status,
-                keterangan: t.id === item.id ? 'Sedang berjalan' : t.status === 'active' ? 'Sudah selesai' : t.keterangan,
-            }))
-        )
-        toast.success(`Tahun ajaran ${item.nama} diaktifkan. (Demo)`)
+    const handleActivate = (item: AcademicYearRow) => {
+        setActivateTarget(item)
     }
 
-    const handleSave = (data: Omit<TahunAjaranItem, 'id'>) => {
-        if (dialogMode === 'add') {
-            setTahunList((prev) => [...prev, { ...data, id: String(Date.now()) }])
-        } else if (selected) {
-            setTahunList((prev) => prev.map((t) => (t.id === selected.id ? { ...t, ...data } : t)))
-        }
+    const confirmActivate = () => {
+        if (!activateTarget) return
+        activateMutation.mutate({ id: activateTarget.id })
     }
 
-    const confirmDelete = () => {
-        if (!deleteTarget) return
-        setTahunList((prev) => prev.filter((t) => t.id !== deleteTarget.id))
-        toast.success(`Tahun ajaran ${deleteTarget.nama} dihapus. (Demo)`)
-        setDeleteTarget(null)
-    }
-
-    // ─── Column Definitions ───────────────────────────────────────────────────
-    const columns: ColumnDef<TahunAjaranItem>[] = [
+    // ─── Column Definitions ───────────────────────────────────
+    const columns: ColumnDef<AcademicYearRow>[] = [
         {
-            accessorKey: 'nama',
+            accessorKey: 'name',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Tahun Ajaran' />,
-            cell: ({ row }) => <span className='font-semibold'>{row.getValue('nama')}</span>,
+            cell: ({ row }) => <span className='font-semibold'>{row.getValue('name')}</span>,
         },
         {
-            accessorKey: 'mulai',
+            accessorKey: 'startDate',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Tanggal Mulai' />,
-            cell: ({ row }) => <span className='text-sm'>{row.getValue('mulai')}</span>,
+            cell: ({ row }) => <span className='text-sm'>{formatDate(row.getValue('startDate'))}</span>,
             enableSorting: false,
         },
         {
-            accessorKey: 'selesai',
+            accessorKey: 'endDate',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Tanggal Selesai' />,
-            cell: ({ row }) => <span className='text-sm'>{row.getValue('selesai')}</span>,
-            enableSorting: false,
-        },
-        {
-            accessorKey: 'semester',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Semester' />,
-            cell: ({ row }) => <span className='text-sm text-muted-foreground'>{row.getValue('semester')}</span>,
+            cell: ({ row }) => <span className='text-sm'>{formatDate(row.getValue('endDate'))}</span>,
             enableSorting: false,
         },
         {
@@ -185,18 +183,11 @@ export function TahunAjaran() {
             enableSorting: false,
         },
         {
-            accessorKey: 'keterangan',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Keterangan' />,
-            cell: ({ row }) => <span className='text-sm text-muted-foreground'>{row.getValue('keterangan')}</span>,
-            enableSorting: false,
-        },
-        {
             id: 'actions',
             cell: ({ row }) => (
                 <TahunAjaranRowActions
                     item={row.original}
                     onEdit={handleEdit}
-                    onDelete={setDeleteTarget}
                     onActivate={handleActivate}
                 />
             ),
@@ -206,7 +197,6 @@ export function TahunAjaran() {
         },
     ]
 
-    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data: tahunList,
         columns,
@@ -244,17 +234,24 @@ export function TahunAjaran() {
                     </Button>
                 </PageHeader>
 
-                {active && (
+                {isLoading ? (
+                    <Card>
+                        <CardHeader className='pb-3'>
+                            <Skeleton className='h-5 w-64' />
+                            <Skeleton className='h-4 w-48 mt-2' />
+                        </CardHeader>
+                    </Card>
+                ) : active && (
                     <Card className='border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20'>
                         <CardHeader className='pb-3'>
                             <div className='flex items-center gap-2'>
                                 <CheckCircle2 className='h-5 w-5 text-green-600' />
                                 <CardTitle className='text-green-800 dark:text-green-300'>
-                                    Tahun Ajaran Aktif: {active.nama}
+                                    Tahun Ajaran Aktif: {active.name}
                                 </CardTitle>
                             </div>
                             <CardDescription>
-                                {active.mulai} — {active.selesai} · Semester: {active.semester}
+                                {formatDate(active.startDate)} — {formatDate(active.endDate)}
                             </CardDescription>
                         </CardHeader>
                     </Card>
@@ -271,7 +268,7 @@ export function TahunAjaran() {
                         <DataTableToolbar
                             table={table}
                             searchPlaceholder='Cari tahun ajaran...'
-                            searchKey='nama'
+                            searchKey='name'
                             filters={[
                                 {
                                     columnId: 'status',
@@ -305,7 +302,17 @@ export function TahunAjaran() {
                                     ))}
                                 </TableHeader>
                                 <TableBody>
-                                    {table.getRowModel().rows?.length ? (
+                                    {isLoading ? (
+                                        Array.from({ length: 3 }).map((_, i) => (
+                                            <TableRow key={i}>
+                                                {Array.from({ length: columns.length }).map((_, j) => (
+                                                    <TableCell key={j}>
+                                                        <Skeleton className='h-4 w-full' />
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))
+                                    ) : table.getRowModel().rows?.length ? (
                                         table.getRowModel().rows.map((row) => (
                                             <TableRow key={row.id} className='group/row'>
                                                 {row.getVisibleCells().map((cell) => (
@@ -341,21 +348,28 @@ export function TahunAjaran() {
                 onOpenChange={setDialogOpen}
                 mode={dialogMode}
                 initialData={selected}
-                onSave={handleSave}
             />
 
-            <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+            {/* Activate confirmation dialog */}
+            <AlertDialog open={!!activateTarget} onOpenChange={(o) => !o && setActivateTarget(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Tahun Ajaran?</AlertDialogTitle>
+                        <AlertDialogTitle>Aktifkan Tahun Ajaran?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tahun ajaran <strong>{deleteTarget?.nama}</strong> akan dihapus secara permanen.
+                            Tahun ajaran <strong>{activateTarget?.name}</strong> akan diaktifkan.
+                            {active && (
+                                <> Tahun ajaran <strong>{active.name}</strong> yang saat ini aktif akan dinonaktifkan.</>
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
-                            Ya, Hapus
+                        <AlertDialogCancel disabled={activateMutation.isPending}>Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmActivate}
+                            disabled={activateMutation.isPending}
+                        >
+                            {activateMutation.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                            Ya, Aktifkan
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
