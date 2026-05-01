@@ -28,6 +28,11 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL ?? 'http://localhost:3000',
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+    'https://*.vercel.app',
+  ],
   advanced: {
     database: {
       generateId: () => crypto.randomUUID(),

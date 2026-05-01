@@ -11,6 +11,13 @@ import {
   createUnit,
   updateUnit,
 } from './tenant'
+import {
+  listAcademicYears,
+  getActiveAcademicYear,
+  createAcademicYear,
+  updateAcademicYear,
+  activateAcademicYear,
+} from './academic-years'
 
 export const appRouter = {
   admin: {
@@ -30,6 +37,13 @@ export const appRouter = {
       getById: getUnitById,
       create: createUnit,
       update: updateUnit,
+    },
+    academicYears: {
+      list: listAcademicYears,
+      getActive: getActiveAcademicYear,
+      create: createAcademicYear,
+      update: updateAcademicYear,
+      activate: activateAcademicYear,
     },
   },
 }

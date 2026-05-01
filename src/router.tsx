@@ -5,7 +5,16 @@ import {
   dehydrate,
   hydrate,
 } from '@tanstack/react-query'
+import { Loader2 } from 'lucide-react'
 import { routeTree } from './routeTree.gen'
+
+function PendingComponent(): React.ReactElement {
+  return (
+    <div className='flex min-h-screen items-center justify-center'>
+      <Loader2 className='text-muted-foreground h-8 w-8 animate-spin' />
+    </div>
+  )
+}
 
 export function createRouter() {
   const queryClient = new QueryClient({
@@ -21,6 +30,9 @@ export function createRouter() {
     context: { queryClient },
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    defaultPendingComponent: PendingComponent,
+    defaultPendingMs: 200,
+    defaultPendingMinMs: 300,
     dehydrate: () => ({
       queryClientState: dehydrate(queryClient),
     }),

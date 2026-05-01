@@ -17,7 +17,9 @@ export default defineConfig({
       },
     }),
     react(),
-    nitro(),
+    nitro({
+      preset: 'vercel',
+    }),
     viteCompression({
       algorithm: 'brotliCompress',
       ext: '.br',
