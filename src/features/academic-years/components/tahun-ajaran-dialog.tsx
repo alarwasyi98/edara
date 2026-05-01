@@ -1,6 +1,10 @@
-import React, { useState } from 'react'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
+import * as z from 'zod'
 import {
     Dialog,
     DialogContent,
@@ -9,15 +13,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -25,81 +29,108 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { orpc } from '@/lib/orpc-react'
+import type { AcademicYearRecord } from '../types'
 
-type TahunAjaranItem = {
-    id: string
-    nama: string
-    mulai: string
-    selesai: string
-    semester: string
-    status: 'active' | 'completed' | 'upcoming'
-    keterangan?: string
-}
-
-type TahunAjaranDialogMode = 'add' | 'edit'
+type DialogMode = 'add' | 'edit'
 
 interface TahunAjaranDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    mode: TahunAjaranDialogMode
-    initialData?: TahunAjaranItem
-    onSave: (data: Omit<TahunAjaranItem, 'id'>) => void
+    mode: DialogMode
+    initialData?: AcademicYearRecord
 }
 
-// Helper to parse date string "15 Juli 2025" → Date
-function parseDateStr(str: string): Date | undefined {
-    if (!str) return undefined
-    const d = new Date(str)
-    return isNaN(d.getTime()) ? undefined : d
-}
+const formSchema = z.object({
+    name: z
+        .string()
+        .trim()
+        .min(1, 'Nama tahun ajaran wajib diisi')
+        .max(20, 'Nama tahun ajaran maksimal 20 karakter')
+        .regex(/^\d{4}\/\d{4}$/, 'Format nama harus YYYY/YYYY (contoh: 2024/2025)'),
+    startDate: z.date({ required_error: 'Tanggal mulai wajib diisi' }),
+    endDate: z.date({ required_error: 'Tanggal selesai wajib diisi' }),
+}).refine(
+    (data) => data.startDate < data.endDate,
+    { message: 'Tanggal mulai harus sebelum tanggal selesai', path: ['startDate'] },
+)
+
+type FormValues = z.infer<typeof formSchema>
 
 export function TahunAjaranDialog({
     open,
     onOpenChange,
     mode,
     initialData,
-    onSave,
 }: TahunAjaranDialogProps) {
-    const [nama, setNama] = useState(initialData?.nama ?? '')
-    const [mulai, setMulai] = useState<Date | undefined>(parseDateStr(initialData?.mulai ?? ''))
-    const [selesai, setSelesai] = useState<Date | undefined>(parseDateStr(initialData?.selesai ?? ''))
-    const [status, setStatus] = useState<TahunAjaranItem['status']>(
-        initialData?.status ?? 'upcoming'
-    )
-    const [keterangan, setKeterangan] = useState(initialData?.keterangan ?? '')
+    const queryClient = useQueryClient()
 
-    React.useEffect(() => {
+    const form = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: '',
+            startDate: undefined,
+            endDate: undefined,
+        },
+    })
+
+    useEffect(() => {
         if (open) {
-            setNama(initialData?.nama ?? '')
-            setMulai(parseDateStr(initialData?.mulai ?? ''))
-            setSelesai(parseDateStr(initialData?.selesai ?? ''))
-            setStatus(initialData?.status ?? 'upcoming')
-            setKeterangan(initialData?.keterangan ?? '')
+            if (mode === 'edit' && initialData) {
+                form.reset({
+                    name: initialData.name,
+                    startDate: new Date(initialData.startDate),
+                    endDate: new Date(initialData.endDate),
+                })
+            } else {
+                form.reset({ name: '', startDate: undefined, endDate: undefined })
+            }
         }
-    }, [open, initialData])
+    }, [open, mode, initialData, form])
 
-    const handleSave = () => {
-        if (!nama.trim() || !mulai || !selesai) {
-            toast.error('Lengkapi nama, tanggal mulai, dan tanggal selesai.')
-            return
-        }
-        onSave({
-            nama: nama.trim(),
-            mulai: format(mulai, 'd MMMM yyyy', { locale: idLocale }),
-            selesai: format(selesai, 'd MMMM yyyy', { locale: idLocale }),
-            semester: status === 'active' ? 'Genap (Jan–Jun)' : 'Belum ditentukan',
-            status,
-            keterangan: keterangan.trim() || undefined,
+    const createMutation = useMutation(
+        orpc.tenant.academicYears.create.mutationOptions({
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: orpc.tenant.academicYears.list.key() })
+                toast.success('Tahun ajaran berhasil ditambahkan.')
+                onOpenChange(false)
+            },
+            onError: (error) => {
+                toast.error(error.message || 'Gagal menambahkan tahun ajaran.')
+            },
         })
-        onOpenChange(false)
-        toast.success(
-            mode === 'add'
-                ? `Tahun ajaran ${nama} berhasil ditambahkan. (Demo)`
-                : `Tahun ajaran ${nama} berhasil diperbarui. (Demo)`
-        )
+    )
+
+    const updateMutation = useMutation(
+        orpc.tenant.academicYears.update.mutationOptions({
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: orpc.tenant.academicYears.list.key() })
+                toast.success('Tahun ajaran berhasil diperbarui.')
+                onOpenChange(false)
+            },
+            onError: (error) => {
+                toast.error(error.message || 'Gagal memperbarui tahun ajaran.')
+            },
+        })
+    )
+
+    const isPending = createMutation.isPending || updateMutation.isPending
+
+    function onSubmit(values: FormValues) {
+        const payload = {
+            name: values.name,
+            startDate: format(values.startDate, 'yyyy-MM-dd'),
+            endDate: format(values.endDate, 'yyyy-MM-dd'),
+        }
+
+        if (mode === 'add') {
+            createMutation.mutate(payload)
+        } else if (initialData) {
+            updateMutation.mutate({ id: initialData.id, ...payload })
+        }
     }
 
     return (
@@ -116,122 +147,116 @@ export function TahunAjaranDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className='space-y-4 py-2'>
-                    <div className='space-y-1.5'>
-                        <Label htmlFor='ta-nama'>Nama Tahun Ajaran</Label>
-                        <Input
-                            id='ta-nama'
-                            placeholder='cth. 2026/2027'
-                            value={nama}
-                            onChange={(e) => setNama(e.target.value)}
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 py-2'>
+                        <FormField
+                            control={form.control}
+                            name='name'
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Nama Tahun Ajaran</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder='cth. 2026/2027' {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
                         />
-                    </div>
 
-                    <div className='grid grid-cols-2 gap-4'>
-                        {/* Tanggal Mulai */}
-                        <div className='space-y-1.5'>
-                            <Label>Tanggal Mulai</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant='outline'
-                                        className={cn(
-                                            'w-full justify-start text-left font-normal text-sm',
-                                            !mulai && 'text-muted-foreground'
-                                        )}
-                                    >
-                                        <CalendarIcon className='mr-2 h-4 w-4 shrink-0' />
-                                        {mulai
-                                            ? format(mulai, 'd MMM yyyy', { locale: idLocale })
-                                            : 'Pilih tanggal'}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar
-                                        mode='single'
-                                        selected={mulai}
-                                        onSelect={setMulai}
-                                        captionLayout='dropdown'
-                                        fromYear={2020}
-                                        toYear={2035}
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
+                        <div className='grid grid-cols-2 gap-4'>
+                            <FormField
+                                control={form.control}
+                                name='startDate'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Tanggal Mulai</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant='outline'
+                                                        className={cn(
+                                                            'w-full justify-start text-left font-normal text-sm',
+                                                            !field.value && 'text-muted-foreground'
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className='mr-2 h-4 w-4 shrink-0' />
+                                                        {field.value
+                                                            ? format(field.value, 'd MMM yyyy', { locale: idLocale })
+                                                            : 'Pilih tanggal'}
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <Calendar
+                                                    mode='single'
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2020}
+                                                    toYear={2035}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name='endDate'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Tanggal Selesai</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant='outline'
+                                                        className={cn(
+                                                            'w-full justify-start text-left font-normal text-sm',
+                                                            !field.value && 'text-muted-foreground'
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className='mr-2 h-4 w-4 shrink-0' />
+                                                        {field.value
+                                                            ? format(field.value, 'd MMM yyyy', { locale: idLocale })
+                                                            : 'Pilih tanggal'}
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <Calendar
+                                                    mode='single'
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2020}
+                                                    toYear={2035}
+                                                    disabled={form.watch('startDate') ? { before: form.watch('startDate') } : undefined}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
 
-                        {/* Tanggal Selesai */}
-                        <div className='space-y-1.5'>
-                            <Label>Tanggal Selesai</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant='outline'
-                                        className={cn(
-                                            'w-full justify-start text-left font-normal text-sm',
-                                            !selesai && 'text-muted-foreground'
-                                        )}
-                                    >
-                                        <CalendarIcon className='mr-2 h-4 w-4 shrink-0' />
-                                        {selesai
-                                            ? format(selesai, 'd MMM yyyy', { locale: idLocale })
-                                            : 'Pilih tanggal'}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar
-                                        mode='single'
-                                        selected={selesai}
-                                        onSelect={setSelesai}
-                                        captionLayout='dropdown'
-                                        fromYear={2020}
-                                        toYear={2035}
-                                        disabled={mulai ? { before: mulai } : undefined}
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                    </div>
-
-                    <div className='space-y-1.5'>
-                        <Label>Status</Label>
-                        <Select
-                            value={status}
-                            onValueChange={(v) =>
-                                setStatus(v as TahunAjaranItem['status'])
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value='active'>Aktif</SelectItem>
-                                <SelectItem value='upcoming'>Mendatang</SelectItem>
-                                <SelectItem value='completed'>Selesai</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className='space-y-1.5'>
-                        <Label htmlFor='ta-keterangan'>Keterangan (opsional)</Label>
-                        <Input
-                            id='ta-keterangan'
-                            placeholder='cth. Sedang berjalan'
-                            value={keterangan}
-                            onChange={(e) => setKeterangan(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button variant='outline' onClick={() => onOpenChange(false)}>
-                        Batal
-                    </Button>
-                    <Button onClick={handleSave}>
-                        {mode === 'add' ? 'Tambah' : 'Simpan Perubahan'}
-                    </Button>
-                </DialogFooter>
+                        <DialogFooter>
+                            <Button type='button' variant='outline' onClick={() => onOpenChange(false)} disabled={isPending}>
+                                Batal
+                            </Button>
+                            <Button type='submit' disabled={isPending}>
+                                {isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                                {mode === 'add' ? 'Tambah' : 'Simpan Perubahan'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
             </DialogContent>
         </Dialog>
     )
