@@ -73,3 +73,6 @@ $RECYCLE.BIN/
 *.lnk
 # CocoIndex Code (ccc)
 /.cocoindex_code/
+
+# Vercel build output
+.vercel
