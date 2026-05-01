@@ -19,6 +19,10 @@ export default defineConfig({
     react(),
     nitro({
       preset: 'vercel',
+      prerender: {
+        routes: [],
+        crawlLinks: false,
+      },
     }),
     viteCompression({
       algorithm: 'brotliCompress',
