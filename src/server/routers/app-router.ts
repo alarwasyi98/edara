@@ -1,3 +1,4 @@
+import { os } from '@orpc/server'
 import {
   listUsersWithAssignments,
   assignUserToSchool,
@@ -42,43 +43,51 @@ import {
   massPromotion,
   updateClass,
 } from './classes'
+import {
+  changeStatus,
+  create as createStudent,
+  getById as getStudentById,
+  getStatusHistory,
+  list as listStudents,
+  update as updateStudent,
+} from './students'
 
-export const appRouter = {
-  admin: {
-    users: {
+export const appRouter = os.router({
+  admin: os.router({
+    users: os.router({
       list: listUsersWithAssignments,
       assign: assignUserToSchool,
       toggleAssignment,
-    },
-  },
-  tenant: {
-    schools: {
+    }),
+  }),
+  tenant: os.router({
+    schools: os.router({
       get: getSchool,
       update: updateSchool,
-    },
-    units: {
+    }),
+    units: os.router({
       list: listUnits,
       getById: getUnitById,
       create: createUnit,
       update: updateUnit,
-    },
-    academicYears: {
+    }),
+    academicYears: os.router({
       list: listAcademicYears,
       getActive: getActiveAcademicYear,
       create: createAcademicYear,
       update: updateAcademicYear,
       activate: activateAcademicYear,
-    },
-    dashboard: {
+    }),
+    dashboard: os.router({
       getSummaryCards,
       getCashflowChart,
       getUpcomingEvents,
       getRecentActivity,
-    },
-    activityLogs: {
+    }),
+    activityLogs: os.router({
       list: listActivityLogs,
-    },
-    teachers: {
+    }),
+    teachers: os.router({
       list: listTeachers,
       getById: getTeacherById,
       create: createTeacher,
@@ -87,13 +96,21 @@ export const appRouter = {
       previewImport: previewTeacherImport,
       executeImport: executeTeacherImport,
       export: exportTeachers,
-    },
-    classes: {
+    }),
+    classes: os.router({
       list: listClasses,
       getById: getClassById,
       create: createClass,
       update: updateClass,
       massPromotion,
-    },
-  },
-}
+    }),
+    students: os.router({
+      list: listStudents,
+      getById: getStudentById,
+      create: createStudent,
+      update: updateStudent,
+      changeStatus,
+      getStatusHistory,
+    }),
+  }),
+})
