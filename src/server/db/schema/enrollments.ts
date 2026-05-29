@@ -21,13 +21,14 @@ import {
   text,
   timestamp,
   uniqueIndex,
-  uuid,
   varchar,
+  uuid,
 } from 'drizzle-orm/pg-core'
 import { schools, schoolUnits } from './schools'
 import { students } from './students'
 import { classes } from './classes'
 import { academicYears } from './academic-years'
+import { user } from './auth'
 
 // ─── Enums ───────────────────────────────────────────────
 
@@ -80,14 +81,18 @@ export const enrollments = pgTable(
 export const enrollmentStatusHistory = pgTable('enrollment_status_history', {
   id: uuid('id').primaryKey().defaultRandom(),
   enrollmentId: uuid('enrollment_id')
-    .references(() => enrollments.id)
+    .references(() => enrollments.id, { onDelete: 'cascade' })
     .notNull(),
-  fromStatus: enrollmentStatusEnum('from_status').notNull(),
-  toStatus: enrollmentStatusEnum('to_status').notNull(),
-  changedBy: varchar('changed_by', { length: 255 }).notNull(),
+  oldStatus: enrollmentStatusEnum('old_status').notNull(),
+  newStatus: enrollmentStatusEnum('new_status').notNull(),
+  changedBy: uuid('changed_by')
+    .references(() => user.id)
+    .notNull(),
   reason: text('reason'),
   metadata: jsonb('metadata'), // { fromClassId, toClassId, destinationSchool, etc. }
-  changedAt: timestamp('changed_at').defaultNow().notNull(),
+  changedAt: timestamp('changed_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 })
 
 // ─── Relations ───────────────────────────────────────────
@@ -122,6 +127,10 @@ export const enrollmentStatusHistoryRelations = relations(
     enrollment: one(enrollments, {
       fields: [enrollmentStatusHistory.enrollmentId],
       references: [enrollments.id],
+    }),
+    changedByUser: one(user, {
+      fields: [enrollmentStatusHistory.changedBy],
+      references: [user.id],
     }),
   }),
 )
