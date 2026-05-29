@@ -28,6 +28,35 @@
 
 ---
 
+## Session 34 — 2026-05-30: PR #28 Step 25 Hardening
+
+**Scope:** Tighten the draft Student API Router PR by fixing backend-only blockers: scoped validation, distinct student pagination, audit logging, migration drift, and backend regression coverage.
+
+### What Happened
+- Hardened `src/server/routers/students/index.ts` so `list` pages/counts distinct students instead of joined enrollment rows, `create` validates class/year scope and class-year consistency, duplicate NISN returns structured `CONFLICT`, `changeStatus` + `getStatusHistory` enforce both school and unit scope, and student mutations now use `withActivityLog`.
+- Added focused regression coverage in `src/server/routers/students/index.test.ts` for student-list deduplication, duplicate NISN conflicts, class-year mismatch rejection, update duplicate conflict handling, and cross-unit status-history access.
+- Added custom migration `drizzle/0003_fix_enrollment_status_history.sql` plus matching `drizzle/meta/0003_snapshot.json` / `_journal.json` to align `enrollment_status_history` with the live schema (`old_status`, `new_status`, `changed_by uuid -> user.id`, `changed_at` with timezone).
+- Corrected AI-facing docs so Step 25 now states `getById` returns profile + enrollment history, while payment history remains deferred to later SPP-backed student-detail work.
+
+### Why It Matters
+This keeps PR #28 backend-only while making the student router merge-safer: pagination counts are stable, tenant boundaries are enforced consistently, audit logs match project rules, and Drizzle metadata no longer drifts from the checked-in schema.
+
+### Verification
+- `pnpm test:run -- src/server/routers/students/index.test.ts` passed
+- `pnpm typecheck` passed
+- `pnpm build` passed
+
+### Files Changed
+- `src/server/routers/students/index.ts` — hardened list/mutations/scope checks and added activity logging
+- `src/server/routers/students/index.test.ts` — new backend regression tests
+- `drizzle/0003_fix_enrollment_status_history.sql` — new custom migration
+- `drizzle/meta/0003_snapshot.json` — aligned migration snapshot
+- `drizzle/meta/_journal.json` — registered migration
+- `docs/implementation-plan.md` — clarified Step 25 `getById` scope
+- `.agents/memory/project.md` — aligned student feature note
+
+---
+
 ## Session 33 — 2026-05-26: Section 9 Step 25 — Student API Router
 
 **Scope:** Implement `studentsRouter` with all 6 procedures (`list`, `create`, `update`, `getById`, `changeStatus`, `getStatusHistory`), register in `appRouter`, and verify build passes.
@@ -37,7 +66,7 @@ Created `src/server/routers/students/index.ts` with tenant-scoped student router
 - `list`: paginated with server-side search/filter by class/status/search term
 - `create`: dual insert transaction (students + enrollments) with NISN uniqueness per school
 - `update`: student profile updates
-- `getById`: combined student profile + enrollment history + payment history for detail page
+- `getById`: combined student profile + enrollment history for detail page (payment history deferred to later SPP-backed work)
 - `changeStatus`: writes to `enrollment_status_history` with old_status, new_status, changed_by, metadata (supports transfer, graduate, dropout)
 - `getStatusHistory`: retrieves full status transition history
 
@@ -48,7 +77,7 @@ Verified `src/server/db/schema/enrollments.ts` contains `enrollmentStatusHistory
 Registered `students` router in `src/server/routers/app-router.ts` (lines 107–114).
 
 ### Why It Matters
-This completes the Student API Router backend foundation, enabling the Student Frontend implementation in Step 26. All student operations now have type-safe oRPC procedures with proper tenant scoping, RLS enforcement, pagination, and audit trail support.
+This completes the Student API Router backend foundation, enabling the Student Frontend implementation in Step 26. All student operations now have type-safe oRPC procedures with proper tenant scoping, RLS enforcement, and pagination; payment-history detail remains a later SPP-backed follow-up.
 
 ### Verification
 - `pnpm build` passed: client 4093 modules, server 1 module, ~3 minutes
