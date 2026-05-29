@@ -497,7 +497,7 @@
   3. Run `pnpm build` — must pass
 - **Rollback:** `git stash`
 
-### Step 25: Student API Router
+### Step 25: Student API Router ✅
 
 - **Task:** Create `studentsRouter` with procedures: `list` (paginated, server-side search/filter per STU-02, filterable by class/status/search), `create` (dual insert: `students` + `enrollments` in one transaction per STU-01/B3), `update`, `getById` (with enrollment history + payment history for detail page per STU-03), `changeStatus` (writes to `enrollment_status_history` with old_status, new_status, changed_by, metadata per STU-04/B10/C6 — supports transfer, graduate, dropout), `getStatusHistory`. NISN uniqueness enforced per school (B9). No permanent delete (STU-06/B11). Register in `appRouter`.
 - **Files (6):**
@@ -510,6 +510,7 @@
 - **Step Dependencies:** Step 23 (classes must exist for enrollment)
 - **User Instructions:** Run `pnpm build` — must pass.
 - **Rollback:** Delete new files, revert `app-router.ts`.
+- **Status:** ✅ Complete — all 6 procedures implemented, build passing, router registered in app-router.ts
 
 ### Step 26: Student Frontend — List & Registration
 
