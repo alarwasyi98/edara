@@ -6,6 +6,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import viteCompression from 'vite-plugin-compression'
 import { nitro } from 'nitro/vite'
+import { existsSync, mkdirSync, cpSync } from 'node:fs'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
@@ -26,6 +27,16 @@ export default defineConfig(({ command }) => ({
               crawlLinks: false,
             },
           }),
+          {
+            name: 'nitro-ssr-bridge',
+            closeBundle() {
+              const srcDir = 'node_modules/.nitro/vite/services/ssr'
+              if (!existsSync(srcDir)) return
+              const destDir = 'dist/server'
+              mkdirSync(destDir, { recursive: true })
+              cpSync(srcDir, destDir, { recursive: true })
+            },
+          },
         ]
       : []),
     viteCompression({
