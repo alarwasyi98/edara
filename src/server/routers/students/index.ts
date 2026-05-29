@@ -1,7 +1,7 @@
-import { and, count, desc, eq, ilike, inArray, ne, or, sql } from 'drizzle-orm'
+import { and, desc, eq, ilike, inArray, ne, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { authorized } from '../authorized'
-import { requireRole } from '../middlewares'
+import { requireRole, withActivityLog } from '../middlewares'
 import {
   students,
   enrollments,
@@ -16,11 +16,102 @@ import {
   changeStatusSchema,
   getStatusHistorySchema,
 } from '@/lib/validators/students'
-import { notFound, forbidden, idParam } from '@/server/shared'
+import { badRequest, conflict, forbidden, idParam, notFound, paginationToOffset } from '@/server/shared'
 
 const tenantAdmin = authorized.use(
   requireRole(['super_admin', 'kepala_sekolah', 'admin_tu']),
 )
+
+type ScopedContext = {
+  schoolId: string
+  unitId: string
+}
+
+type AcademicYearRecord = typeof academicYears.$inferSelect
+type ClassRecord = typeof classes.$inferSelect
+type EnrollmentRecord = Pick<
+  typeof enrollments.$inferSelect,
+  'id' | 'schoolId' | 'unitId' | 'studentId' | 'status'
+>
+
+async function getAcademicYearOrThrow(
+  tx: typeof authorized['~orpc']['context']['tx'],
+  scope: ScopedContext,
+  academicYearId: string,
+): Promise<AcademicYearRecord> {
+  const academicYear = await tx.query.academicYears.findFirst({
+    where: and(
+      eq(academicYears.id, academicYearId),
+      eq(academicYears.schoolId, scope.schoolId),
+      eq(academicYears.unitId, scope.unitId),
+    ),
+  })
+
+  if (!academicYear) {
+    notFound('Tahun ajaran')
+  }
+
+  return academicYear
+}
+
+async function getClassOrThrow(
+  tx: typeof authorized['~orpc']['context']['tx'],
+  scope: ScopedContext,
+  classId: string,
+): Promise<ClassRecord> {
+  const classRecord = await tx.query.classes.findFirst({
+    where: and(
+      eq(classes.id, classId),
+      eq(classes.schoolId, scope.schoolId),
+      eq(classes.unitId, scope.unitId),
+    ),
+  })
+
+  if (!classRecord) {
+    notFound('Kelas')
+  }
+
+  return classRecord
+}
+
+async function validateEnrollmentScopeOrThrow(
+  tx: typeof authorized['~orpc']['context']['tx'],
+  scope: ScopedContext,
+  enrollmentId: string,
+): Promise<EnrollmentRecord> {
+  const enrollment = await tx.query.enrollments.findFirst({
+    where: eq(enrollments.id, enrollmentId),
+  })
+
+  if (!enrollment) {
+    notFound('Pendaftaran')
+  }
+
+  if (
+    enrollment.schoolId !== scope.schoolId ||
+    enrollment.unitId !== scope.unitId
+  ) {
+    forbidden()
+  }
+
+  return enrollment
+}
+
+async function validateEnrollmentReferences(
+  tx: typeof authorized['~orpc']['context']['tx'],
+  scope: ScopedContext,
+  classId: string,
+  academicYearId: string,
+): Promise<void> {
+  const [classRecord, academicYear] = await Promise.all([
+    getClassOrThrow(tx, scope, classId),
+    getAcademicYearOrThrow(tx, scope, academicYearId),
+  ])
+
+  if (classRecord.academicYearId !== academicYear.id) {
+    badRequest('Kelas harus berada pada tahun ajaran yang dipilih')
+  }
+}
 
 // Select shape for student list matching students table schema exactly
 const studentListSelect = {
@@ -48,6 +139,7 @@ const studentListSelect = {
 export const list = authorized
   .input(listStudentsSchema)
   .handler(async ({ input, context }) => {
+    const { limit, offset } = paginationToOffset(input)
     const {
       page = 1,
       pageSize = 20,
@@ -57,9 +149,7 @@ export const list = authorized
       status,
       jenisKelamin,
     } = input
-    const offset = (page - 1) * pageSize
 
-    // Build where conditions matching unit context
     const conditions = [
       eq(students.schoolId, context.schoolId),
       eq(students.unitId, context.unitId!),
@@ -79,7 +169,6 @@ export const list = authorized
       conditions.push(inArray(students.jenisKelamin, jenisKelamin))
     }
 
-    // Join with enrollments for filtering
     const enrollmentConditions = []
     if (classId) {
       enrollmentConditions.push(eq(enrollments.classId, classId))
@@ -91,8 +180,47 @@ export const list = authorized
       enrollmentConditions.push(inArray(enrollments.status, status))
     }
 
-    // Query with enrollment join
-    const baseQuery = context.tx
+    const whereClause = and(
+      ...conditions,
+      enrollmentConditions.length > 0 ? and(...enrollmentConditions) : undefined,
+    )
+
+    const [pagedStudentIds, totalResult] = await Promise.all([
+      context.tx
+        .select({
+          id: students.id,
+          createdAt: students.createdAt,
+        })
+        .from(students)
+        .leftJoin(enrollments, eq(students.id, enrollments.studentId))
+        .where(whereClause)
+        .groupBy(students.id, students.createdAt)
+        .orderBy(desc(students.createdAt))
+        .limit(limit)
+        .offset(offset),
+      context.tx
+        .select({
+          count: sql<number>`count(distinct ${students.id})`,
+        })
+        .from(students)
+        .leftJoin(enrollments, eq(students.id, enrollments.studentId))
+        .where(whereClause),
+    ])
+
+    const studentIds = pagedStudentIds.map((row) => row.id)
+    const total = Number(totalResult[0]?.count ?? 0)
+
+    if (studentIds.length === 0) {
+      return {
+        items: [],
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      }
+    }
+
+    const rows = await context.tx
       .select({
         ...studentListSelect,
         enrollment: {
@@ -114,33 +242,22 @@ export const list = authorized
       .leftJoin(enrollments, eq(students.id, enrollments.studentId))
       .leftJoin(classes, eq(enrollments.classId, classes.id))
       .leftJoin(academicYears, eq(enrollments.academicYearId, academicYears.id))
-      .where(
-        and(
-          ...conditions,
-          enrollmentConditions.length > 0
-            ? and(...enrollmentConditions)
-            : undefined
-        )
-      )
-      .orderBy(desc(students.createdAt))
+      .where(and(whereClause, inArray(students.id, studentIds)))
+      .orderBy(desc(students.createdAt), desc(enrollments.enrolledAt))
 
-    const [data, totalResult] = await Promise.all([
-      baseQuery.limit(pageSize).offset(offset),
-      context.tx
-        .select({ count: count() })
-        .from(students)
-        .leftJoin(enrollments, eq(students.id, enrollments.studentId))
-        .where(
-          and(
-            ...conditions,
-            enrollmentConditions.length > 0
-              ? and(...enrollmentConditions)
-              : undefined
-          )
-        ),
-    ])
+    const itemMap = new Map<string, (typeof rows)[number]>()
+    for (const row of rows) {
+      if (!itemMap.has(row.id)) {
+        itemMap.set(row.id, row)
+      }
+    }
 
-    const total = totalResult[0]?.count ?? 0
+    const studentOrder = new Map(studentIds.map((id, index) => [id, index]))
+    const data = Array.from(itemMap.values()).sort(
+      (left, right) =>
+        (studentOrder.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+        (studentOrder.get(right.id) ?? Number.MAX_SAFE_INTEGER),
+    )
 
     return {
       items: data,
@@ -203,12 +320,24 @@ export const getById = authorized
 
 // Create student with initial enrollment
 export const create = tenantAdmin
+  .use(
+    withActivityLog({
+      action: 'student.created',
+      entityType: 'student',
+      description: 'Menambahkan data siswa',
+    }),
+  )
   .input(createStudentSchema)
   .handler(async ({ input, context }) => {
     const { classId, academicYearId, ...studentData } = input
+    const scope = {
+      schoolId: context.schoolId,
+      unitId: context.unitId!,
+    }
 
     return await context.tx.transaction(async (tx) => {
-      // Check NISN uniqueness per school
+      await validateEnrollmentReferences(tx, scope, classId, academicYearId)
+
       const existing = await tx
         .select({ id: students.id })
         .from(students)
@@ -221,23 +350,21 @@ export const create = tenantAdmin
         .limit(1)
 
       if (existing.length > 0) {
-        throw new Error('NISN sudah terdaftar di sekolah ini')
+        conflict('NISN sudah terdaftar di sekolah ini')
       }
 
-      // Insert student
       const [newStudent] = await tx
         .insert(students)
         .values({
           ...studentData,
-          schoolId: context.schoolId,
-          unitId: context.unitId!,
+          schoolId: scope.schoolId,
+          unitId: scope.unitId,
         })
         .returning()
 
-      // Insert enrollment
       await tx.insert(enrollments).values({
-        schoolId: context.schoolId,
-        unitId: context.unitId!,
+        schoolId: scope.schoolId,
+        unitId: scope.unitId,
         studentId: newStudent.id,
         classId,
         academicYearId,
@@ -251,11 +378,17 @@ export const create = tenantAdmin
 
 // Update student
 export const update = tenantAdmin
+  .use(
+    withActivityLog({
+      action: 'student.updated',
+      entityType: 'student',
+      description: 'Memperbarui data siswa',
+    }),
+  )
   .input(updateStudentSchema.extend({ id: z.string().uuid() }))
   .handler(async ({ input, context }) => {
     const { id, ...updateData } = input
 
-    // Check NISN uniqueness if changed
     if (updateData.nisn) {
       const existing = await context.tx
         .select({ id: students.id })
@@ -270,7 +403,7 @@ export const update = tenantAdmin
         .limit(1)
 
       if (existing.length > 0) {
-        throw new Error('NISN sudah terdaftar di sekolah ini')
+        conflict('NISN sudah terdaftar di sekolah ini')
       }
     }
 
@@ -298,43 +431,41 @@ export const update = tenantAdmin
 
 // Change enrollment status with audit trail
 export const changeStatus = tenantAdmin
+  .use(
+    withActivityLog({
+      action: 'student.status_changed',
+      entityType: 'student',
+      description: 'Mengubah status pendaftaran siswa',
+    }),
+  )
   .input(changeStatusSchema)
   .handler(async ({ input, context }) => {
     const { enrollmentId, newStatus, reason, metadata } = input
+    const scope = {
+      schoolId: context.schoolId,
+      unitId: context.unitId!,
+    }
 
     return await context.tx.transaction(async (tx) => {
-      // Get current enrollment
-      const [currentEnrollment] = await tx
-        .select({
-          id: enrollments.id,
-          status: enrollments.status,
-          studentId: enrollments.studentId,
-          schoolId: enrollments.schoolId,
-        })
-        .from(enrollments)
-        .where(eq(enrollments.id, enrollmentId))
-        .limit(1)
-
-      if (!currentEnrollment) {
-        notFound('Pendaftaran')
-      }
-
-      if (currentEnrollment.schoolId !== context.schoolId) {
-        forbidden()
-      }
+      const currentEnrollment = await validateEnrollmentScopeOrThrow(
+        tx,
+        scope,
+        enrollmentId,
+      )
 
       const oldStatus = currentEnrollment.status
 
-      // Update enrollment status
       await tx
         .update(enrollments)
         .set({
           status: newStatus,
-          graduationDate: newStatus === 'graduated' ? new Date().toISOString().split('T')[0] : null,
+          graduationDate:
+            newStatus === 'graduated'
+              ? new Date().toISOString().split('T')[0]
+              : null,
         })
         .where(eq(enrollments.id, enrollmentId))
 
-      // Record status change in history
       await tx.insert(enrollmentStatusHistory).values({
         enrollmentId,
         oldStatus,
@@ -354,24 +485,14 @@ export const getStatusHistory = tenantAdmin
   .input(getStatusHistorySchema)
   .handler(async ({ input, context }) => {
     const { enrollmentId } = input
-
-    // Verify enrollment belongs to school
-    const [enrollment] = await context.tx
-      .select({ schoolId: enrollments.schoolId })
-      .from(enrollments)
-      .where(eq(enrollments.id, enrollmentId))
-      .limit(1)
-
-    if (!enrollment) {
-      notFound('Pendaftaran')
+    const scope = {
+      schoolId: context.schoolId,
+      unitId: context.unitId!,
     }
 
-    if (enrollment.schoolId !== context.schoolId) {
-      forbidden()
-    }
+    await validateEnrollmentScopeOrThrow(context.tx, scope, enrollmentId)
 
-    // Fetch history
-    const history = await context.tx
+    return await context.tx
       .select({
         id: enrollmentStatusHistory.id,
         oldStatus: enrollmentStatusHistory.oldStatus,
@@ -384,6 +505,4 @@ export const getStatusHistory = tenantAdmin
       .from(enrollmentStatusHistory)
       .where(eq(enrollmentStatusHistory.enrollmentId, enrollmentId))
       .orderBy(desc(enrollmentStatusHistory.changedAt))
-
-    return history
   })
