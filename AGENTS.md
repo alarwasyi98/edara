@@ -64,8 +64,8 @@ Run in order: `format:check` → `typecheck` → `lint --max-warnings 10` → `b
 ## Current Status
 
 - **Phase:** Phase 1 — Migration from Mock to Real Backend
-- **Progress:** Sections 1–8 are complete through Step 22, and Section 9 Step 24 is now complete. Teacher Management remains fully live, and Class Management is now live end-to-end with a tenant API router plus frontend wiring for grouped class listing, class detail/student roster, create, update, and transactional `massPromotion`.
-- **Next:** Continue Section 9 with Step 25 — Student API Router — and keep AI memory files aligned with the real codebase state as migration status changes.
+- **Progress:** Sections 1–8 are complete through Step 22, and Section 9 Steps 23–25 are complete. Teacher Management and Class Management are live end-to-end, and the Student API Router is now live with `list`, `getById`, `create`, `update`, `changeStatus`, and `getStatusHistory` registered in `appRouter`. Student frontend flows plus the SPP, cashflow, events, and users domains still contain mock/local-state surfaces.
+- **Next:** Continue Section 9 with Step 26 — Student Frontend — and keep AI memory files aligned with the real codebase state as migration status changes.
 
 ## Architecture Mental Model
 
@@ -81,7 +81,6 @@ Run in order: `format:check` → `typecheck` → `lint --max-warnings 10` → `b
 | Product Requirements | `docs/PRD.md` |
 | Implementation Plan | `docs/implementation-plan.md` |
 | Feature Stories | `docs/features-stories.md` |
-| Better Auth Migration | `docs/better-auth-migration-spec.md` |
 | Git Workflow | `docs/git-workflow.md` |
 | Naming Dictionary | `docs/naming-dictionary.json` |
 
@@ -139,4 +138,4 @@ All changes to `main` must arrive through a pull request. No exceptions. This ap
 
 - **OS:** Windows (use PowerShell, not UNIX commands)
 - **Package manager:** pnpm only
-- **Quirks:** rollup 4.60.0 override, 8 ESLint warnings baseline, 581KB chunk warning
+- **Quirks:** rollup 4.60.0 override, 9 ESLint warnings baseline, 581KB chunk warning
