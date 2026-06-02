@@ -3,7 +3,7 @@
 > Layer 3: Episodic memory — what happened, when, and what changed.
 > Append new sessions at the top. Never delete old entries.
 
-## Current State Summary (as of Session 33)
+## Current State Summary (as of Session 35)
 
 | Property | Value |
 |----------|-------|
@@ -25,6 +25,31 @@
 1. Treat `docs/implementation-plan.md`, `AGENTS.md`, `.agents/memory/project.md`, and this log as the AI-facing source of truth for feature status
 2. Verify branch/SHA directly from git before doing branch-sensitive work
 3. Start Section 9 Step 26 (Student Frontend) and preserve the current class frontend/teacher import-export behavior unless requirements change
+
+---
+
+## Session 35 — 2026-06-02: Repo-State Documentation Drift Alignment
+
+**Scope:** Reconcile stale repo-status documentation across AI memory and public docs so the current migration state matches the implementation plan and verified repo audit.
+
+### What Happened
+- Updated `AGENTS.md` so the Current Status block now reflects Section 9 Step 25 complete, Step 26 next, the live Student API Router, and the current 9-warning ESLint baseline. Removed the stale Better Auth migration doc entry from the Documentation Map because that file is no longer present under `docs/`.
+- Updated `README.md` in two places: the architecture overview now describes classes plus the Student API Router as live backend surfaces, and the Current Sprint section now matches the implementation plan by marking Sections 1–8 and Section 9 Steps 23–25 complete, with Step 26 Student Frontend next.
+- Updated `.agents/memory/project.md` Known Gotchas to remove stale claims about deferred teacher import/export and guaranteed local build/env failure, and to clarify the current split where the student backend is live but the student frontend is still mock-backed.
+
+### Why It Matters
+Future sessions were at risk of planning from stale docs even though the codebase and implementation plan had already moved forward. These edits re-establish a single consistent repo-state narrative across AI memory, operator docs, and the public README.
+
+### Verification
+- Re-read `AGENTS.md`, `README.md`, `.agents/memory/project.md`, and `docs/implementation-plan.md` against the latest repo-health audit findings
+- Confirmed `docs/implementation-plan.md` remained the canonical source and required no status edits
+- This session changed documentation only; no runtime or feature code changed
+
+### Files Changed
+- `AGENTS.md` — current status, docs map, and warning baseline aligned
+- `README.md` — architecture snapshot and Current Sprint aligned
+- `.agents/memory/project.md` — Known Gotchas aligned to actual current state
+- `.agents/memory/log.md` — recorded this docs-only reconciliation session
 
 ---
 

@@ -56,10 +56,10 @@ All tables defined in Drizzle ORM under `src/server/db/schema/`:
 ## Known Gotchas
 
 1. **Repo memory can drift faster than code** — Always cross-check `docs/implementation-plan.md`, `.agents/memory/log.md`, and `src/server/routers/app-router.ts` before assuming feature status.
-2. **Backend coverage is partial, not absent** — Live routers exist for auth-adjacent tenant flows, academic years, dashboard, activity logs, teachers, and classes; students/SPP/cashflow/events remain pending.
+2. **Backend coverage is partial, not absent** — Live routers exist for auth-adjacent tenant flows, academic years, dashboard, activity logs, teachers, classes, and students; SPP, cashflow, and events backend work still remain.
 3. **Frontend is mixed live + mock** — `academic-years`, `dashboard`, settings/unit flows, full Teacher Management, and full Class Management are live, while students/SPP/cashflow/events/users still contain mock data or placeholder flows.
-4. **Teacher import/export is intentionally deferred** — Step 21 leaves teacher import/export as disabled placeholders so the UI does not imply a live bulk flow that does not exist yet.
-5. **Local build still needs env for prerender** — `pnpm build` compiles the app, but local prerender will fail without `DATABASE_URL` (and related runtime env) because the workspace cannot open Neon during prerender.
+4. **Student migration is split across backend and frontend** — Step 25 is done, so the Student API Router is live, but the student list, registration drawer, detail tabs, and status flows are still mock-backed until Step 26 rewires them.
+5. **Build assumptions changed recently** — `pnpm build` now passes in the current workspace, so do not rely on older notes about guaranteed local prerender/env failure; re-run the real build before treating that warning as current fact.
 6. **Large chunk warning** — 581KB bundle remains a future optimization target.
 
 ## Active Constraints

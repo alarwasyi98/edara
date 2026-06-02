@@ -49,7 +49,7 @@
 
 EDARA uses **TanStack Start** in **SPA render mode**. The UI is client-rendered, while the same repo also ships an embedded server runtime that hosts Better Auth and oRPC endpoints. The correct mental model is **SPA-first, not backendless**.
 
-Current Phase 1 reality is mixed by domain: auth, tenant flows, academic years, dashboard, activity logs, teachers, and the class backend router are already live on the real backend; other domains still have mock/local-state frontends while their backend migration steps are unfinished.
+Current Phase 1 reality is mixed by domain: auth, tenant flows, academic years, dashboard, activity logs, teachers, classes, and the Student API Router are already live on the real backend. The remaining migration work is now concentrated in mock/local-state frontend surfaces, especially Student Frontend plus the SPP, cashflow, events, and users domains.
 
 EDARA follows these key patterns:
 
@@ -198,9 +198,10 @@ For feature specifications, see: [PRD - Feature Specifications](docs/PRD.md#3-fe
 
 The project follows a staged implementation plan from Mock/Vite SPA toward TanStack Start + oRPC + Drizzle ORM.
 
-- **Completed**: Section 1 (Stabilization) + Section 2 (DB Schema & RLS) — Steps 1–7
-- **In Progress**: Section 3 (Auth & API) — Step 8 (Better Auth integration, ~40%)
-- **Next Target**: Step 9 (oRPC Auth Middleware)
+- **Completed**: Sections 1–8 plus Section 9 Steps 23–25 — through Student API Router
+- **In Progress**: Section 9 (Class & Student Management), with Student Frontend still being migrated from mock data to live API hooks
+- **Next Target**: Step 26 — Student Frontend (list, registration, and detail rewiring)
+- **Migration Reality**: Teachers and classes are live end-to-end, the student backend is live, and SPP/cashflow/events/users still have mock or local-state UI surfaces
 
 For full plan, see: [Implementation Plan](docs/implementation-plan.md)
 
