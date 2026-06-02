@@ -6,6 +6,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import viteCompression from 'vite-plugin-compression'
 import { nitro } from 'nitro/vite'
+import { syncNitroSsrBridge } from './src/lib/nitro-ssr-bridge'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
@@ -24,6 +25,13 @@ export default defineConfig(({ command }) => ({
             prerender: {
               routes: [],
               crawlLinks: false,
+            },
+            hooks: {
+              compiled(nitro) {
+                syncNitroSsrBridge({
+                  srcDir: path.join(nitro.options.buildDir, 'vite/services/ssr'),
+                })
+              },
             },
           }),
         ]

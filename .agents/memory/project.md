@@ -8,9 +8,9 @@
 ## Current Status
 
 - **Phase:** Phase 1 — Migration from Mock to Real Backend
-- **Progress:** Sections 1–8 are complete through Step 22, and Section 9 Step 24 is complete. Live today: auth runtime, tenant/school-unit flows, academic years, dashboard, activity logs, full Teacher Management including bulk import/export, and Class Management end-to-end with grouped class listing, class detail/student roster, create, update, and transactional mass promotion wired through the live frontend. The remaining domain areas are still being migrated from mock data.
+- **Progress:** Sections 1–8 are complete through Step 22, and Section 9 Steps 23–25 are complete. Live today: auth runtime, tenant/school-unit flows, academic years, dashboard, activity logs, full Teacher Management including bulk import/export, Class Management end-to-end with grouped class listing, class detail/student roster, create, update, and transactional mass promotion wired through the live frontend, and Student API Router with all 6 procedures (`list`, `create`, `update`, `getById`, `changeStatus`, `getStatusHistory`) implemented, registered in app-router, and passing build. The remaining domain areas are still being migrated from mock data.
 - **Active Branch:** Do not rely on this file for branch state; verify with `git status` / `git log`.
-- **Implementation Plan:** Section 9 Step 24 is complete, and the next milestone is Section 9 Step 25 — Student API Router.
+- **Implementation Plan:** Section 9 Step 25 is complete. Next milestone is Section 9 Step 26 — Student Frontend (list, registration, hooks).
 
 ## Working Mental Model
 
@@ -29,7 +29,7 @@
 | 4 | Dashboard | DASH-01–05 | Schema ✅, API ✅, UI ✅ | Summary cards, cashflow chart, upcoming events, and recent activity use live API data |
 | 5 | Teachers | TCH-01–05 | Schema ✅, API ✅, UI ✅ | Step 20 complete: tenant-scoped teacher router (`list`, `getById`, `create`, `update`, `deactivate`) + validators live. Step 21 complete: teacher list, detail, create, update, and deactivate use the live API. Step 22 complete: bulk import preview/partial import and filtered Excel export are live through `tenant.teachers.previewImport`, `tenant.teachers.executeImport`, and `tenant.teachers.export` |
 | 6 | Classes | CLS-01–03 | Schema ✅, API ✅, UI ✅ | Step 24 complete: `src/features/classes/` now uses live `tenant.classes.list`, `getById`, `create`, `update`, and `massPromotion`, derives active/next academic year context from `tenant.academicYears.list`, uses `tenant.teachers.list` for homeroom options, groups cards by grade, and removes the old mock/delete flows |
-| 7 | Students | STU-01–06 | Schema ✅, API ❌, UI mock | Registration Drawer, Detail Page with tabs, Status Transitions |
+| 7 | Students | STU-01–06 | Schema ✅, API ✅, UI mock | Step 25 complete: `studentsRouter` with `list` (paginated, server-side search/filter), `create` (dual insert: students + enrollments), `update`, `getById` (profile + enrollments; payment history remains deferred until SPP-backed detail work), `changeStatus` (writes to enrollment_status_history), `getStatusHistory`. NISN uniqueness enforced per school. No permanent delete. Registration Drawer, Detail Page with tabs, Status Transitions remain mock. |
 | 8 | SPP Payment | SPP-01–10 | Schema ✅, API ❌, UI mock | Config, Recording (4-step), Monitoring (payment matrix) |
 | 9 | Cashflow | CF-01–04 | Schema ✅, API ❌, UI mock | Summary cards, chart, transaction table, auto-link from SPP |
 | 10 | Events/Calendar | EVT-01–04 | Schema ✅, API ❌, UI mock | DataTable tab, Calendar tab with chips, Side Drawer |

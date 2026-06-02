@@ -3,30 +3,120 @@
 > Layer 3: Episodic memory — what happened, when, and what changed.
 > Append new sessions at the top. Never delete old entries.
 
-## Current State Summary (as of Session 31)
+## Current State Summary (as of Session 33)
 
 | Property | Value |
 |----------|-------|
 | Branch | Do not trust this file for live branch state; verify with `git status` / `git log` |
 | SHA | Verify current SHA from git before acting on branch-sensitive work |
-| Last PR | #25 (feat: complete teacher management live migration) |
-| CI | Latest class frontend work passed `pnpm format:check`, `pnpm typecheck`, `pnpm test:run`, `rtk lint --max-warnings 10`, and `pnpm build` locally |
+| Last PR | #27 (feat: complete class management frontend) |
+| CI | Build pipeline fixed (OOM + missing SSR entry). Last full `pnpm build` passed cleanly. |
 | Deployment | https://edara.vercel.app/ (working, login functional) |
-| Next Step | **Advance to Section 9 Step 25 — Student API Router** |
+| Next Step | **Advance to Section 9 Step 26 — Student Frontend** |
 
 ### Current Implementation Snapshot
 
 **What's Done:**
-- Sections 1–8 are complete through Step 22, and Section 9 Step 23 is complete
-- Live today: auth runtime, tenant/school-unit flows, academic years, dashboard, activity logs, full Teacher Management including list/detail/create/update/deactivate plus bulk import preview/partial import and filtered Excel export, and full Class Management frontend/backend wiring including grouped cards, class detail roster, create/update, and transactional mass promotion
-- Section 9 onward still remains to be migrated from mock-backed frontend and/or missing domain routers/UI surfaces: students, SPP, cashflow, and events
+- Sections 1–8 are complete through Step 22, and Section 9 Steps 23–25 are complete
+- Live today: auth runtime, tenant/school-unit flows, academic years, dashboard, activity logs, full Teacher Management including list/detail/create/update/deactivate plus bulk import preview/partial import and filtered Excel export, full Class Management frontend/backend wiring including grouped cards, class detail roster, create/update, and transactional mass promotion, and Student API Router with all 6 procedures (`list`, `create`, `update`, `getById`, `changeStatus`, `getStatusHistory`) implemented and passing build
+- Section 9 onward still remains to be migrated from mock-backed frontend and/or missing domain routers/UI surfaces: student frontend, SPP, cashflow, and events
 
 **Next Actions:**
 1. Treat `docs/implementation-plan.md`, `AGENTS.md`, `.agents/memory/project.md`, and this log as the AI-facing source of truth for feature status
 2. Verify branch/SHA directly from git before doing branch-sensitive work
-3. Start Section 9 Step 25 (Student API Router) and preserve the current class frontend/teacher import-export behavior unless requirements change
+3. Start Section 9 Step 26 (Student Frontend) and preserve the current class frontend/teacher import-export behavior unless requirements change
 
 ---
+
+## Session 34 — 2026-05-30: PR #28 Step 25 Hardening
+
+**Scope:** Tighten the draft Student API Router PR by fixing backend-only blockers: scoped validation, distinct student pagination, audit logging, migration drift, and backend regression coverage.
+
+### What Happened
+- Hardened `src/server/routers/students/index.ts` so `list` pages/counts distinct students instead of joined enrollment rows, `create` validates class/year scope and class-year consistency, duplicate NISN returns structured `CONFLICT`, `changeStatus` + `getStatusHistory` enforce both school and unit scope, and student mutations now use `withActivityLog`.
+- Added focused regression coverage in `src/server/routers/students/index.test.ts` for student-list deduplication, duplicate NISN conflicts, class-year mismatch rejection, update duplicate conflict handling, and cross-unit status-history access.
+- Added custom migration `drizzle/0003_fix_enrollment_status_history.sql` plus matching `drizzle/meta/0003_snapshot.json` / `_journal.json` to align `enrollment_status_history` with the live schema (`old_status`, `new_status`, `changed_by uuid -> user.id`, `changed_at` with timezone).
+- Corrected AI-facing docs so Step 25 now states `getById` returns profile + enrollment history, while payment history remains deferred to later SPP-backed student-detail work.
+
+### Why It Matters
+This keeps PR #28 backend-only while making the student router merge-safer: pagination counts are stable, tenant boundaries are enforced consistently, audit logs match project rules, and Drizzle metadata no longer drifts from the checked-in schema.
+
+### Verification
+- `pnpm test:run -- src/server/routers/students/index.test.ts` passed
+- `pnpm typecheck` passed
+- `pnpm build` passed
+
+### Files Changed
+- `src/server/routers/students/index.ts` — hardened list/mutations/scope checks and added activity logging
+- `src/server/routers/students/index.test.ts` — new backend regression tests
+- `drizzle/0003_fix_enrollment_status_history.sql` — new custom migration
+- `drizzle/meta/0003_snapshot.json` — aligned migration snapshot
+- `drizzle/meta/_journal.json` — registered migration
+- `docs/implementation-plan.md` — clarified Step 25 `getById` scope
+- `.agents/memory/project.md` — aligned student feature note
+
+---
+
+## Session 33 — 2026-05-26: Section 9 Step 25 — Student API Router
+
+**Scope:** Implement `studentsRouter` with all 6 procedures (`list`, `create`, `update`, `getById`, `changeStatus`, `getStatusHistory`), register in `appRouter`, and verify build passes.
+
+### What Happened
+Created `src/server/routers/students/index.ts` with tenant-scoped student router implementing:
+- `list`: paginated with server-side search/filter by class/status/search term
+- `create`: dual insert transaction (students + enrollments) with NISN uniqueness per school
+- `update`: student profile updates
+- `getById`: combined student profile + enrollment history for detail page (payment history deferred to later SPP-backed work)
+- `changeStatus`: writes to `enrollment_status_history` with old_status, new_status, changed_by, metadata (supports transfer, graduate, dropout)
+- `getStatusHistory`: retrieves full status transition history
+
+Created `src/lib/validators/students.ts` with comprehensive Zod schemas for all operations including import/export schemas (following teacher pattern).
+
+Verified `src/server/db/schema/enrollments.ts` contains `enrollmentStatusHistory` table (lines 80–95) with proper relations and `enrollmentStatusEnum` includes all required statuses (`active`, `promoted`, `graduated`, `transferred_out`, `inactive`).
+
+Registered `students` router in `src/server/routers/app-router.ts` (lines 107–114).
+
+### Why It Matters
+This completes the Student API Router backend foundation, enabling the Student Frontend implementation in Step 26. All student operations now have type-safe oRPC procedures with proper tenant scoping, RLS enforcement, and pagination; payment-history detail remains a later SPP-backed follow-up.
+
+### Verification
+- `pnpm build` passed: client 4093 modules, server 1 module, ~3 minutes
+- `pnpm format:check` passed
+- ESLint baseline: 3 errors, 9 warnings in 12 files
+- LSP diagnostics clean on all modified files
+- Router registered and verified in `app-router.ts`
+
+### Files Changed
+- `src/server/routers/students/index.ts` — new: studentsRouter with 6 procedures
+- `src/lib/validators/students.ts` — new: comprehensive Zod schemas
+- `src/server/routers/app-router.ts` — registered students router (lines 107–114)
+
+---
+
+## Session 32 — 2026-05-21: Fix Production Build Pipeline (OOM + SSR Bridge)
+
+**Scope:** Fix `pnpm build` which was broken by a JS heap OOM during Nitro SSR bundling and a missing `dist/server/server.js` after Nitro migrated to `.nitro/vite/services/ssr/`.
+
+### What Happened
+Diagnosed two build failures:
+1. **OOM** — `FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory` during Nitro SSR bundling (client build consumed most of the default 2GB heap before Nitro ran). Fixed by adding `.npmrc` with `NODE_OPTIONS=--max-old-space-size=4096`.
+2. **Missing `dist/server/server.js`** — After fixing OOM, the preview server failed with `Cannot find module 'dist/server/server.js'` because Nitro/Vercel preset redirects SSR output to `node_modules/.nitro/vite/services/ssr/index.js` instead of the expected `dist/server/server.js`. Fixed by adding a custom Vite plugin `nitro-ssr-bridge` that copies the entire SSR output directory (including `assets/`) to `dist/server/` via `cpSync`.
+
+### Why It Matters
+Without a working build, CI would fail on every PR. The `.npmrc` bump and nitro-ssr-bridge are low-touch, low-risk changes that unblock the CI pipeline without altering the app logic.
+
+### Verification
+- `pnpm build` completed successfully:
+  - Client: ✓ built in 50.26s
+  - Nitro SSR: ✓ built in 1m 31s (4549 modules, Vercel preset)
+  - Prerender: 1 page (/) rendered successfully
+- No errors, only baseline warnings (chunk size, "use client" directive, unused devtools imports)
+
+### Files Changed
+- `.npmrc` — Added `node-options=--max-old-space-size=4096`
+- `vite.config.ts` — Added `nitroSSRBridgePlugin`; replaced `copyFileSync` import with `cpSync`
+
+--- 
 
 ## Session 31 — 2026-05-20: Section 9 Step 24 — Class Frontend
 
